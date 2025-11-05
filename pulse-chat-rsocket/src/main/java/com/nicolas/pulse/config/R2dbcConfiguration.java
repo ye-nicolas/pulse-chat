@@ -1,0 +1,81 @@
+package com.nicolas.pulse.config;
+
+import io.r2dbc.pool.ConnectionPool;
+import io.r2dbc.pool.ConnectionPoolConfiguration;
+import io.r2dbc.postgresql.PostgresqlConnectionConfiguration;
+import io.r2dbc.postgresql.PostgresqlConnectionFactory;
+import io.r2dbc.spi.ConnectionFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.data.r2dbc.config.AbstractR2dbcConfiguration;
+
+import java.time.Duration;
+
+@Configuration
+public class R2dbcConfiguration extends AbstractR2dbcConfiguration {
+    @Value("${pulse-chat.db.host}")
+    private String host;
+
+    @Value("${pulse-chat.db.port}")
+    private int port;
+
+    @Value("${pulse-chat.db.username}")
+    private String username;
+
+    @Value("${pulse-chat.db.password}")
+    private String password;
+
+    @Value("${pulse-chat.db.database}")
+    private String database;
+
+    @Value("${pulse-chat.db.schema}")
+    private String schema;
+
+    @Value("${pulse-chat.db.connection-timeout}")
+    private int connectionTimeout;
+
+    // --- pool settings ---
+    @Value("${pulse-chat.db.pool.initial-size}")
+    private int initialSize;
+
+    @Value("${pulse-chat.db.pool.max-idle-time}")
+    private int maxIdleTime;
+
+    @Value("${pulse-chat.db.pool.max-size}")
+    private int maxSize;
+
+    @Value("${pulse-chat.db.pool.max-acquire-time}")
+    private int maxAcquireTime;
+
+    @Value("${pulse-chat.db.pool.max-create-connection-time}")
+    private int maxCreateConnectionTime;
+
+    @Value("${pulse-chat.db.pool.acquire-retry}")
+    private int acquireRetry;
+
+    @Bean
+    @Override
+    public ConnectionFactory connectionFactory() {
+        PostgresqlConnectionConfiguration connectionConfiguration = PostgresqlConnectionConfiguration.builder()
+                .addHost(host, port)
+                .connectTimeout(Duration.ofSeconds(connectionTimeout))
+                .database(database)
+                .schema(schema)
+                .username(username)
+                .password(password)
+                .build();
+        PostgresqlConnectionFactory postgresqlConnectionFactory = new PostgresqlConnectionFactory(connectionConfiguration);
+        ConnectionPoolConfiguration poolConfig = ConnectionPoolConfiguration.builder(postgresqlConnectionFactory)
+                .initialSize(initialSize)                         // 初始建立 5 條連線
+                .maxSize(maxSize)                            // 連線池最大容量 20 條
+                .maxIdleTime(Duration.ofSeconds(maxIdleTime))    // 空閒連線超過 30 分鐘自動回收
+                .maxAcquireTime(Duration.ofSeconds(maxAcquireTime)) // 取連線最長等候 10 秒，超過丟錯
+                .maxCreateConnectionTime(Duration.ofSeconds(maxCreateConnectionTime)) // 新建連線最長等候 5 秒
+                .acquireRetry(acquireRetry)                        // 嘗試取連線最多重試 3 次
+                .name("pool_" + database + "_" + schema)                  // 池名稱，用於監控或 debug
+                .validationQuery("SELECT 1")            // 驗證連線有效性
+                .build();
+        return new ConnectionPool(poolConfig);
+    }
+}
