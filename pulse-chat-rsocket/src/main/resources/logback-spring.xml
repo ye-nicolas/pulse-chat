@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <!-- 設定預設的 log level -->
+
+    <springProperty scope="context" name="LOG_LEVEL" source="logging.level.root" defaultValue="INFO"/>
+    <springProperty scope="context" name="LOG_DIR" source="logging.dir.root" defaultValue="log/pulse-chat"/>
+    <springProperty scope="context" name="LOG_FILE_NAME" source="logging.file.name" defaultValue="app-pulse-chat"/>
+    <springProperty scope="context" name="APP_NAME" source="spring.application.name" defaultValue="pulse-chat"/>
+    <springProperty scope="context" name="TRACE_ID" source="logging.mdc.trace-id" defaultValue="traceId"/>
+
+    <!-- Console 輸出 -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%yellow(%d{yyyy-MM-dd HH:mm:ss.SSS}) %green([%thread]) %magenta([${APP_NAME}]) %replace(%X{${TRACE_ID}}){'(.+)','[$1]'} %highlight(%-5level) %cyan(%logger) - %msg%n%red(%xThrowable)</pattern>
+        </encoder>
+    </appender>
+
+    <!-- 檔案輸出，並每天滾動、壓縮 -->
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_DIR}/${LOG_FILE_NAME}.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!-- 每天一個檔案 -->
+            <fileNamePattern>${LOG_DIR}/${LOG_FILE_NAME}.%d{yyyy-MM-dd}.log.gz</fileNamePattern>
+            <!-- 保留 30 天的 log -->
+            <maxHistory>30</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] [${APP_NAME}] %replace(%X{${TRACE_ID}}){'(.+)','[$1]'} %-5level %logger - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- 根 logger 設定 -->
+    <root level="${LOG_LEVEL}">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="FILE"/>
+    </root>
+</configuration>
