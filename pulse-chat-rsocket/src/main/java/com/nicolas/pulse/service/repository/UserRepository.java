@@ -9,15 +9,11 @@ import java.util.UUID;
 public interface UserRepository {
     Flux<User> findAll();
 
-    Mono<User> findById(UUID id);
-
     Mono<User> findById(String id);
 
     Mono<User> create(User user);
 
     Mono<User> update(User user);
-
-    Mono<Void> deleteById(UUID id);
 
     Mono<Void> deleteById(String id);
 

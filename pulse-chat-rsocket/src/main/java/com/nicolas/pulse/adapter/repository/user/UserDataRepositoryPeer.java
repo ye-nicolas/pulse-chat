@@ -5,6 +5,6 @@ import reactor.core.publisher.Mono;
 
 import java.util.UUID;
 
-public interface UserDataRepositoryPeer extends R2dbcRepository<UserData, UUID> {
+public interface UserDataRepositoryPeer extends R2dbcRepository<UserData, String> {
     Mono<Boolean> existsByName(String name);
 }

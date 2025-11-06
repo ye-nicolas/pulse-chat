@@ -23,13 +23,8 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     @Override
-    public Mono<User> findById(UUID id) {
-        return peer.findById(id).map(UserDataMapper::dataToDomain);
-    }
-
-    @Override
     public Mono<User> findById(String id) {
-        return peer.findById(UUID.fromString(id)).map(UserDataMapper::dataToDomain);
+        return peer.findById(id).map(UserDataMapper::dataToDomain);
     }
 
     @Override
@@ -49,13 +44,8 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     @Override
-    public Mono<Void> deleteById(UUID id) {
-        return peer.deleteById(id);
-    }
-
-    @Override
     public Mono<Void> deleteById(String id) {
-        return peer.deleteById(UUID.fromString(id));
+        return peer.deleteById(id);
     }
 
     @Override
