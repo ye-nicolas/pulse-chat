@@ -57,6 +57,10 @@
             <artifactId>reactor-test</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>context-propagation</artifactId>
+        </dependency>
     </dependencies>
     <build>
         <finalName>pulse-chat</finalName>
