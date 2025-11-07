@@ -1,4 +1,4 @@
-package com.nicolas.pulse.adapter.repository.user;
+package com.nicolas.pulse.adapter.repository.account;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -11,12 +11,12 @@ import org.springframework.data.relational.core.mapping.Table;
 import java.time.LocalDateTime;
 
 
-@Table(value = "user")
+@Table(value = "account")
 @Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class UserData {
+public class AccountData {
     @Id
     @Column("id")
     private String id;

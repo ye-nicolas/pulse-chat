@@ -1,8 +1,8 @@
-package com.nicolas.pulse.adapter.repository.user;
+package com.nicolas.pulse.adapter.repository.account;
 
 import org.springframework.data.r2dbc.repository.R2dbcRepository;
 import reactor.core.publisher.Mono;
 
-public interface UserDataRepositoryPeer extends R2dbcRepository<UserData, String> {
+public interface AccountDataRepositoryPeer extends R2dbcRepository<AccountData, String> {
     Mono<Boolean> existsByName(String name);
 }

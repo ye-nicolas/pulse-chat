@@ -1,15 +1,15 @@
-package com.nicolas.pulse.adapter.repository.user;
+package com.nicolas.pulse.adapter.repository.account;
 
-import com.nicolas.pulse.entity.domain.User;
+import com.nicolas.pulse.entity.domain.Account;
 
 import java.util.List;
 
-public class UserDataMapper {
-    public static User dataToDomain(UserData data) {
+public class AccountDataMapper {
+    public static Account dataToDomain(AccountData data) {
         if (data == null) {
             return null;
         }
-        return User.builder()
+        return Account.builder()
                 .id(data.getId())
                 .name(data.getName())
                 .showName(data.getShowName())
@@ -24,15 +24,15 @@ public class UserDataMapper {
                 .build();
     }
 
-    public static List<User> dataToDomain(List<UserData> data) {
-        return data.stream().map(UserDataMapper::dataToDomain).toList();
+    public static List<Account> dataToDomain(List<AccountData> data) {
+        return data.stream().map(AccountDataMapper::dataToDomain).toList();
     }
 
-    public static UserData domainToData(User domain) {
+    public static AccountData domainToData(Account domain) {
         if (domain == null) {
             return null;
         }
-        return UserData.builder()
+        return AccountData.builder()
                 .id(domain.getId())
                 .name(domain.getName())
                 .showName(domain.getShowName())
@@ -47,7 +47,7 @@ public class UserDataMapper {
                 .build();
     }
 
-    public static List<UserData> domainToData(List<User> domain) {
-        return domain.stream().map(UserDataMapper::domainToData).toList();
+    public static List<AccountData> domainToData(List<Account> domain) {
+        return domain.stream().map(AccountDataMapper::domainToData).toList();
     }
 }

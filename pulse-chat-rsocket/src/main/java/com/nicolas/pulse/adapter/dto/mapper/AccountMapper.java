@@ -1,14 +1,14 @@
 package com.nicolas.pulse.adapter.dto.mapper;
 
-import com.nicolas.pulse.adapter.dto.response.UserRes;
-import com.nicolas.pulse.entity.domain.User;
+import com.nicolas.pulse.adapter.dto.response.AccountRes;
+import com.nicolas.pulse.entity.domain.Account;
 
-public class UserMapper {
-    public static UserRes domainToRes(User domain) {
+public class AccountMapper {
+    public static AccountRes domainToRes(Account domain) {
         if (domain == null) {
             return null;
         }
-        return UserRes.builder()
+        return AccountRes.builder()
                 .id(domain.getId())
                 .name(domain.getName())
                 .showName(domain.getShowName())

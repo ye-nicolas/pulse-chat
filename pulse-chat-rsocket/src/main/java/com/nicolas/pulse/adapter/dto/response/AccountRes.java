@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class UserRes {
+public class AccountRes {
     private String id;
     private String name;
     private String showName;

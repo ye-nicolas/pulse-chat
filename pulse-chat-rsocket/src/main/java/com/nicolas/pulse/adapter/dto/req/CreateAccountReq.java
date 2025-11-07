@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class CreateUserReq {
+public class CreateAccountReq {
     @NotBlank
     private String name;
     @NotBlank

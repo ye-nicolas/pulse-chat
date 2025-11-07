@@ -1,8 +1,8 @@
 package com.nicolas.pulse.service.usecase;
 
 import com.github.f4b6a3.ulid.UlidCreator;
-import com.nicolas.pulse.entity.domain.User;
-import com.nicolas.pulse.service.repository.UserRepository;
+import com.nicolas.pulse.entity.domain.Account;
+import com.nicolas.pulse.service.repository.AccountRepository;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -10,15 +10,15 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
 @Service
-public class CreateUserUseCase {
-    private final UserRepository userRepository;
+public class CreateAccountUseCase {
+    private final AccountRepository accountRepository;
 
-    public CreateUserUseCase(UserRepository userRepository) {
-        this.userRepository = userRepository;
+    public CreateAccountUseCase(AccountRepository accountRepository) {
+        this.accountRepository = accountRepository;
     }
 
     public Mono<Output> execute(Mono<Input> input) {
-        return input.flatMap(i -> userRepository.existsByName(i.getName())
+        return input.flatMap(i -> accountRepository.existsByName(i.getName())
                         .flatMap(exists -> {
                             if (exists) {
                                 return Mono.error(new IllegalStateException("User name already exists."));
@@ -28,9 +28,9 @@ public class CreateUserUseCase {
                 .flatMap(this::createUser).map(user -> new Output(user.getId()));
     }
 
-    private Mono<User> createUser(Input input) {
+    private Mono<Account> createUser(Input input) {
         String id = UlidCreator.getMonotonicUlid().toString();
-        User user = User.builder()
+        Account account = Account.builder()
                 .id(id)
                 .name(input.getName())
                 .showName(input.getShowName())
@@ -40,7 +40,7 @@ public class CreateUserUseCase {
                 .createdBy(id)
                 .updatedBy(id)
                 .build();
-        return userRepository.create(user);
+        return accountRepository.create(account);
     }
 
     @Data
