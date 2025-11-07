@@ -9,9 +9,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.r2dbc.config.AbstractR2dbcConfiguration;
+import org.springframework.data.r2dbc.repository.config.EnableR2dbcRepositories;
 
 import java.time.Duration;
 
+@EnableR2dbcRepositories(basePackages = "com.nicolas.pulse.adapter.repository")
 @Configuration
 public class R2dbcConfiguration extends AbstractR2dbcConfiguration {
     @Value("${pulse-chat.db.host}")
