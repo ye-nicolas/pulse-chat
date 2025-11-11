@@ -3,6 +3,7 @@ package com.nicolas.pulse.adapter.controller;
 import com.nicolas.pulse.adapter.dto.mapper.AccountMapper;
 import com.nicolas.pulse.adapter.dto.req.CreateAccountReq;
 import com.nicolas.pulse.adapter.dto.response.AccountRes;
+import com.nicolas.pulse.entity.exception.TargetNotFoundException;
 import com.nicolas.pulse.service.repository.AccountRepository;
 import com.nicolas.pulse.service.usecase.CreateAccountUseCase;
 import jakarta.validation.Valid;
@@ -32,8 +33,9 @@ public class AccountController {
     @GetMapping("/{userId}")
     public Mono<ResponseEntity<AccountRes>> findById(@PathVariable("userId") String userId) {
         return accountRepository.findById(userId)
-                .switchIfEmpty(Mono.error(new IllegalArgumentException("User not found, id = '%s'.".formatted(userId))))
-                .map(AccountMapper::domainToRes).map(ResponseEntity::ok);
+                .switchIfEmpty(Mono.error(new TargetNotFoundException("User not found, id = '%s'.".formatted(userId))))
+                .map(AccountMapper::domainToRes)
+                .map(ResponseEntity::ok);
     }
 
     @PostMapping("/")
