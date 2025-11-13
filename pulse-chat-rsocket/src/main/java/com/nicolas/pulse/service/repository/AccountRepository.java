@@ -9,6 +9,8 @@ public interface AccountRepository {
 
     Mono<Account> findById(String id);
 
+    Mono<Account> findByName(String name);
+
     Mono<Account> create(Account account);
 
     Mono<Account> update(Account account);

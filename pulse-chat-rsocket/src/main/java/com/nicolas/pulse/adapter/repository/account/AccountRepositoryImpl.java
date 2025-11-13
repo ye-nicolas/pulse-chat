@@ -32,6 +32,11 @@ public class AccountRepositoryImpl implements AccountRepository {
     }
 
     @Override
+    public Mono<Account> findByName(String name) {
+        return peer.findByName(name).map(AccountDataMapper::dataToDomain);
+    }
+
+    @Override
     public Mono<Account> create(Account account) {
         Instant now = Instant.now();
         account.setCreatedAt(now);
