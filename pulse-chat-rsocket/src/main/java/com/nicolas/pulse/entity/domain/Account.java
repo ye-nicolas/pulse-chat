@@ -5,7 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Data
 @Builder
@@ -17,10 +17,10 @@ public class Account {
     private String showName;
     private String password;
     private boolean isActive;
-    private LocalDateTime lastLoginAt;
+    private Instant lastLoginAt;
     private String createdBy;
     private String updatedBy;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
+    private Instant createdAt;
+    private Instant updatedAt;
     private String remark;
 }

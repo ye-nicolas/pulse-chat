@@ -8,7 +8,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 
 @Table(value = "account")
@@ -29,15 +29,15 @@ public class AccountData {
     @Column("is_active")
     private boolean isActive;
     @Column("last_login_at")
-    private LocalDateTime lastLoginAt;
+    private Instant lastLoginAt;
     @Column("created_by")
     private String createdBy;
     @Column("updated_by")
     private String updatedBy;
     @Column("created_at")
-    private LocalDateTime createdAt;
+    private Instant createdAt;
     @Column("updated_at")
-    private LocalDateTime updatedAt;
+    private Instant updatedAt;
     @Column("remark")
     private String remark;
 }
