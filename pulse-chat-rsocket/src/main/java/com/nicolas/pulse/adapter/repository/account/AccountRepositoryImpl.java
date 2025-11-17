@@ -7,6 +7,7 @@ import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 
 @Repository
@@ -32,7 +33,7 @@ public class AccountRepositoryImpl implements AccountRepository {
 
     @Override
     public Mono<Account> create(Account account) {
-        LocalDateTime now = LocalDateTime.now();
+        Instant now = Instant.now();
         account.setCreatedAt(now);
         account.setUpdatedAt(now);
         AccountData accountData = AccountDataMapper.domainToData(account);
@@ -41,7 +42,7 @@ public class AccountRepositoryImpl implements AccountRepository {
 
     @Override
     public Mono<Account> update(Account account) {
-        account.setUpdatedAt(LocalDateTime.now());
+        account.setUpdatedAt(Instant.now());
         AccountData accountData = AccountDataMapper.domainToData(account);
         return r2dbcEntityOperations.update(accountData).map(AccountDataMapper::dataToDomain);
     }

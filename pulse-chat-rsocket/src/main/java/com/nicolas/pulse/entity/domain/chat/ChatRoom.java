@@ -1,5 +1,6 @@
-package com.nicolas.pulse.entity.domain;
+package com.nicolas.pulse.entity.domain.chat;
 
+import com.nicolas.pulse.entity.enumerate.ChatRoomType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -11,16 +12,12 @@ import java.time.Instant;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class Account {
+public class ChatRoom {
     private String id;
     private String name;
-    private String showName;
-    private String password;
-    private boolean isActive;
-    private Instant lastLoginAt;
+    private ChatRoomType type;
     private String createdBy;
     private String updatedBy;
     private Instant createdAt;
     private Instant updatedAt;
-    private String remark;
 }

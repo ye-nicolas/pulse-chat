@@ -1,5 +1,6 @@
-package com.nicolas.pulse.adapter.repository.account;
+package com.nicolas.pulse.adapter.repository.chat.message;
 
+import com.nicolas.pulse.entity.enumerate.ChatMessageType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -10,34 +11,32 @@ import org.springframework.data.relational.core.mapping.Table;
 
 import java.time.Instant;
 
-
-@Table(value = "account")
+@Table("chat_message")
 @Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class AccountData {
+public class ChatMessageData {
     @Id
     @Column("id")
     private String id;
-    @Column("name")
-    private String name;
-    @Column("show_name")
-    private String showName;
-    @Column("password")
-    private String password;
-    @Column("is_active")
-    private boolean isActive;
-    @Column("last_login_at")
-    private Instant lastLoginAt;
+    @Column("room_id")
+    private String roomId;
+    @Column("member_id")
+    private String memberId;
+    @Column("type")
+    private ChatMessageType type;
+    @Column("content")
+    private String content;
     @Column("created_by")
     private String createdBy;
-    @Column("updated_by")
-    private String updatedBy;
     @Column("created_at")
     private Instant createdAt;
     @Column("updated_at")
     private Instant updatedAt;
-    @Column("remark")
-    private String remark;
+    @Column("delete_at")
+    private Instant deletedAt;
+    @Column("is_delete")
+    @Builder.Default
+    private boolean isDelete = false;
 }

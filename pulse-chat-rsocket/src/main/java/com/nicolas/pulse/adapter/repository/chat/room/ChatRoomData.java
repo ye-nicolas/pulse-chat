@@ -1,5 +1,6 @@
-package com.nicolas.pulse.adapter.repository.account;
+package com.nicolas.pulse.adapter.repository.chat.room;
 
+import com.nicolas.pulse.entity.enumerate.ChatRoomType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -10,34 +11,33 @@ import org.springframework.data.relational.core.mapping.Table;
 
 import java.time.Instant;
 
+import static com.nicolas.pulse.adapter.repository.DbMeta.ChatRoomData.*;
 
-@Table(value = "account")
+@Table(value = TABLE_NAME)
 @Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class AccountData {
+public class ChatRoomData {
     @Id
-    @Column("id")
+    @Column(COLUMN_ID)
     private String id;
-    @Column("name")
+
+    @Column(COLUMN_NAME)
     private String name;
-    @Column("show_name")
-    private String showName;
-    @Column("password")
-    private String password;
-    @Column("is_active")
-    private boolean isActive;
-    @Column("last_login_at")
-    private Instant lastLoginAt;
-    @Column("created_by")
+
+    @Column(COLUMN_TYPE)
+    private ChatRoomType type;
+
+    @Column(COLUMN_CREATED_BY)
     private String createdBy;
-    @Column("updated_by")
+
+    @Column(COLUMN_UPDATED_BY)
     private String updatedBy;
-    @Column("created_at")
+
+    @Column(COLUMN_CREATED_AT)
     private Instant createdAt;
-    @Column("updated_at")
+
+    @Column(COLUMN_UPDATED_AT)
     private Instant updatedAt;
-    @Column("remark")
-    private String remark;
 }

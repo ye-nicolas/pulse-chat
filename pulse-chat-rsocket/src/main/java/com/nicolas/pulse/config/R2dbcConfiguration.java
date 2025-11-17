@@ -5,15 +5,22 @@ import io.r2dbc.pool.ConnectionPoolConfiguration;
 import io.r2dbc.postgresql.PostgresqlConnectionConfiguration;
 import io.r2dbc.postgresql.PostgresqlConnectionFactory;
 import io.r2dbc.spi.ConnectionFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.data.r2dbc.config.AbstractR2dbcConfiguration;
+import org.springframework.data.r2dbc.core.R2dbcEntityOperations;
+import org.springframework.data.r2dbc.core.R2dbcEntityTemplate;
+import org.springframework.data.r2dbc.dialect.PostgresDialect;
 import org.springframework.data.r2dbc.repository.config.EnableR2dbcRepositories;
+import org.springframework.r2dbc.core.DatabaseClient;
 
 import java.time.Duration;
 
-@EnableR2dbcRepositories(basePackages = "com.nicolas.pulse.adapter.repository")
+@EnableR2dbcRepositories(basePackages = "com.nicolas.pulse.adapter.repository",
+        entityOperationsRef = "MainR2dbcEntityOperations")
 @Configuration
 public class R2dbcConfiguration extends AbstractR2dbcConfiguration {
     @Value("${pulse-chat.db.host}")
@@ -56,7 +63,8 @@ public class R2dbcConfiguration extends AbstractR2dbcConfiguration {
     @Value("${pulse-chat.db.pool.acquire-retry}")
     private int acquireRetry;
 
-    @Bean
+    @Primary
+    @Bean("MainConnectionFactory")
     @Override
     public ConnectionFactory connectionFactory() {
         PostgresqlConnectionConfiguration connectionConfiguration = PostgresqlConnectionConfiguration.builder()
@@ -79,5 +87,12 @@ public class R2dbcConfiguration extends AbstractR2dbcConfiguration {
                 .validationQuery("SELECT 1")            // 驗證連線有效性
                 .build();
         return new ConnectionPool(poolConfig);
+    }
+
+    @Primary
+    @Bean("MainR2dbcEntityOperations")
+    public R2dbcEntityOperations mainR2dbcEntityOperations(@Qualifier("MainConnectionFactory") ConnectionFactory connectionFactory) {
+        DatabaseClient databaseClient = DatabaseClient.create(connectionFactory);
+        return new R2dbcEntityTemplate(databaseClient, PostgresDialect.INSTANCE);
     }
 }
