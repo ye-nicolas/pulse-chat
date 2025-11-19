@@ -10,23 +10,36 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.time.OffsetDateTime;
-import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Repository
 public class RoleRepositoryImpl implements RoleRepository {
     private final RoleDataRepositoryPeer peer;
     private final R2dbcEntityOperations r2dbcEntityOperations;
-    private static final String PREFIX = "rp_";
     private static final String BASIC_SQL = """
-             SELECT r.*,
-                   rp.%s AS %s,
+             SELECT
+                   r.%s AS %s,
+                   r.%s AS %s,
+                   r.%s AS %s,
+                   r.%s AS %s,
+                   r.%s AS %s,
+                   r.%s AS %s,
+                   r.%s AS %s,
+                   rp.%s AS %s
             FROM %s r
-            JOIN %s rp ON r.%s = rp.%s
-            """.formatted(DbMeta.RolePrivilegeData.COLUMN_PRIVILEGE,
-            PREFIX + DbMeta.RolePrivilegeData.COLUMN_PRIVILEGE,
+            LEFT JOIN %s rp ON r.%s = rp.%s
+            """.formatted(
+            DbMeta.RoleData.COLUMN_ID, DbMeta.RoleData.ALIAS_ID,
+            DbMeta.RoleData.COLUMN_NAME, DbMeta.RoleData.ALIAS_NAME,
+            DbMeta.RoleData.COLUMN_CREATED_BY, DbMeta.RoleData.ALIAS_CREATED_BY,
+            DbMeta.RoleData.COLUMN_UPDATED_BY, DbMeta.RoleData.ALIAS_UPDATED_BY,
+            DbMeta.RoleData.COLUMN_CREATED_AT, DbMeta.RoleData.ALIAS_CREATED_AT,
+            DbMeta.RoleData.COLUMN_UPDATED_AT, DbMeta.RoleData.ALIAS_UPDATED_AT,
+            DbMeta.RoleData.COLUMN_REMARK, DbMeta.RoleData.ALIAS_REMARK,
+            DbMeta.RolePrivilegeData.COLUMN_PRIVILEGE, DbMeta.RolePrivilegeData.ALIAS_PRIVILEGE,
             DbMeta.RoleData.TABLE_NAME,
             DbMeta.RolePrivilegeData.TABLE_NAME,
             DbMeta.RoleData.COLUMN_ID,
@@ -40,7 +53,6 @@ public class RoleRepositoryImpl implements RoleRepository {
         this.r2dbcEntityOperations = r2dbcEntityOperations;
     }
 
-
     @Override
     public Flux<Role> findAll() {
         return r2dbcEntityOperations.getDatabaseClient().sql(BASIC_SQL)
@@ -53,17 +65,20 @@ public class RoleRepositoryImpl implements RoleRepository {
 
     public static RoleData mapToData(List<Map<String, Object>> listMap) {
         return RoleData.builder()
-                .id((String) listMap.getFirst().get(DbMeta.RoleData.COLUMN_ID))
-                .name((String) listMap.getFirst().get(DbMeta.RoleData.COLUMN_NAME))
-                .createdBy((String) listMap.getFirst().get(DbMeta.RoleData.COLUMN_CREATED_BY))
-                .updatedBy((String) listMap.getFirst().get(DbMeta.RoleData.COLUMN_UPDATED_BY))
-                .createdAt((OffsetDateTime) listMap.getFirst().get(DbMeta.RoleData.COLUMN_CREATED_AT))
-                .updatedAt((OffsetDateTime) listMap.getFirst().get(DbMeta.RoleData.COLUMN_UPDATED_AT))
-                .remark((String) listMap.getFirst().get(DbMeta.RoleData.COLUMN_REMARK))
+                .id((String) listMap.getFirst().get(DbMeta.RoleData.ALIAS_ID))
+                .name((String) listMap.getFirst().get(DbMeta.RoleData.ALIAS_NAME))
+                .createdBy((String) listMap.getFirst().get(DbMeta.RoleData.ALIAS_CREATED_BY))
+                .updatedBy((String) listMap.getFirst().get(DbMeta.RoleData.ALIAS_UPDATED_BY))
+                .createdAt((OffsetDateTime) listMap.getFirst().get(DbMeta.RoleData.ALIAS_CREATED_AT))
+                .updatedAt((OffsetDateTime) listMap.getFirst().get(DbMeta.RoleData.ALIAS_UPDATED_AT))
+                .remark((String) listMap.getFirst().get(DbMeta.RoleData.ALIAS_REMARK))
                 .privilegeSet(listMap.stream()
-                        .map(m -> Privilege.valueOf((String) m.get(PREFIX + DbMeta.RolePrivilegeData.COLUMN_PRIVILEGE)))
-                        .collect(Collectors.toSet()))
-                .build();
+                        .map(m -> m.get(DbMeta.RolePrivilegeData.ALIAS_PRIVILEGE))
+                        .filter(Objects::nonNull)
+                        .map(Object::toString)                   // 保險轉成 String
+                        .map(Privilege::valueOf)                 // 轉成 Enum
+                        .collect(Collectors.toSet())
+                ).build();
     }
 
     @Override
