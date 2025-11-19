@@ -40,6 +40,7 @@ public class DbMeta {
 
     public static final class RolePrivilegeData {
         public static final String TABLE_NAME = "role_privilege";
+        public static final String COLUMN_ID = "id";
         public static final String COLUMN_ROLE_ID = "role_id";
         public static final String COLUMN_PRIVILEGE = "privilege";
         public static final String COLUMN_CREATED_BY = "created_by";

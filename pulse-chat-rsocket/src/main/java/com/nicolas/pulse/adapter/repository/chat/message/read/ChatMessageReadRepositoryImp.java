@@ -7,7 +7,7 @@ import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.time.Instant;
+import java.time.OffsetDateTime;
 
 
 @Repository
@@ -27,7 +27,7 @@ public class ChatMessageReadRepositoryImp implements ChatMessageReadRepository {
 
     @Override
     public Mono<ChatMessageRead> insert(ChatMessageRead messageRead) {
-        messageRead.setCreatedAt(Instant.now());
+        messageRead.setCreatedAt(OffsetDateTime.now());
         ChatMessageReadData chatMessageReadData = ChatMessageReadDataMapper.domainToData(messageRead);
         return r2dbcEntityOperations.insert(chatMessageReadData).map(ChatMessageReadDataMapper::dataToDomain);
     }
@@ -36,7 +36,7 @@ public class ChatMessageReadRepositoryImp implements ChatMessageReadRepository {
     public Flux<ChatMessageRead> insert(Flux<ChatMessageRead> chatMessageReadFlux) {
         return chatMessageReadFlux
                 .map(data -> {
-                    data.setCreatedAt(Instant.now());
+                    data.setCreatedAt(OffsetDateTime.now());
                     return data;
                 })
                 .window(100)

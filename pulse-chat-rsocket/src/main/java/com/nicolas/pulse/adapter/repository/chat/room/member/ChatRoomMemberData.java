@@ -11,7 +11,7 @@ import org.springframework.data.annotation.Transient;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
-import java.time.Instant;
+import java.time.OffsetDateTime;
 
 import static com.nicolas.pulse.adapter.repository.DbMeta.ChatRoomMemberData.*;
 
@@ -35,9 +35,9 @@ public class ChatRoomMemberData {
     @Column(COLUMN_UPDATED_BY)
     private String updatedBy;
     @Column(COLUMN_CREATED_AT)
-    private Instant createdAt;
+    private OffsetDateTime createdAt;
     @Column(COLUMN_UPDATED_AT)
-    private Instant updatedAt;
+    private OffsetDateTime updatedAt;
     @Column(COLUMN_LAST_READ_MESSAGE_ID)
     private String lastReadMessageId;
     @Column(COLUMN_IS_MUTED)

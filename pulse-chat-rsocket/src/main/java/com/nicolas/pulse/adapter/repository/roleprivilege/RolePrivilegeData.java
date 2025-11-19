@@ -10,7 +10,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
-import java.time.Instant;
+import java.time.OffsetDateTime;
 
 @Table(DbMeta.RolePrivilegeData.TABLE_NAME)
 @Data
@@ -19,13 +19,14 @@ import java.time.Instant;
 @NoArgsConstructor
 public class RolePrivilegeData {
     @Id
+    @Column(DbMeta.RolePrivilegeData.COLUMN_ID)
+    private String id;
     @Column(DbMeta.RolePrivilegeData.COLUMN_ROLE_ID)
     private String roleId;
-    @Id
     @Column(DbMeta.RolePrivilegeData.COLUMN_PRIVILEGE)
     private Privilege privilege;
     @Column(DbMeta.RolePrivilegeData.COLUMN_CREATED_BY)
     private String createdBy;
     @Column(DbMeta.RolePrivilegeData.COLUMN_CREATED_AT)
-    private Instant createdAt;
+    private OffsetDateTime createdAt;
 }

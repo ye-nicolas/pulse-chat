@@ -8,7 +8,7 @@ import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.time.Instant;
+import java.time.OffsetDateTime;
 
 @Repository
 public class RolePrivilegeRepositoryImpl implements RolePrivilegeRepository {
@@ -29,7 +29,7 @@ public class RolePrivilegeRepositoryImpl implements RolePrivilegeRepository {
     @Override
     public Flux<RolePrivilege> insert(Flux<RolePrivilege> rolePrivilegeFlux) {
         return rolePrivilegeFlux.map(rolePrivilege -> {
-                    rolePrivilege.setCreatedAt(Instant.now());
+                    rolePrivilege.setCreatedAt(OffsetDateTime.now());
                     return RolePrivilegeDataMapper.domainToData(rolePrivilege);
                 })
                 .window(10)

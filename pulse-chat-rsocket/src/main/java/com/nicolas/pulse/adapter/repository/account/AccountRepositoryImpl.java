@@ -10,9 +10,10 @@ import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.time.Instant;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Repository
 public class AccountRepositoryImpl implements AccountRepository {
@@ -30,7 +31,7 @@ public class AccountRepositoryImpl implements AccountRepository {
                 r.%s as %s,
                 r.%s as %s,
                 r.%s as %s,
-                rp.%s as %s,
+                rp.%s as %s
             FROM %s a
             left join %s ar on a.%s = ar.%s
             join %s r on r.%s = ar.%s
@@ -64,6 +65,10 @@ public class AccountRepositoryImpl implements AccountRepository {
         this.r2dbcEntityOperations = r2dbcEntityOperations;
     }
 
+    public static void main(String[] args) {
+        System.out.println(BASIC_SQL);
+    }
+
     @Override
     public Flux<Account> findAll() {
         return r2dbcEntityOperations.getDatabaseClient().sql(BASIC_SQL)
@@ -84,13 +89,15 @@ public class AccountRepositoryImpl implements AccountRepository {
                 .name((String) mapList.getFirst().get(DbMeta.AccountData.COLUMN_NAME))
                 .password((String) mapList.getFirst().get(DbMeta.AccountData.COLUMN_PASSWORD))
                 .showName((String) mapList.getFirst().get(DbMeta.AccountData.COLUMN_SHOW_NAME))
-                .lastLoginAt((Instant) mapList.getFirst().get(DbMeta.AccountData.COLUMN_LAST_LOGIN_AT))
-                .isActive((boolean) mapList.getFirst().get(DbMeta.AccountData.COLUMN_IS_ACTIVE))
+                .lastLoginAt((OffsetDateTime) mapList.getFirst().get(DbMeta.AccountData.COLUMN_LAST_LOGIN_AT))
+                .isActive(Optional.ofNullable(mapList.getFirst().get(DbMeta.AccountData.COLUMN_IS_ACTIVE))
+                        .map(Boolean.class::cast)
+                        .orElse(false))
                 .createdBy((String) mapList.getFirst().get(DbMeta.AccountData.COLUMN_CREATED_BY))
                 .updatedBy((String) mapList.getFirst().get(DbMeta.AccountData.COLUMN_UPDATED_BY))
-                .createdAt((Instant) mapList.getFirst().get(DbMeta.AccountData.COLUMN_CREATED_AT))
-                .updatedAt((Instant) mapList.getFirst().get(DbMeta.AccountData.COLUMN_UPDATED_AT))
-                .remark(mapList.getFirst().get(DbMeta.AccountData.COLUMN_REMARK).toString())
+                .createdAt((OffsetDateTime) mapList.getFirst().get(DbMeta.AccountData.COLUMN_CREATED_AT))
+                .updatedAt((OffsetDateTime) mapList.getFirst().get(DbMeta.AccountData.COLUMN_UPDATED_AT))
+                .remark(Optional.ofNullable(mapList.getFirst().get(DbMeta.AccountData.COLUMN_REMARK)).map(String.class::cast).orElse(null))
                 .roleDataList(roleDataList)
                 .build();
     }
@@ -129,7 +136,7 @@ public class AccountRepositoryImpl implements AccountRepository {
 
     @Override
     public Mono<Account> create(Account account) {
-        Instant now = Instant.now();
+        OffsetDateTime now = OffsetDateTime.now();
         account.setCreatedAt(now);
         account.setUpdatedAt(now);
         AccountData accountData = AccountDataMapper.domainToData(account);
@@ -138,7 +145,7 @@ public class AccountRepositoryImpl implements AccountRepository {
 
     @Override
     public Mono<Account> update(Account account) {
-        account.setUpdatedAt(Instant.now());
+        account.setUpdatedAt(OffsetDateTime.now());
         AccountData accountData = AccountDataMapper.domainToData(account);
         return r2dbcEntityOperations.update(accountData).map(AccountDataMapper::dataToDomain);
     }

@@ -1,38 +1,38 @@
 package com.nicolas.pulse.util;
 
-import io.jsonwebtoken.*;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
-import reactor.core.publisher.Mono;
 
-import java.security.Key;
+import javax.crypto.SecretKey;
+import java.nio.charset.StandardCharsets;
+import java.security.SecureRandom;
+import java.util.Base64;
 import java.util.Date;
-import java.util.List;
 
 public class JwtUtil {
-    private final long accessTokenMs = 1000L * 60 * 15; // 15 min
-    private final Key key = Keys.hmacShaKeyFor("replace-with-512-bit-secret-key-xxxxxxxxxxxxxxxxxxxxxxxxxxxx".getBytes());
+    public static String generateHs256Key() {
+        byte[] keyBytes = new byte[32];
+        new SecureRandom().nextBytes(keyBytes);
+        return Base64.getEncoder().encodeToString(keyBytes);
+    }
 
-    public String generateToken(String subject, List<String> roles) {
-        long now = System.currentTimeMillis();
+    public static SecretKey generateSecretKey(String secret) {
+        return Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+    }
+
+    public static String generateToken(SecretKey secretKey, String userName, Long expirationTime) {
+        Date now = new Date();
         return Jwts.builder()
-                .subject(subject)
-                .issuedAt(new Date(now))
-                .expiration(new Date(now + accessTokenMs))
-                .signWith(key, SignatureAlgorithm.HS512)
+                .subject(userName)
+                .issuedAt(now)
+                .expiration(new Date(now.getTime() + expirationTime))
+                .signWith(secretKey, Jwts.SIG.HS256)
                 .compact();
     }
 
-    public static Mono<Claims> validateToken(String token) {
-        try {
-            Jws<Claims> jws = Jwts.parser()
-                    .setSigningKey(key)
-                    .build()
-                    .parseClaimsJws(token);
-            Claims claims = jws.getBody();
-            return Mono.just(claims);
-        } catch (JwtException e) {
-            return Mono.empty();
-        }
+    public static Claims validateToken(SecretKey secretKey, String token) {
+        return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload();
     }
 
 }

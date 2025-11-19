@@ -15,11 +15,11 @@ public class AccountMapper {
                 .name(domain.getName())
                 .showName(domain.getShowName())
                 .isActive(domain.isActive())
-                .lastLoginAt(domain.getLastLoginAt().atZone(ZoneId.systemDefault()))
+                .lastLoginAt(domain.getLastLoginAt())
                 .createdBy(domain.getCreatedBy())
                 .updatedBy(domain.getUpdatedBy())
-                .createdAt(domain.getCreatedAt().atZone(ZoneId.systemDefault()))
-                .updatedAt(domain.getUpdatedAt().atZone(ZoneId.systemDefault()))
+                .createdAt(domain.getCreatedAt())
+                .updatedAt(domain.getUpdatedAt())
                 .remark(domain.getRemark())
                 .build();
     }

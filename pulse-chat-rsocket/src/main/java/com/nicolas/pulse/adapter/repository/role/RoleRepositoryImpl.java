@@ -9,7 +9,8 @@ import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.time.Instant;
+import java.time.OffsetDateTime;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -52,15 +53,15 @@ public class RoleRepositoryImpl implements RoleRepository {
 
     public static RoleData mapToData(List<Map<String, Object>> listMap) {
         return RoleData.builder()
-                .id(listMap.getFirst().get(DbMeta.RoleData.COLUMN_ID).toString())
-                .name(listMap.getFirst().get(DbMeta.RoleData.COLUMN_NAME).toString())
-                .createdBy(listMap.getFirst().get(DbMeta.RoleData.COLUMN_CREATED_BY).toString())
-                .updatedBy(listMap.getFirst().get(DbMeta.RoleData.COLUMN_UPDATED_BY).toString())
-                .createdAt((Instant) listMap.getFirst().get(DbMeta.RoleData.COLUMN_CREATED_AT))
-                .updatedAt((Instant) listMap.getFirst().get(DbMeta.RoleData.COLUMN_UPDATED_AT))
-                .remark(listMap.getFirst().get(DbMeta.RoleData.COLUMN_REMARK).toString())
+                .id((String) listMap.getFirst().get(DbMeta.RoleData.COLUMN_ID))
+                .name((String) listMap.getFirst().get(DbMeta.RoleData.COLUMN_NAME))
+                .createdBy((String) listMap.getFirst().get(DbMeta.RoleData.COLUMN_CREATED_BY))
+                .updatedBy((String) listMap.getFirst().get(DbMeta.RoleData.COLUMN_UPDATED_BY))
+                .createdAt((OffsetDateTime) listMap.getFirst().get(DbMeta.RoleData.COLUMN_CREATED_AT))
+                .updatedAt((OffsetDateTime) listMap.getFirst().get(DbMeta.RoleData.COLUMN_UPDATED_AT))
+                .remark((String) listMap.getFirst().get(DbMeta.RoleData.COLUMN_REMARK))
                 .privilegeSet(listMap.stream()
-                        .map(m -> Privilege.valueOf(m.get(PREFIX + DbMeta.RolePrivilegeData.COLUMN_PRIVILEGE).toString()))
+                        .map(m -> Privilege.valueOf((String) m.get(PREFIX + DbMeta.RolePrivilegeData.COLUMN_PRIVILEGE)))
                         .collect(Collectors.toSet()))
                 .build();
     }

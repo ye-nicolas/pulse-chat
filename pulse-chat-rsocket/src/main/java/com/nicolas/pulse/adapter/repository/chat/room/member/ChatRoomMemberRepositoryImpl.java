@@ -11,7 +11,7 @@ import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.time.Instant;
+import java.time.OffsetDateTime;
 import java.util.Map;
 
 @Repository
@@ -84,7 +84,7 @@ public class ChatRoomMemberRepositoryImpl implements ChatRoomMemberRepository {
 
     @Override
     public Mono<ChatRoomMember> create(ChatRoomMember chatRoomMember) {
-        Instant now = Instant.now();
+        OffsetDateTime now = OffsetDateTime.now();
         chatRoomMember.setCreatedAt(now);
         chatRoomMember.setUpdatedAt(now);
         ChatRoomMemberData chatRoomMemberData = ChatRoomMemberDataMapper.domainToData(chatRoomMember);
@@ -93,7 +93,7 @@ public class ChatRoomMemberRepositoryImpl implements ChatRoomMemberRepository {
 
     @Override
     public Mono<ChatRoomMember> update(ChatRoomMember chatRoomMember) {
-        Instant now = Instant.now();
+        OffsetDateTime now = OffsetDateTime.now();
         chatRoomMember.setUpdatedAt(now);
         ChatRoomMemberData chatRoomMemberData = ChatRoomMemberDataMapper.domainToData(chatRoomMember);
         return r2dbcEntityOperations.insert(chatRoomMemberData).map(ChatRoomMemberDataMapper::dataToDomain);
@@ -123,8 +123,8 @@ public class ChatRoomMemberRepositoryImpl implements ChatRoomMemberRepository {
                 .role(ChatRoomMemberRole.valueOf(map.get(DbMeta.ChatRoomMemberData.COLUMN_ROLE).toString()))
                 .createdBy(map.get(DbMeta.ChatRoomMemberData.COLUMN_CREATED_BY).toString())
                 .updatedBy(map.get(DbMeta.ChatRoomMemberData.COLUMN_UPDATED_BY).toString())
-                .createdAt((Instant) map.get(DbMeta.ChatRoomMemberData.COLUMN_CREATED_AT))
-                .updatedAt((Instant) map.get(DbMeta.ChatRoomMemberData.COLUMN_UPDATED_AT))
+                .createdAt((OffsetDateTime) map.get(DbMeta.ChatRoomMemberData.COLUMN_CREATED_AT))
+                .updatedAt((OffsetDateTime) map.get(DbMeta.ChatRoomMemberData.COLUMN_UPDATED_AT))
                 .lastReadMessageId(map.get(DbMeta.ChatRoomMemberData.COLUMN_LAST_READ_MESSAGE_ID).toString())
                 .isMuted((Boolean) map.get(DbMeta.ChatRoomMemberData.COLUMN_IS_MUTED))
                 .isPinned((Boolean) map.get(DbMeta.ChatRoomMemberData.COLUMN_IS_PINNED))
@@ -134,8 +134,8 @@ public class ChatRoomMemberRepositoryImpl implements ChatRoomMemberRepository {
                         .type(ChatRoomType.valueOf(map.get(ROOM_PREFIX + DbMeta.ChatRoomData.COLUMN_TYPE).toString()))
                         .createdBy(map.get(ROOM_PREFIX + DbMeta.ChatRoomData.COLUMN_CREATED_BY).toString())
                         .updatedBy(map.get(ROOM_PREFIX + DbMeta.ChatRoomData.COLUMN_UPDATED_BY).toString())
-                        .createdAt((Instant) map.get(ROOM_PREFIX + DbMeta.ChatRoomData.COLUMN_CREATED_AT))
-                        .updatedAt((Instant) map.get(ROOM_PREFIX + DbMeta.ChatRoomData.COLUMN_UPDATED_AT))
+                        .createdAt((OffsetDateTime) map.get(ROOM_PREFIX + DbMeta.ChatRoomData.COLUMN_CREATED_AT))
+                        .updatedAt((OffsetDateTime) map.get(ROOM_PREFIX + DbMeta.ChatRoomData.COLUMN_UPDATED_AT))
                         .build())
                 .build();
     }

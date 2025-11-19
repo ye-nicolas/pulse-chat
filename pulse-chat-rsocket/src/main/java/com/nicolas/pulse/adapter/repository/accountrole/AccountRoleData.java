@@ -8,7 +8,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
-import java.time.Instant;
+import java.time.OffsetDateTime;
 
 @Table("account_role")
 @Data
@@ -26,5 +26,5 @@ public class AccountRoleData {
     @Column("created_by")
     private String createdBy;
     @Column("created_at")
-    private Instant createdAt;
+    private OffsetDateTime createdAt;
 }

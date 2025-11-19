@@ -10,7 +10,7 @@ import org.springframework.data.annotation.Transient;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
-import java.time.Instant;
+import java.time.OffsetDateTime;
 import java.util.Set;
 
 @Table(DbMeta.RoleData.TABLE_NAME)
@@ -28,9 +28,9 @@ public class RoleData {
     @Column(DbMeta.RoleData.COLUMN_UPDATED_BY)
     private String updatedBy;
     @Column(DbMeta.RoleData.COLUMN_CREATED_AT)
-    private Instant createdAt;
+    private OffsetDateTime createdAt;
     @Column(DbMeta.RoleData.COLUMN_UPDATED_AT)
-    private Instant updatedAt;
+    private OffsetDateTime updatedAt;
     @Column(DbMeta.RoleData.COLUMN_REMARK)
     private String remark;
 

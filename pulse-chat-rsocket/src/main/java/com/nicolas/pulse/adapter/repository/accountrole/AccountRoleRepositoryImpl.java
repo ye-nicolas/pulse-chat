@@ -7,7 +7,7 @@ import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.time.Instant;
+import java.time.OffsetDateTime;
 
 @Repository
 public class AccountRoleRepositoryImpl implements AccountRoleRepository {
@@ -33,7 +33,7 @@ public class AccountRoleRepositoryImpl implements AccountRoleRepository {
     @Override
     public Flux<AccountRole> saveAll(Flux<AccountRole> accountRoleFlux) {
         return accountRoleFlux.map(accountRole -> {
-                    accountRole.setCreatedAt(Instant.now());
+                    accountRole.setCreatedAt(OffsetDateTime.now());
                     return AccountRoleDataMapper.domainToData(accountRole);
                 })
                 .window(10)

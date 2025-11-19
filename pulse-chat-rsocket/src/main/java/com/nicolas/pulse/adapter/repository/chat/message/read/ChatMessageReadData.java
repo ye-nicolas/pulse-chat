@@ -8,7 +8,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
-import java.time.Instant;
+import java.time.OffsetDateTime;
 
 //UK  messageId + roomId + memberId
 @Table("chat_message_read")
@@ -29,5 +29,5 @@ public class ChatMessageReadData {
     @Column("created_by")
     private String createdBy;
     @Column("created_at")
-    private Instant createdAt;
+    private OffsetDateTime createdAt;
 }

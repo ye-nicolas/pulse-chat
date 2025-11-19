@@ -10,7 +10,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
-import java.time.Instant;
+import java.time.OffsetDateTime;
 
 
 public class RolePrivilegeDataMapper {
@@ -24,6 +24,7 @@ public class RolePrivilegeDataMapper {
         }
 
         return RolePrivilege.builder()
+                .id(data.getId())
                 .roleId(data.getRoleId())
                 .privilege(data.getPrivilege())
                 .createdBy(data.getCreatedBy())
@@ -37,6 +38,7 @@ public class RolePrivilegeDataMapper {
         }
 
         return RolePrivilegeData.builder()
+                .id(domain.getId())
                 .roleId(domain.getRoleId())
                 .privilege(domain.getPrivilege())
                 .createdBy(domain.getCreatedBy())

@@ -7,7 +7,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.Instant;
+import java.time.OffsetDateTime;
 
 @Data
 @Builder
@@ -20,8 +20,8 @@ public class ChatRoomMember {
     private ChatRoomMemberRole role;
     private String createdBy;
     private String updatedBy;
-    private Instant createdAt;
-    private Instant updatedAt;
+    private OffsetDateTime createdAt;
+    private OffsetDateTime updatedAt;
     private String lastReadMessageId;
     private boolean isMuted;
     private boolean isPinned;
