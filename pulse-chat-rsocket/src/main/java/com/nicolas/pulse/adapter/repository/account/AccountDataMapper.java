@@ -1,5 +1,6 @@
 package com.nicolas.pulse.adapter.repository.account;
 
+import com.nicolas.pulse.adapter.repository.role.RoleDataMapper;
 import com.nicolas.pulse.entity.domain.Account;
 
 import java.util.List;
@@ -21,6 +22,7 @@ public class AccountDataMapper {
                 .createdAt(data.getCreatedAt())
                 .updatedAt(data.getUpdatedAt())
                 .remark(data.getRemark())
+                .roleList(data.getRoleDataList().stream().map(RoleDataMapper::dataToDomain).toList())
                 .build();
     }
 
@@ -44,6 +46,7 @@ public class AccountDataMapper {
                 .createdAt(domain.getCreatedAt())
                 .updatedAt(domain.getUpdatedAt())
                 .remark(domain.getRemark())
+                .roleDataList(domain.getRoleList().stream().map(RoleDataMapper::domainToData).toList())
                 .build();
     }
 

@@ -1,8 +1,6 @@
 package com.nicolas.pulse.adapter.repository.role;
 
 import com.nicolas.pulse.adapter.repository.DbMeta;
-import com.nicolas.pulse.adapter.repository.chat.room.member.ChatRoomMemberData;
-import com.nicolas.pulse.adapter.repository.chat.room.member.ChatRoomMemberDataMapper;
 import com.nicolas.pulse.entity.domain.Role;
 import com.nicolas.pulse.entity.enumerate.Privilege;
 import com.nicolas.pulse.service.repository.RoleRepository;
@@ -48,11 +46,11 @@ public class RoleRepositoryImpl implements RoleRepository {
                 .fetch()
                 .all()
                 .bufferUntilChanged(a -> a.get(DbMeta.RoleData.COLUMN_ID).toString())
-                .map(this::mapToData)
+                .map(RoleRepositoryImpl::mapToData)
                 .map(RoleDataMapper::dataToDomain);
     }
 
-    private RoleData mapToData(List<Map<String, Object>> listMap) {
+    public static RoleData mapToData(List<Map<String, Object>> listMap) {
         return RoleData.builder()
                 .id(listMap.getFirst().get(DbMeta.RoleData.COLUMN_ID).toString())
                 .name(listMap.getFirst().get(DbMeta.RoleData.COLUMN_NAME).toString())
@@ -75,7 +73,7 @@ public class RoleRepositoryImpl implements RoleRepository {
                 .all()
                 .bufferUntilChanged(a -> a.get(DbMeta.RoleData.COLUMN_ID).toString())
                 .singleOrEmpty()
-                .map(this::mapToData)
+                .map(RoleRepositoryImpl::mapToData)
                 .map(RoleDataMapper::dataToDomain);
     }
 
