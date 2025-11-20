@@ -45,6 +45,7 @@ public class AccountController {
                         .showName(r.getShowName())
                         .password(r.getPassword())
                         .remark(r.getRemark())
+                        .roleIdSet(r.getRoleIdSet())
                         .build())
                 .transform(createAccountUseCase::execute)
                 .map(output -> ResponseEntity.ok().body(output.getUserId()));

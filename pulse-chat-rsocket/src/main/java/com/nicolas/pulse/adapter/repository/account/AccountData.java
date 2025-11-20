@@ -2,7 +2,6 @@ package com.nicolas.pulse.adapter.repository.account;
 
 import com.nicolas.pulse.adapter.repository.DbMeta;
 import com.nicolas.pulse.adapter.repository.role.RoleData;
-import com.nicolas.pulse.entity.domain.Role;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -12,7 +11,6 @@ import org.springframework.data.annotation.Transient;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
-import java.time.OffsetDateTime;
 import java.time.OffsetDateTime;
 import java.util.List;
 

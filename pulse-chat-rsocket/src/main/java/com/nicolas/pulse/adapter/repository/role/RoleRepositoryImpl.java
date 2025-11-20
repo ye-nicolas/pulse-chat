@@ -10,6 +10,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.time.OffsetDateTime;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -46,6 +47,7 @@ public class RoleRepositoryImpl implements RoleRepository {
             DbMeta.RolePrivilegeData.COLUMN_ROLE_ID);
 
     private static final String FIND_BY_ID = BASIC_SQL + "WHERE r.%s = $1".formatted(DbMeta.RoleData.COLUMN_ID);
+    private static final String FIND_BY_MORE_ID = BASIC_SQL + "WHERE r.%s = ANY($1)".formatted(DbMeta.RoleData.COLUMN_ID);
 
     public RoleRepositoryImpl(RoleDataRepositoryPeer peer,
                               R2dbcEntityOperations r2dbcEntityOperations) {
@@ -56,6 +58,17 @@ public class RoleRepositoryImpl implements RoleRepository {
     @Override
     public Flux<Role> findAll() {
         return r2dbcEntityOperations.getDatabaseClient().sql(BASIC_SQL)
+                .fetch()
+                .all()
+                .bufferUntilChanged(a -> a.get(DbMeta.RoleData.COLUMN_ID).toString())
+                .map(RoleRepositoryImpl::mapToData)
+                .map(RoleDataMapper::dataToDomain);
+    }
+
+    @Override
+    public Flux<Role> findAllByIds(String[] ids) {
+        return r2dbcEntityOperations.getDatabaseClient().sql(FIND_BY_MORE_ID)
+                .bind(1, ids)
                 .fetch()
                 .all()
                 .bufferUntilChanged(a -> a.get(DbMeta.RoleData.COLUMN_ID).toString())
@@ -91,6 +104,11 @@ public class RoleRepositoryImpl implements RoleRepository {
                 .singleOrEmpty()
                 .map(RoleRepositoryImpl::mapToData)
                 .map(RoleDataMapper::dataToDomain);
+    }
+
+    @Override
+    public Mono<Boolean> existsById(String id) {
+        return peer.existsById(id);
     }
 
     @Override
