@@ -8,6 +8,8 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
+import java.util.stream.Collectors;
+
 @Service
 public class ReactiveUserDetailsServiceImpl implements ReactiveUserDetailsService {
     private final AccountRepository accountRepository;
@@ -25,6 +27,7 @@ public class ReactiveUserDetailsServiceImpl implements ReactiveUserDetailsServic
                         .username(account.getName())
                         .password(account.getPassword())
                         .state(account.isActive())
+                        .privilegeSet(account.getRoleList().stream().flatMap(r -> r.getPrivilegeSet().stream()).collect(Collectors.toSet()))
                         .build());
     }
 }
