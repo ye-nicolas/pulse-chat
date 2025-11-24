@@ -1,4 +1,4 @@
-package com.nicolas.pulse.service.usecase;
+package com.nicolas.pulse.service.usecase.account;
 
 import com.github.f4b6a3.ulid.UlidCreator;
 import com.nicolas.pulse.entity.domain.Account;

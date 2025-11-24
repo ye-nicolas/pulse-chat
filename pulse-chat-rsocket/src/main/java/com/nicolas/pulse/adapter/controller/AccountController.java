@@ -5,7 +5,7 @@ import com.nicolas.pulse.adapter.dto.req.CreateAccountReq;
 import com.nicolas.pulse.adapter.dto.response.AccountRes;
 import com.nicolas.pulse.entity.exception.TargetNotFoundException;
 import com.nicolas.pulse.service.repository.AccountRepository;
-import com.nicolas.pulse.service.usecase.CreateAccountUseCase;
+import com.nicolas.pulse.service.usecase.account.CreateAccountUseCase;
 import jakarta.validation.Valid;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
