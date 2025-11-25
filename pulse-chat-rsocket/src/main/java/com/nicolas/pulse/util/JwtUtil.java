@@ -53,11 +53,11 @@ public class JwtUtil {
         return generateToken(secretKey, uuid, accountId, expirationTimeMills, ACCESS, map);
     }
 
-    private static Claims validateAccessToken(SecretKey secretKey, String token) {
+    public static Claims validateAccessToken(SecretKey secretKey, String token) {
         return validateToken(secretKey, token, ACCESS);
     }
 
-    private static Claims validateRefreshToken(SecretKey secretKey, String token) {
+    public static Claims validateRefreshToken(SecretKey secretKey, String token) {
         return validateToken(secretKey, token, REFRESH);
     }
 
@@ -68,5 +68,4 @@ public class JwtUtil {
         }
         return payload;
     }
-
 }
