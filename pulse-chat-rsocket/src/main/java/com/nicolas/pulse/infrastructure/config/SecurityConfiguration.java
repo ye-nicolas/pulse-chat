@@ -1,5 +1,6 @@
 package com.nicolas.pulse.infrastructure.config;
 
+import com.nicolas.pulse.adapter.controller.AuthController;
 import com.nicolas.pulse.infrastructure.filter.JwtAuthenticationWebFilter;
 import com.nicolas.pulse.infrastructure.filter.MdcFilter;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -42,7 +43,10 @@ public class SecurityConfiguration {
                 .formLogin(ServerHttpSecurity.FormLoginSpec::disable)
                 .authenticationManager(authenticationManager)
                 .securityContextRepository(NoOpServerSecurityContextRepository.getInstance())
-                .authorizeExchange(exchanges -> exchanges.anyExchange().permitAll())
+                .authorizeExchange(exchanges -> {
+                    exchanges.pathMatchers(AuthController.AUTH_BASE_URL).permitAll();
+                    exchanges.anyExchange().authenticated();
+                })
                 .addFilterBefore(mdcFilter, SecurityWebFiltersOrder.FIRST)
                 .addFilterBefore(jwtAuthenticationWebFilter, SecurityWebFiltersOrder.AUTHENTICATION)
                 .exceptionHandling(e -> e
