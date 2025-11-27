@@ -27,7 +27,6 @@ import static com.nicolas.pulse.entity.domain.SecurityAccount.USER_NAME;
 @Component
 public class JwtAuthenticationWebFilter implements WebFilter {
     private static final String AUTH_HEADER = "Bearer ";
-
     private final ObjectMapper objectMapper;
     private final SecretKey secretKey;
 

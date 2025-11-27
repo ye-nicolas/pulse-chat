@@ -29,10 +29,10 @@ public class SecurityConfiguration {
 
     public SecurityConfiguration(ReactiveUserDetailsService reactiveUserDetailsService,
                                  JwtAuthenticationWebFilter jwtAuthenticationWebFilter,
-                                 MdcFilter mdcFilter) {
+                                 MdcProperties mdcProperties) {
         this.reactiveUserDetailsService = reactiveUserDetailsService;
         this.jwtAuthenticationWebFilter = jwtAuthenticationWebFilter;
-        this.mdcFilter = mdcFilter;
+        this.mdcFilter = new MdcFilter(mdcProperties);
     }
 
     @Bean
@@ -44,8 +44,8 @@ public class SecurityConfiguration {
                 .authenticationManager(authenticationManager)
                 .securityContextRepository(NoOpServerSecurityContextRepository.getInstance())
                 .authorizeExchange(exchanges -> {
-                    exchanges.pathMatchers(AuthController.AUTH_BASE_URL).permitAll();
-                    exchanges.anyExchange().authenticated();
+//                    exchanges.pathMatchers(AuthController.AUTH_BASE_URL).permitAll();
+                    exchanges.anyExchange().permitAll();
                 })
                 .addFilterBefore(mdcFilter, SecurityWebFiltersOrder.FIRST)
                 .addFilterBefore(jwtAuthenticationWebFilter, SecurityWebFiltersOrder.AUTHENTICATION)

@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nicolas.pulse.entity.exception.ConflictException;
 import com.nicolas.pulse.entity.exception.CustomerException;
 import com.nicolas.pulse.entity.exception.TargetNotFoundException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.web.reactive.error.ErrorWebExceptionHandler;
 import org.springframework.core.annotation.Order;
 import org.springframework.core.io.buffer.DataBufferFactory;
@@ -20,6 +21,7 @@ import reactor.core.publisher.Mono;
 
 import java.util.Map;
 
+@Slf4j
 @Component
 @Order(-1)
 public class GlobalErrorWebExceptionHandler implements ErrorWebExceptionHandler {
@@ -31,6 +33,7 @@ public class GlobalErrorWebExceptionHandler implements ErrorWebExceptionHandler 
 
     @Override
     public Mono<Void> handle(ServerWebExchange exchange, Throwable ex) {
+        log.error(ex.getMessage(), ex);
 
         // 1. 根據例外類型獲取 ProblemDetail
         ProblemDetail problemDetail = createProblemDetail(ex, exchange);
