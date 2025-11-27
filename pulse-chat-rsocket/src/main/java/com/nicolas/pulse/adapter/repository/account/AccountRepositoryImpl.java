@@ -4,28 +4,21 @@ import com.nicolas.pulse.adapter.repository.DbMeta;
 import com.nicolas.pulse.adapter.repository.role.RoleData;
 import com.nicolas.pulse.adapter.repository.role.RoleRepositoryImpl;
 import com.nicolas.pulse.entity.domain.Account;
-import com.nicolas.pulse.entity.enumerate.Privilege;
 import com.nicolas.pulse.service.repository.AccountRepository;
-import com.nicolas.pulse.service.repository.RoleRepository;
 import org.springframework.data.r2dbc.core.R2dbcEntityOperations;
 import org.springframework.stereotype.Repository;
-import org.springframework.util.CollectionUtils;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Repository
 public class AccountRepositoryImpl implements AccountRepository {
     private final AccountDataRepositoryPeer peer;
     private final R2dbcEntityOperations r2dbcEntityOperations;
-    private static final String ROLE_PREFIX = "role_";
-    private static final String ROLE_PRIVILEGE_PREFIX = "rp_";
     private static final String BASIC_SQL = """
             SELECT
                 a.%s as %s,
@@ -136,9 +129,9 @@ public class AccountRepositoryImpl implements AccountRepository {
                 .bind(0, id)
                 .fetch()
                 .all()
-                .bufferUntilChanged(m -> m.get(DbMeta.AccountData.COLUMN_ID).toString())
+                .bufferUntilChanged(m -> m.get(DbMeta.AccountData.ALIAS_ID).toString())
                 .flatMap(accountChunk -> Flux.fromIterable(accountChunk)
-                        .bufferUntilChanged(m -> m.get(ROLE_PREFIX + DbMeta.RoleData.COLUMN_ID).toString())
+                        .bufferUntilChanged(m -> m.get(DbMeta.RoleData.ALIAS_ID).toString())
                         .map(RoleRepositoryImpl::mapToData)
                         .collectList()
                         .map(roleDataList -> toMapToData(accountChunk, roleDataList)))
@@ -152,9 +145,9 @@ public class AccountRepositoryImpl implements AccountRepository {
                 .bind(0, name)
                 .fetch()
                 .all()
-                .bufferUntilChanged(m -> m.get(DbMeta.AccountData.COLUMN_ID).toString())
+                .bufferUntilChanged(m -> m.get(DbMeta.AccountData.ALIAS_ID).toString())
                 .flatMap(accountChunk -> Flux.fromIterable(accountChunk)
-                        .bufferUntilChanged(m -> m.get(ROLE_PREFIX + DbMeta.RoleData.COLUMN_ID).toString())
+                        .bufferUntilChanged(m -> m.get(DbMeta.RoleData.ALIAS_ID).toString())
                         .map(RoleRepositoryImpl::mapToData)
                         .collectList()
                         .map(roleDataList -> toMapToData(accountChunk, roleDataList)))

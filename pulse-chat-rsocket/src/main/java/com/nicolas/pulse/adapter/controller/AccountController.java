@@ -14,7 +14,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @RestController
-@RequestMapping("/user")
+@RequestMapping("/account")
 public class AccountController {
     private final AccountRepository accountRepository;
 

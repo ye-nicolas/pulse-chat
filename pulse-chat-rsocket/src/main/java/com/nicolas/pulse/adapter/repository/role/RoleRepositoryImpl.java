@@ -10,7 +10,6 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.time.OffsetDateTime;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -60,7 +59,7 @@ public class RoleRepositoryImpl implements RoleRepository {
         return r2dbcEntityOperations.getDatabaseClient().sql(BASIC_SQL)
                 .fetch()
                 .all()
-                .bufferUntilChanged(a -> a.get(DbMeta.RoleData.COLUMN_ID).toString())
+                .bufferUntilChanged(a -> a.get(DbMeta.RoleData.ALIAS_ID).toString())
                 .map(RoleRepositoryImpl::mapToData)
                 .map(RoleDataMapper::dataToDomain);
     }
@@ -68,10 +67,10 @@ public class RoleRepositoryImpl implements RoleRepository {
     @Override
     public Flux<Role> findAllByIds(String[] ids) {
         return r2dbcEntityOperations.getDatabaseClient().sql(FIND_BY_MORE_ID)
-                .bind(1, ids)
+                .bind(0, ids)
                 .fetch()
                 .all()
-                .bufferUntilChanged(a -> a.get(DbMeta.RoleData.COLUMN_ID).toString())
+                .bufferUntilChanged(a -> a.get(DbMeta.RoleData.ALIAS_ID).toString())
                 .map(RoleRepositoryImpl::mapToData)
                 .map(RoleDataMapper::dataToDomain);
     }
@@ -97,10 +96,10 @@ public class RoleRepositoryImpl implements RoleRepository {
     @Override
     public Mono<Role> findById(String id) {
         return r2dbcEntityOperations.getDatabaseClient().sql(FIND_BY_ID)
-                .bind(1, id)
+                .bind(0, id)
                 .fetch()
                 .all()
-                .bufferUntilChanged(a -> a.get(DbMeta.RoleData.COLUMN_ID).toString())
+                .bufferUntilChanged(a -> a.get(DbMeta.RoleData.ALIAS_ID).toString())
                 .singleOrEmpty()
                 .map(RoleRepositoryImpl::mapToData)
                 .map(RoleDataMapper::dataToDomain);
