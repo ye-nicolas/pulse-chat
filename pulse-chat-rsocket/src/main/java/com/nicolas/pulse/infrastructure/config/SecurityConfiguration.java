@@ -46,8 +46,8 @@ public class SecurityConfiguration {
 //                    exchanges.pathMatchers(AuthController.AUTH_BASE_URL).permitAll();
                     exchanges.anyExchange().permitAll();
                 })
-                .addFilterBefore(mdcFilter, SecurityWebFiltersOrder.FIRST)
-                .addFilterBefore(jwtAuthenticationWebFilter, SecurityWebFiltersOrder.AUTHENTICATION)
+                .addFilterAt(mdcFilter, SecurityWebFiltersOrder.FIRST)
+                .addFilterAt(jwtAuthenticationWebFilter, SecurityWebFiltersOrder.AUTHENTICATION)
                 .exceptionHandling(e -> e
                         .accessDeniedHandler((webExchange, accessDeniedException) -> Mono.error(accessDeniedException))
                         .authenticationEntryPoint((webExchange, authenticationException) -> Mono.error(authenticationException)))
