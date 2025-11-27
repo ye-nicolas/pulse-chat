@@ -12,6 +12,7 @@ import com.nicolas.pulse.service.repository.RoleRepository;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -20,13 +21,16 @@ import java.util.Set;
 
 @Service
 public class CreateAccountUseCase {
+    private final PasswordEncoder passwordEncoder;
     private final AccountRepository accountRepository;
     private final RoleRepository roleRepository;
     private final AccountRoleRepository accountRoleRepository;
 
-    public CreateAccountUseCase(AccountRepository accountRepository,
+    public CreateAccountUseCase(PasswordEncoder passwordEncoder,
+                                AccountRepository accountRepository,
                                 RoleRepository roleRepository,
                                 AccountRoleRepository accountRoleRepository) {
+        this.passwordEncoder = passwordEncoder;
         this.accountRepository = accountRepository;
         this.roleRepository = roleRepository;
         this.accountRoleRepository = accountRoleRepository;
@@ -63,7 +67,7 @@ public class CreateAccountUseCase {
                 .id(id)
                 .name(input.getName())
                 .showName(input.getShowName())
-                .password(input.getPassword())
+                .password(passwordEncoder.encode(input.getPassword()))
                 .isActive(false)
                 .remark(input.getRemark())
                 .createdBy(id)

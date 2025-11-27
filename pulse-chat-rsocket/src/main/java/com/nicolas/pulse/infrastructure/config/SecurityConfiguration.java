@@ -1,6 +1,5 @@
 package com.nicolas.pulse.infrastructure.config;
 
-import com.nicolas.pulse.adapter.controller.AuthController;
 import com.nicolas.pulse.infrastructure.filter.JwtAuthenticationWebFilter;
 import com.nicolas.pulse.infrastructure.filter.MdcFilter;
 import org.springframework.beans.factory.annotation.Qualifier;
