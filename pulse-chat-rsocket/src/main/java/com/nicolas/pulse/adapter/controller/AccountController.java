@@ -17,12 +17,9 @@ import reactor.core.publisher.Mono;
 @RequestMapping("/user")
 public class AccountController {
     private final AccountRepository accountRepository;
-    private final CreateAccountUseCase createAccountUseCase;
 
-    public AccountController(AccountRepository accountRepository,
-                             CreateAccountUseCase createAccountUseCase) {
+    public AccountController(AccountRepository accountRepository) {
         this.accountRepository = accountRepository;
-        this.createAccountUseCase = createAccountUseCase;
     }
 
     @GetMapping(value = "/", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -30,24 +27,11 @@ public class AccountController {
         return ResponseEntity.ok(accountRepository.findAll().map(AccountMapper::domainToRes));
     }
 
-    @GetMapping("/{userId}")
-    public Mono<ResponseEntity<AccountRes>> findById(@PathVariable("userId") String userId) {
-        return accountRepository.findById(userId)
-                .switchIfEmpty(Mono.error(new TargetNotFoundException("User not found, id = '%s'.".formatted(userId))))
+    @GetMapping("/{accountId}")
+    public Mono<ResponseEntity<AccountRes>> findById(@PathVariable("accountId") String accountId) {
+        return accountRepository.findById(accountId)
+                .switchIfEmpty(Mono.error(new TargetNotFoundException("Account not found, id = '%s'.".formatted(accountId))))
                 .map(AccountMapper::domainToRes)
                 .map(ResponseEntity::ok);
-    }
-
-    @PostMapping("/")
-    public Mono<ResponseEntity<String>> createUser(@Valid @RequestBody Mono<CreateAccountReq> req) {
-        return req.map(r -> CreateAccountUseCase.Input.builder()
-                        .name(r.getName())
-                        .showName(r.getShowName())
-                        .password(r.getPassword())
-                        .remark(r.getRemark())
-                        .roleIdSet(r.getRoleIdSet())
-                        .build())
-                .transform(createAccountUseCase::execute)
-                .map(output -> ResponseEntity.ok().body(output.getUserId()));
     }
 }

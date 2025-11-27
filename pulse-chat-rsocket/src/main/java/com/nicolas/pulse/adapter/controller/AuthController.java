@@ -1,7 +1,9 @@
 package com.nicolas.pulse.adapter.controller;
 
+import com.nicolas.pulse.adapter.dto.req.CreateAccountReq;
 import com.nicolas.pulse.adapter.dto.req.LoginReq;
 import com.nicolas.pulse.adapter.dto.response.AuthRes;
+import com.nicolas.pulse.service.usecase.account.CreateAccountUseCase;
 import com.nicolas.pulse.service.usecase.auth.LoginUseCase;
 import com.nicolas.pulse.service.usecase.auth.RefreshTokenUseCase;
 import jakarta.validation.Valid;
@@ -23,18 +25,21 @@ public class AuthController {
     private final boolean cookieSecure;
     private final LoginUseCase loginUseCase;
     private final RefreshTokenUseCase refreshTokenUseCase;
+    private final CreateAccountUseCase createAccountUseCase;
 
     public AuthController(
             @Value("${spring.webflux.base-path}") String basePath,
             @Value("${auth.refresh.expires-minute}") Long refreshExpiresMinutes,
             @Value("${cookie.secure}") boolean cookieSecure,
             LoginUseCase loginUseCase,
-            RefreshTokenUseCase refreshTokenUseCase) {
+            RefreshTokenUseCase refreshTokenUseCase,
+            CreateAccountUseCase createAccountUseCase) {
         this.refreshTokenPath = basePath + AUTH_BASE_URL + REFRESH_URL;
         this.refreshExpiresSeconds = refreshExpiresMinutes * 60;
         this.cookieSecure = cookieSecure;
         this.loginUseCase = loginUseCase;
         this.refreshTokenUseCase = refreshTokenUseCase;
+        this.createAccountUseCase = createAccountUseCase;
     }
 
     @PostMapping("/login")
@@ -65,6 +70,19 @@ public class AuthController {
                                 .accessToken(output.getAccessToken())
                                 .accountId(output.getAccountId())
                                 .build())));
+    }
+
+    @PostMapping("/")
+    public Mono<ResponseEntity<String>> createUser(@Valid @RequestBody Mono<CreateAccountReq> req) {
+        return req.map(r -> CreateAccountUseCase.Input.builder()
+                        .name(r.getName())
+                        .showName(r.getShowName())
+                        .password(r.getPassword())
+                        .remark(r.getRemark())
+                        .roleIdSet(r.getRoleIdSet())
+                        .build())
+                .transform(createAccountUseCase::execute)
+                .map(output -> ResponseEntity.ok().body(output.getUserId()));
     }
 
     private ResponseCookie getCookie(String refreshToken) {

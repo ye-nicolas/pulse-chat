@@ -133,7 +133,7 @@ public class AccountRepositoryImpl implements AccountRepository {
     @Override
     public Mono<Account> findById(String id) {
         return r2dbcEntityOperations.getDatabaseClient().sql(FIND_BY_ID)
-                .bind(1, id)
+                .bind(0, id)
                 .fetch()
                 .all()
                 .bufferUntilChanged(m -> m.get(DbMeta.AccountData.COLUMN_ID).toString())
@@ -149,7 +149,7 @@ public class AccountRepositoryImpl implements AccountRepository {
     @Override
     public Mono<Account> findByName(String name) {
         return r2dbcEntityOperations.getDatabaseClient().sql(FIND_BY_NAME)
-                .bind(1, name)
+                .bind(0, name)
                 .fetch()
                 .all()
                 .bufferUntilChanged(m -> m.get(DbMeta.AccountData.COLUMN_ID).toString())
