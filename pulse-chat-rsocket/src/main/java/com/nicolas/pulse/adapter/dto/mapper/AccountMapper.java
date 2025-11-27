@@ -3,8 +3,6 @@ package com.nicolas.pulse.adapter.dto.mapper;
 import com.nicolas.pulse.adapter.dto.response.AccountRes;
 import com.nicolas.pulse.entity.domain.Account;
 
-import java.time.ZoneId;
-
 public class AccountMapper {
     public static AccountRes domainToRes(Account domain) {
         if (domain == null) {
@@ -15,11 +13,11 @@ public class AccountMapper {
                 .name(domain.getName())
                 .showName(domain.getShowName())
                 .isActive(domain.isActive())
-                .lastLoginAt(domain.getLastLoginAt().atZone(ZoneId.systemDefault()))
+                .lastLoginAt(domain.getLastLoginAt())
                 .createdBy(domain.getCreatedBy())
                 .updatedBy(domain.getUpdatedBy())
-                .createdAt(domain.getCreatedAt().atZone(ZoneId.systemDefault()))
-                .updatedAt(domain.getUpdatedAt().atZone(ZoneId.systemDefault()))
+                .createdAt(domain.getCreatedAt())
+                .updatedAt(domain.getUpdatedAt())
                 .remark(domain.getRemark())
                 .build();
     }

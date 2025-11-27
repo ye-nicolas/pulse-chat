@@ -1,43 +1,60 @@
 package com.nicolas.pulse.adapter.repository.account;
 
+import com.nicolas.pulse.adapter.repository.DbMeta;
+import com.nicolas.pulse.adapter.repository.role.RoleData;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.Transient;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
-import java.time.Instant;
+import java.time.OffsetDateTime;
+import java.util.List;
 
 
-@Table(value = "account")
+@Table(value = DbMeta.AccountData.TABLE_NAME)
 @Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
 public class AccountData {
     @Id
-    @Column("id")
+    @Column(DbMeta.AccountData.COLUMN_ID)
     private String id;
-    @Column("name")
+
+    @Column(DbMeta.AccountData.COLUMN_NAME)
     private String name;
-    @Column("show_name")
+
+    @Column(DbMeta.AccountData.COLUMN_SHOW_NAME)
     private String showName;
-    @Column("password")
+
+    @Column(DbMeta.AccountData.COLUMN_PASSWORD)
     private String password;
-    @Column("is_active")
+
+    @Column(DbMeta.AccountData.COLUMN_IS_ACTIVE)
     private boolean isActive;
-    @Column("last_login_at")
-    private Instant lastLoginAt;
-    @Column("created_by")
+
+    @Column(DbMeta.AccountData.COLUMN_LAST_LOGIN_AT)
+    private OffsetDateTime lastLoginAt;
+
+    @Column(DbMeta.AccountData.COLUMN_CREATED_BY)
     private String createdBy;
-    @Column("updated_by")
+
+    @Column(DbMeta.AccountData.COLUMN_UPDATED_BY)
     private String updatedBy;
-    @Column("created_at")
-    private Instant createdAt;
-    @Column("updated_at")
-    private Instant updatedAt;
-    @Column("remark")
+
+    @Column(DbMeta.AccountData.COLUMN_CREATED_AT)
+    private OffsetDateTime createdAt;
+
+    @Column(DbMeta.AccountData.COLUMN_UPDATED_AT)
+    private OffsetDateTime updatedAt;
+
+    @Column(DbMeta.AccountData.COLUMN_REMARK)
     private String remark;
+
+    @Transient
+    private List<RoleData> roleDataList;
 }

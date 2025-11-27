@@ -6,7 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.ZonedDateTime;
+import java.time.OffsetDateTime;
 
 @Data
 @Builder
@@ -18,12 +18,12 @@ public class AccountRes {
     private String showName;
     private boolean isActive;
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ssXXX")
-    private ZonedDateTime lastLoginAt;
+    private OffsetDateTime lastLoginAt;
     private String createdBy;
     private String updatedBy;
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ssXXX")
-    private ZonedDateTime createdAt;
+    private OffsetDateTime createdAt;
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ssXXX")
-    private ZonedDateTime updatedAt;
+    private OffsetDateTime updatedAt;
     private String remark;
 }

@@ -5,7 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.Instant;
+import java.time.OffsetDateTime;
 
 @Data
 @Builder
@@ -17,5 +17,5 @@ public class ChatMessageRead {
     private String roomId;
     private String memberId;
     private String createdBy;
-    private Instant createdAt;
+    private OffsetDateTime createdAt;
 }

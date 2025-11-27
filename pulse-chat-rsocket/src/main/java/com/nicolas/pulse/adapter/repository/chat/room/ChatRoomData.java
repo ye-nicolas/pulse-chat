@@ -9,7 +9,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
-import java.time.Instant;
+import java.time.OffsetDateTime;
 
 import static com.nicolas.pulse.adapter.repository.DbMeta.ChatRoomData.*;
 
@@ -36,8 +36,8 @@ public class ChatRoomData {
     private String updatedBy;
 
     @Column(COLUMN_CREATED_AT)
-    private Instant createdAt;
+    private OffsetDateTime createdAt;
 
     @Column(COLUMN_UPDATED_AT)
-    private Instant updatedAt;
+    private OffsetDateTime updatedAt;
 }

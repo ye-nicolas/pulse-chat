@@ -9,7 +9,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
-import java.time.Instant;
+import java.time.OffsetDateTime;
 
 @Table("chat_message")
 @Data
@@ -31,11 +31,11 @@ public class ChatMessageData {
     @Column("created_by")
     private String createdBy;
     @Column("created_at")
-    private Instant createdAt;
+    private OffsetDateTime createdAt;
     @Column("updated_at")
-    private Instant updatedAt;
+    private OffsetDateTime updatedAt;
     @Column("delete_at")
-    private Instant deletedAt;
+    private OffsetDateTime deletedAt;
     @Column("is_delete")
     @Builder.Default
     private boolean isDelete = false;

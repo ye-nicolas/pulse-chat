@@ -5,7 +5,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.Instant;
+import java.time.OffsetDateTime;
+import java.util.List;
 
 @Data
 @Builder
@@ -16,11 +17,12 @@ public class Account {
     private String name;
     private String showName;
     private String password;
+    private List<Role> roleList;
     private boolean isActive;
-    private Instant lastLoginAt;
+    private OffsetDateTime lastLoginAt;
     private String createdBy;
     private String updatedBy;
-    private Instant createdAt;
-    private Instant updatedAt;
+    private OffsetDateTime createdAt;
+    private OffsetDateTime updatedAt;
     private String remark;
 }
