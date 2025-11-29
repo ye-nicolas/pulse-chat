@@ -67,6 +67,6 @@ public class JwtAuthenticationWebFilter implements WebFilter {
     }
 
     private Mono<UsernamePasswordAuthenticationToken> toAuthentication(UserDetails userDetails) {
-        return Mono.just(new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities()));
+        return Mono.fromCallable(() -> new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities()));
     }
 }
