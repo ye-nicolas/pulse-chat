@@ -68,7 +68,7 @@ public class CreateAccountUseCase {
                 .name(input.getName())
                 .showName(input.getShowName())
                 .password(passwordEncoder.encode(input.getPassword()))
-                .isActive(false)
+                .isActive(true)
                 .remark(input.getRemark())
                 .createdBy(id)
                 .updatedBy(id)

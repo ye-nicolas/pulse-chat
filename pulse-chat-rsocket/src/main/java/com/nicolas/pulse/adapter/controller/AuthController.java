@@ -72,8 +72,8 @@ public class AuthController {
                                 .build())));
     }
 
-    @PostMapping("/")
-    public Mono<ResponseEntity<String>> createUser(@Valid @RequestBody Mono<CreateAccountReq> req) {
+    @PostMapping("/account")
+    public Mono<ResponseEntity<String>> createAccount(@Valid @RequestBody Mono<CreateAccountReq> req) {
         return req.map(r -> CreateAccountUseCase.Input.builder()
                         .name(r.getName())
                         .showName(r.getShowName())
