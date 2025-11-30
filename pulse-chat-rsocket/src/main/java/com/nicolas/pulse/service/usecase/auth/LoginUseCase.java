@@ -6,9 +6,11 @@ import com.nicolas.pulse.util.JwtUtil;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.ReactiveAuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
@@ -25,27 +27,25 @@ public class LoginUseCase {
                         @Value("${auth.access.expires-minute}") Long accessExpiresMinute,
                         @Value("${auth.refresh.expires-minute}") Long refreshExpiresMinute,
                         ReactiveAuthenticationManager reactiveAuthenticationManager) {
-        this.accessExpiresMills = accessExpiresMinute * 60  * 1_000;
+        this.accessExpiresMills = accessExpiresMinute * 60 * 1_000;
         this.refreshExpiresMills = refreshExpiresMinute * 60 * 1_000;
         this.secretKey = JwtUtil.generateSecretKey(secret);
         this.reactiveAuthenticationManager = reactiveAuthenticationManager;
     }
 
-    public Mono<Output> execute(Mono<Input> input) {
-        return input.map(input1 -> new UsernamePasswordAuthenticationToken(input1.getUserName(), input1.getPassword()))
-                .flatMap(reactiveAuthenticationManager::authenticate)
+    public Mono<Void> execute(Input input, Output output) {
+        return reactiveAuthenticationManager.authenticate(new UsernamePasswordAuthenticationToken(input.getUserName(), input.getPassword()))
                 .map(authentication -> (SecurityAccount) authentication.getPrincipal())
-                .map(securityAccount -> {
+                .doOnSuccess(securityAccount -> {
                     String accessTokenId = UlidCreator.getMonotonicUlid().toString();
                     String refreshTokenId = UlidCreator.getMonotonicUlid().toString();
-                    return Output.builder()
-                            .accountId(securityAccount.getId())
-                            .accessTokenId(accessTokenId)
-                            .refreshTokenId(refreshTokenId)
-                            .accessToken(JwtUtil.generateAccessToken(secretKey, accessTokenId, securityAccount.getId(), accessExpiresMills, securityAccount.toMap()))
-                            .refreshToken(JwtUtil.generateRefreshToken(secretKey, refreshTokenId, securityAccount.getId(), refreshExpiresMills))
-                            .build();
-                });
+                    output.setAccountId(securityAccount.getId());
+                    output.setAccessTokenId(accessTokenId);
+                    output.setRefreshTokenId(refreshTokenId);
+                    output.setAccessToken(JwtUtil.generateAccessToken(secretKey, accessTokenId, securityAccount.getId(), accessExpiresMills, securityAccount.toMap()));
+                    output.setRefreshToken(JwtUtil.generateRefreshToken(secretKey, refreshTokenId, securityAccount.getId(), refreshExpiresMills));
+                })
+                .then();
     }
 
     @Data
@@ -59,6 +59,7 @@ public class LoginUseCase {
     @Data
     @Builder
     @AllArgsConstructor
+    @NoArgsConstructor
     public static class Output {
         private String accountId;
         private String accessTokenId;
