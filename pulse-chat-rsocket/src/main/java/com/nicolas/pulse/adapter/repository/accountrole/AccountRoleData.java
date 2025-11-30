@@ -6,6 +6,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.CreatedBy;
+import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Transient;
 import org.springframework.data.relational.core.mapping.Column;
@@ -26,8 +28,12 @@ public class AccountRoleData {
     private String accountId;
     @Column(DbMeta.AccountRoleData.COLUMN_ROLE_ID)
     private String roleId;
+
+    @CreatedBy
     @Column(DbMeta.AccountRoleData.COLUMN_CREATED_BY)
     private String createdBy;
+
+    @CreatedDate
     @Column(DbMeta.AccountRoleData.COLUMN_CREATED_AT)
     private OffsetDateTime createdAt;
 

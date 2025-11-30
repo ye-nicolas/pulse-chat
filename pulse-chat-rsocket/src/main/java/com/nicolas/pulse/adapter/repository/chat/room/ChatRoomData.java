@@ -5,7 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.*;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
@@ -29,15 +29,19 @@ public class ChatRoomData {
     @Column(COLUMN_TYPE)
     private ChatRoomType type;
 
+    @CreatedBy
     @Column(COLUMN_CREATED_BY)
     private String createdBy;
 
+    @LastModifiedBy
     @Column(COLUMN_UPDATED_BY)
     private String updatedBy;
 
+    @CreatedDate
     @Column(COLUMN_CREATED_AT)
     private OffsetDateTime createdAt;
 
+    @LastModifiedDate
     @Column(COLUMN_UPDATED_AT)
     private OffsetDateTime updatedAt;
 }

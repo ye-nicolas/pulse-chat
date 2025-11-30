@@ -6,8 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.annotation.Transient;
+import org.springframework.data.annotation.*;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
@@ -40,15 +39,19 @@ public class AccountData {
     @Column(DbMeta.AccountData.COLUMN_LAST_LOGIN_AT)
     private OffsetDateTime lastLoginAt;
 
+    @CreatedBy
     @Column(DbMeta.AccountData.COLUMN_CREATED_BY)
     private String createdBy;
 
+    @LastModifiedBy
     @Column(DbMeta.AccountData.COLUMN_UPDATED_BY)
     private String updatedBy;
 
+    @CreatedDate
     @Column(DbMeta.AccountData.COLUMN_CREATED_AT)
     private OffsetDateTime createdAt;
 
+    @LastModifiedDate
     @Column(DbMeta.AccountData.COLUMN_UPDATED_AT)
     private OffsetDateTime updatedAt;
 

@@ -1,5 +1,6 @@
 package com.nicolas.pulse.config;
 
+import com.nicolas.pulse.entity.domain.SecurityAccount;
 import io.r2dbc.pool.ConnectionPool;
 import io.r2dbc.pool.ConnectionPoolConfiguration;
 import io.r2dbc.postgresql.PostgresqlConnectionConfiguration;
@@ -10,17 +11,24 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
+import org.springframework.data.domain.ReactiveAuditorAware;
 import org.springframework.data.r2dbc.config.AbstractR2dbcConfiguration;
+import org.springframework.data.r2dbc.config.EnableR2dbcAuditing;
 import org.springframework.data.r2dbc.core.R2dbcEntityOperations;
 import org.springframework.data.r2dbc.core.R2dbcEntityTemplate;
 import org.springframework.data.r2dbc.dialect.PostgresDialect;
 import org.springframework.data.r2dbc.repository.config.EnableR2dbcRepositories;
 import org.springframework.r2dbc.core.DatabaseClient;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.ReactiveSecurityContextHolder;
+import org.springframework.security.core.context.SecurityContext;
+import reactor.core.publisher.Mono;
 
 import java.time.Duration;
+import java.util.Objects;
 
-@EnableR2dbcRepositories(basePackages = "com.nicolas.pulse.adapter.repository",
-        entityOperationsRef = "MainR2dbcEntityOperations")
+@EnableR2dbcAuditing
+@EnableR2dbcRepositories(basePackages = "com.nicolas.pulse.adapter.repository", entityOperationsRef = "MainR2dbcEntityOperations")
 @Configuration
 public class R2dbcConfiguration extends AbstractR2dbcConfiguration {
     @Value("${pulse-chat.db.host}")
@@ -94,5 +102,19 @@ public class R2dbcConfiguration extends AbstractR2dbcConfiguration {
     public R2dbcEntityOperations mainR2dbcEntityOperations(@Qualifier("MainConnectionFactory") ConnectionFactory connectionFactory) {
         DatabaseClient databaseClient = DatabaseClient.create(connectionFactory);
         return new R2dbcEntityTemplate(databaseClient, PostgresDialect.INSTANCE);
+    }
+
+    @Bean
+    public ReactiveAuditorAware<String> getAuditorProvider() {
+        return () -> ReactiveSecurityContextHolder.getContext()
+                .map(SecurityContext::getAuthentication)
+                .filter(Authentication::isAuthenticated)
+                .flatMap(authentication -> {
+                    if (authentication.getPrincipal() instanceof SecurityAccount securityAccount) {
+                        return Mono.just(securityAccount.getId());
+                    }
+                    return Mono.empty();
+                })
+                .switchIfEmpty(Mono.just("system"));
     }
 }
