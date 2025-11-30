@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Transient;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
@@ -19,6 +20,7 @@ import java.util.Set;
 @AllArgsConstructor
 @NoArgsConstructor
 public class RoleData {
+    @Id
     @Column(DbMeta.RoleData.COLUMN_ID)
     private String id;
     @Column(DbMeta.RoleData.COLUMN_NAME)

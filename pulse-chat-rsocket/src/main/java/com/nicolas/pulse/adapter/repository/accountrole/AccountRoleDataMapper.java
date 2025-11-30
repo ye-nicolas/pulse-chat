@@ -1,5 +1,6 @@
 package com.nicolas.pulse.adapter.repository.accountrole;
 
+import com.nicolas.pulse.adapter.repository.role.RoleDataMapper;
 import com.nicolas.pulse.entity.domain.AccountRole;
 
 
@@ -15,9 +16,10 @@ public class AccountRoleDataMapper {
         return AccountRole.builder()
                 .id(data.getId())
                 .accountId(data.getAccountId())
-                .roleId(data.getRoleId())
+                .role(RoleDataMapper.dataToDomain(data.getRoleData()))
                 .createdBy(data.getCreatedBy())
                 .createdAt(data.getCreatedAt())
+
                 .build();
     }
 
@@ -28,9 +30,10 @@ public class AccountRoleDataMapper {
         return AccountRoleData.builder()
                 .id(domain.getId())
                 .accountId(domain.getAccountId())
-                .roleId(domain.getRoleId())
+                .roleId(domain.getRole().getId())
                 .createdBy(domain.getCreatedBy())
                 .createdAt(domain.getCreatedAt())
+                .roleData(RoleDataMapper.domainToData(domain.getRole()))
                 .build();
     }
 }

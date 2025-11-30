@@ -74,15 +74,16 @@ public class AuthController {
 
     @PostMapping("/account")
     public Mono<ResponseEntity<String>> createAccount(@Valid @RequestBody Mono<CreateAccountReq> req) {
-        return req.map(r -> CreateAccountUseCase.Input.builder()
-                        .name(r.getName())
-                        .showName(r.getShowName())
-                        .password(r.getPassword())
-                        .remark(r.getRemark())
-                        .roleIdSet(r.getRoleIdSet())
+        CreateAccountUseCase.Output output = new CreateAccountUseCase.Output();
+        return req.map(dto -> CreateAccountUseCase.Input.builder()
+                        .name(dto.getName())
+                        .showName(dto.getShowName())
+                        .password(dto.getPassword())
+                        .roleIdSet(dto.getRoleIdSet())
+                        .remark(dto.getRemark())
                         .build())
-                .transform(createAccountUseCase::execute)
-                .map(output -> ResponseEntity.ok().body(output.getUserId()));
+                .flatMap(input -> createAccountUseCase.execute(input, output))
+                .then(Mono.defer(() -> Mono.just(ResponseEntity.ok(output.getAccountId()))));
     }
 
     private ResponseCookie getCookie(String refreshToken) {

@@ -3,6 +3,7 @@ package com.nicolas.pulse.service.usecase.auth;
 import com.github.f4b6a3.ulid.UlidCreator;
 import com.nicolas.pulse.entity.domain.SecurityAccount;
 import com.nicolas.pulse.service.repository.AccountRepository;
+import com.nicolas.pulse.service.repository.AccountRoleRepository;
 import com.nicolas.pulse.util.JwtUtil;
 import io.jsonwebtoken.Claims;
 import lombok.AllArgsConstructor;
@@ -11,6 +12,7 @@ import lombok.NoArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import javax.crypto.SecretKey;
@@ -22,27 +24,34 @@ public class RefreshTokenUseCase {
     private final long refreshExpiresMills;
     private final SecretKey secretKey;
     private final AccountRepository accountRepository;
+    private final AccountRoleRepository accountRoleRepository;
 
     public RefreshTokenUseCase(@Value("${jwt.key}") String secret,
                                @Value("${auth.access.expires-minute}") Long accessExpiresMinute,
                                @Value("${auth.refresh.expires-minute}") Long refreshExpiresMinute,
-                               AccountRepository accountRepository) {
+                               AccountRepository accountRepository,
+                               AccountRoleRepository accountRoleRepository) {
         this.accessExpiresMills = accessExpiresMinute * 60 * 1_000;
         this.refreshExpiresMills = refreshExpiresMinute * 60 * 1_000;
         this.secretKey = JwtUtil.generateSecretKey(secret);
         this.accountRepository = accountRepository;
+        this.accountRoleRepository = accountRoleRepository;
     }
 
     public Mono<Void> execute(Input input, Output output) {
         return Mono.fromCallable(() -> JwtUtil.validateRefreshToken(secretKey, input.getRefreshToken()))
                 .flatMap(claims -> accountRepository.findById(claims.getSubject()))
                 .switchIfEmpty(Mono.error(new BadCredentialsException("Not Found Account")))
-                .map(account -> SecurityAccount.builder()
-                        .id(account.getId())
-                        .username(account.getName())
-                        .password(account.getPassword())
-                        .state(account.isActive())
-                        .privilegeSet(account.getRoleList().stream().flatMap(r -> r.getPrivilegeSet().stream()).collect(Collectors.toSet()))
+                .flatMap(account -> accountRoleRepository.findAllByAccountId(account.getId())
+                        .flatMap(accountRole -> Flux.fromIterable(accountRole.getRole().getPrivilegeSet()))
+                        .collect(Collectors.toSet())
+                        .zipWith(Mono.just(account)))
+                .map(tuple2 -> SecurityAccount.builder()
+                        .id(tuple2.getT2().getId())
+                        .username(tuple2.getT2().getName())
+                        .password(tuple2.getT2().getPassword())
+                        .state(tuple2.getT2().isActive())
+                        .privilegeSet(tuple2.getT1())
                         .build())
                 .doOnSuccess(securityAccount -> {
                     String accessTokenId = UlidCreator.getMonotonicUlid().toString();

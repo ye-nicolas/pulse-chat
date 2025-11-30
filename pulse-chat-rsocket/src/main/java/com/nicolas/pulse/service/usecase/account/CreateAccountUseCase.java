@@ -12,6 +12,7 @@ import com.nicolas.pulse.service.repository.RoleRepository;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
@@ -36,53 +37,48 @@ public class CreateAccountUseCase {
         this.accountRoleRepository = accountRoleRepository;
     }
 
-
-    public Mono<Output> execute(Mono<Input> input) {
-        return input.flatMap(this::validateNameNotExists)
-                .flatMap(this::validateAllRolesExist)
-                .flatMap(this::createUser)
-                .flatMap(this::createAccountRole)
-                .map(user -> new Output(user.getId()));
-    }
-
-    private Mono<Input> validateNameNotExists(Input input) {
-        return accountRepository.existsByName(input.getName())
-                .flatMap(exists -> exists
-                        ? Mono.error(new ConflictException("User name already exists, name = '%s'.".formatted(input.getName())))
-                        : Mono.just(input));
-    }
-
-    private Mono<Input> validateAllRolesExist(Input input) {
-        return Flux.fromIterable(input.getRoleIdSet())
-                .flatMap(roleRepository::existsById)
-                .all(Boolean::booleanValue)
-                .flatMap(exists -> exists
-                        ? Mono.just(input)
-                        : Mono.error(new TargetNotFoundException("Some roles do not exist.")));
+    public Mono<Void> execute(Input input, Output output) {
+        return Mono.when(
+                        this.validateNameNotExists(input.getName()),
+                        this.validateAllRolesExist(input.getRoleIdSet())
+                ).then(this.createUser(input))
+                .doOnSuccess(account -> this.createAccountRole(account, input.getRoleIdSet()))
+                .doOnSuccess(account -> output.setAccountId(account.getId())).then();
     }
 
     private Mono<Account> createUser(Input input) {
-        String id = UlidCreator.getMonotonicUlid().toString();
-        Account account = Account.builder()
-                .id(id)
+        return accountRepository.create(Account.builder()
+                .id(UlidCreator.getMonotonicUlid().toString())
                 .name(input.getName())
                 .showName(input.getShowName())
                 .password(passwordEncoder.encode(input.getPassword()))
                 .isActive(true)
                 .remark(input.getRemark())
-                .createdBy(id)
-                .updatedBy(id)
-                .roleList(input.roleIdSet.stream().map(roleId -> Role.builder().id(roleId).build()).toList())
-                .build();
-        return accountRepository.create(account);
+                .build());
     }
 
-    private Mono<Account> createAccountRole(Account account) {
-        return accountRoleRepository.saveAll(Flux.fromIterable(account.getRoleList())
-                        .map(role -> AccountRole.builder()
+    private Mono<Void> validateNameNotExists(String name) {
+        return accountRepository.existsByName(name)
+                .flatMap(exists -> exists
+                        ? Mono.error(new ConflictException("User name already exists, name = '%s'.".formatted(name)))
+                        : Mono.empty());
+    }
+
+    private Mono<Void> validateAllRolesExist(Set<String> roleIdSet) {
+        return Flux.fromIterable(roleIdSet)
+                .flatMap(roleRepository::existsById)
+                .all(Boolean::booleanValue)
+                .flatMap(exists -> exists
+                        ? Mono.empty()
+                        : Mono.error(new TargetNotFoundException("Some roles do not exist.")));
+    }
+
+    private Mono<Account> createAccountRole(Account account, Set<String> roleIdSet) {
+        return accountRoleRepository.saveAll(Flux.fromIterable(roleIdSet)
+                        .map(id -> AccountRole.builder()
                                 .id(UlidCreator.getMonotonicUlid().toString())
                                 .accountId(account.getId())
-                                .roleId(role.getId())
+                                .role(Role.builder().id(id).build())
                                 .createdBy(account.getId())
                                 .build()))
                 .then(Mono.just(account));
@@ -100,8 +96,8 @@ public class CreateAccountUseCase {
     }
 
     @Data
-    @AllArgsConstructor
+    @NoArgsConstructor
     public static class Output {
-        private String userId;
+        private String accountId;
     }
 }

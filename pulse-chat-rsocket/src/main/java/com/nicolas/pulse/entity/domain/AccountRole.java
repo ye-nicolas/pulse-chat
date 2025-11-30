@@ -14,7 +14,7 @@ import java.time.OffsetDateTime;
 public class AccountRole {
     private String id;
     private String accountId;
-    private String roleId;
+    private Role role;
     private String createdBy;
     private OffsetDateTime createdAt;
 }

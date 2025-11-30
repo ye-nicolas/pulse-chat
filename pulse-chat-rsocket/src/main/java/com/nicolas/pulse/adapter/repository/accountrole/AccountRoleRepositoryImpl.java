@@ -1,5 +1,8 @@
 package com.nicolas.pulse.adapter.repository.accountrole;
 
+import com.nicolas.pulse.adapter.repository.DbMeta;
+import com.nicolas.pulse.adapter.repository.role.RoleData;
+import com.nicolas.pulse.adapter.repository.role.RoleRepositoryImpl;
 import com.nicolas.pulse.entity.domain.AccountRole;
 import com.nicolas.pulse.service.repository.AccountRoleRepository;
 import org.springframework.data.r2dbc.core.R2dbcEntityOperations;
@@ -8,6 +11,8 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.time.OffsetDateTime;
+import java.util.List;
+import java.util.Map;
 
 @Repository
 public class AccountRoleRepositoryImpl implements AccountRoleRepository {
@@ -20,14 +25,82 @@ public class AccountRoleRepositoryImpl implements AccountRoleRepository {
         this.r2dbcEntityOperations = r2dbcEntityOperations;
     }
 
+    private static final String BASIC_SQL = """
+            SELECT
+                ar.%s as %s,
+                ar.%s as %s,
+                ar.%s as %s,
+                ar.%s as %s,
+                ar.%s as %s,
+                r.%s as %s,
+                r.%s as %s,
+                r.%s as %s,
+                r.%s as %s,
+                r.%s as %s,
+                r.%s as %s,
+                r.%s as %s,
+                rp.%s as %s
+            FROM %s ar
+            LEFT JOIN %s r on ar.%s = r.%s
+            LEFT JOIN %s rp on r.%s = rp.%s
+            """.formatted(
+            DbMeta.AccountRoleData.COLUMN_ID, DbMeta.AccountRoleData.ALIAS_ID,
+            DbMeta.AccountRoleData.COLUMN_ACCOUNT_ID, DbMeta.AccountRoleData.ALIAS_ACCOUNT_ID,
+            DbMeta.AccountRoleData.COLUMN_ROLE_ID, DbMeta.AccountRoleData.ALIAS_ROLE_ID,
+            DbMeta.AccountRoleData.COLUMN_CREATED_BY, DbMeta.AccountRoleData.ALIAS_CREATED_BY,
+            DbMeta.AccountRoleData.COLUMN_CREATED_AT, DbMeta.AccountRoleData.ALIAS_CREATED_AT,
+            DbMeta.RoleData.COLUMN_ID, DbMeta.RoleData.ALIAS_ID,
+            DbMeta.RoleData.COLUMN_NAME, DbMeta.RoleData.ALIAS_NAME,
+            DbMeta.RoleData.COLUMN_CREATED_BY, DbMeta.RoleData.ALIAS_CREATED_BY,
+            DbMeta.RoleData.COLUMN_UPDATED_BY, DbMeta.RoleData.ALIAS_UPDATED_BY,
+            DbMeta.RoleData.COLUMN_CREATED_AT, DbMeta.RoleData.ALIAS_CREATED_AT,
+            DbMeta.RoleData.COLUMN_UPDATED_AT, DbMeta.RoleData.ALIAS_UPDATED_AT,
+            DbMeta.RoleData.COLUMN_REMARK, DbMeta.RoleData.ALIAS_REMARK,
+            DbMeta.RolePrivilegeData.COLUMN_PRIVILEGE, DbMeta.RolePrivilegeData.ALIAS_PRIVILEGE,
+            DbMeta.AccountRoleData.TABLE_NAME,
+            DbMeta.RoleData.TABLE_NAME,
+            DbMeta.AccountRoleData.COLUMN_ROLE_ID,
+            DbMeta.RoleData.COLUMN_ID,
+            DbMeta.RolePrivilegeData.TABLE_NAME,
+            DbMeta.RoleData.COLUMN_ID,
+            DbMeta.RolePrivilegeData.COLUMN_ROLE_ID
+    );
+    private static final String FIND_BY_ACCOUNT_ID = BASIC_SQL + "WHERE ar.%s = $1".formatted(DbMeta.AccountRoleData.COLUMN_ACCOUNT_ID);
+    private static final String FIND_BY_ROLE_ID = BASIC_SQL + "WHERE ar.%s = $1".formatted(DbMeta.AccountRoleData.COLUMN_ROLE_ID);
+
+
     @Override
     public Flux<AccountRole> findAllByAccountId(String accountId) {
-        return peer.findAllByAccountId(accountId).map(AccountRoleDataMapper::dataToDomain);
+        return r2dbcEntityOperations.getDatabaseClient().sql(FIND_BY_ACCOUNT_ID)
+                .bind(0, accountId)
+                .fetch()
+                .all()
+                .bufferUntilChanged(m -> m.get(DbMeta.AccountRoleData.ALIAS_ROLE_ID).toString())
+                .map(accountChunk -> this.toMapToData(accountChunk, RoleRepositoryImpl.mapToData(accountChunk)))
+                .map(AccountRoleDataMapper::dataToDomain);
     }
+
 
     @Override
     public Flux<AccountRole> findAllByRoleId(String roleId) {
-        return peer.findAllByRoleId(roleId).map(AccountRoleDataMapper::dataToDomain);
+        return r2dbcEntityOperations.getDatabaseClient().sql(FIND_BY_ROLE_ID)
+                .bind(0, roleId)
+                .fetch()
+                .all()
+                .bufferUntilChanged(m -> m.get(DbMeta.AccountRoleData.ALIAS_ROLE_ID).toString())
+                .map(accountChunk -> this.toMapToData(accountChunk, RoleRepositoryImpl.mapToData(accountChunk)))
+                .map(AccountRoleDataMapper::dataToDomain);
+    }
+
+    private AccountRoleData toMapToData(List<Map<String, Object>> mapList, RoleData roleData) {
+        return AccountRoleData.builder()
+                .id((String) mapList.getFirst().get(DbMeta.AccountRoleData.ALIAS_ID))
+                .accountId((String) mapList.getFirst().get(DbMeta.AccountRoleData.ALIAS_ACCOUNT_ID))
+                .roleId((String) mapList.getFirst().get(DbMeta.AccountRoleData.ALIAS_ROLE_ID))
+                .createdBy((String) mapList.getFirst().get(DbMeta.AccountRoleData.ALIAS_CREATED_BY))
+                .createdAt((OffsetDateTime) mapList.getFirst().get(DbMeta.AccountRoleData.ALIAS_CREATED_AT))
+                .roleData(roleData)
+                .build();
     }
 
     @Override
