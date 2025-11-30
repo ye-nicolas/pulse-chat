@@ -6,8 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.annotation.Transient;
+import org.springframework.data.annotation.*;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
@@ -30,14 +29,23 @@ public class ChatRoomMemberData {
     private String roomId;
     @Column(COLUMN_ROLE)
     private ChatRoomMemberRole role;
+
+    @CreatedBy
     @Column(COLUMN_CREATED_BY)
     private String createdBy;
+
+    @LastModifiedBy
     @Column(COLUMN_UPDATED_BY)
     private String updatedBy;
+
+    @CreatedDate
     @Column(COLUMN_CREATED_AT)
     private OffsetDateTime createdAt;
+
+    @LastModifiedDate
     @Column(COLUMN_UPDATED_AT)
     private OffsetDateTime updatedAt;
+
     @Column(COLUMN_LAST_READ_MESSAGE_ID)
     private String lastReadMessageId;
     @Column(COLUMN_IS_MUTED)

@@ -5,7 +5,10 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.CreatedBy;
+import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
@@ -28,15 +31,23 @@ public class ChatMessageData {
     private ChatMessageType type;
     @Column("content")
     private String content;
-    @Column("created_by")
-    private String createdBy;
-    @Column("created_at")
-    private OffsetDateTime createdAt;
-    @Column("updated_at")
-    private OffsetDateTime updatedAt;
+
+    @Builder.Default
+    @Column("is_delete")
+    private boolean isDelete = false;
+
     @Column("delete_at")
     private OffsetDateTime deletedAt;
-    @Column("is_delete")
-    @Builder.Default
-    private boolean isDelete = false;
+
+    @CreatedBy
+    @Column("created_by")
+    private String createdBy;
+
+    @CreatedDate
+    @Column("created_at")
+    private OffsetDateTime createdAt;
+
+    @LastModifiedDate
+    @Column("updated_at")
+    private OffsetDateTime updatedAt;
 }
