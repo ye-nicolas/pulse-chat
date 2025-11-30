@@ -1,4 +1,4 @@
-package com.nicolas.pulse.config;
+package com.nicolas.pulse.infrastructure.config;
 
 import com.nicolas.pulse.entity.domain.SecurityAccount;
 import io.r2dbc.pool.ConnectionPool;
@@ -25,7 +25,6 @@ import org.springframework.security.core.context.SecurityContext;
 import reactor.core.publisher.Mono;
 
 import java.time.Duration;
-import java.util.Objects;
 
 @EnableR2dbcAuditing
 @EnableR2dbcRepositories(basePackages = "com.nicolas.pulse.adapter.repository", entityOperationsRef = "MainR2dbcEntityOperations")
