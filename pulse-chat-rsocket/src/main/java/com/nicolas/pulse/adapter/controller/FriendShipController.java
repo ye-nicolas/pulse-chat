@@ -29,10 +29,10 @@ public class FriendShipController {
                 .then(Mono.defer(() -> Mono.just(ResponseEntity.ok(output.getFriendShipId()))));
     }
 
-    @PatchMapping("/{id}")
-    public Mono<ResponseEntity<String>> createFriendShip(@PathVariable("id") String id) {
-        return Mono.defer(() -> Mono.just(new UpdateFriendShipStatusToAcceptedUseCase.Input(id)))
+    @PatchMapping("/{friendShipId}")
+    public Mono<ResponseEntity<String>> createFriendShip(@PathVariable("friendShipId") String friendShipId) {
+        return Mono.defer(() -> Mono.just(new UpdateFriendShipStatusToAcceptedUseCase.Input(friendShipId)))
                 .flatMap(updateFriendShipStatusToAcceptedUseCase::execute)
-                .then(Mono.defer(() -> Mono.just(ResponseEntity.ok(id))));
+                .then(Mono.defer(() -> Mono.just(ResponseEntity.ok(friendShipId))));
     }
 }

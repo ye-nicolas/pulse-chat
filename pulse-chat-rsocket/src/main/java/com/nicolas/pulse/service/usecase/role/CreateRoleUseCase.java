@@ -10,6 +10,7 @@ import com.nicolas.pulse.service.repository.RoleRepository;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -27,11 +28,18 @@ public class CreateRoleUseCase {
         this.rolePrivilegeRepository = rolePrivilegeRepository;
     }
 
-    public Mono<Output> execute(Mono<Input> input) {
-        return input.flatMap(this::validateNameNotExists)
-                .flatMap(this::createRole)
-                .flatMap(this::createRolePrivilege)
-                .map(role -> new Output(role.getId()));
+    public Mono<Void> execute(Input input, Output output) {
+        return validateNameNotExists(input.getRoleName())
+                .then(this.createRole(input))
+                .doOnNext(role -> output.setRoleId(role.getId()))
+                .flatMap(this::createRolePrivilege);
+    }
+
+    private Mono<Void> validateNameNotExists(String name) {
+        return roleRepository.existsByName(name)
+                .flatMap(exists -> exists
+                        ? Mono.error(new ConflictException("Role name already exists, name = '%s'.".formatted(name)))
+                        : Mono.empty());
     }
 
     private Mono<Role> createRole(Input input) {
@@ -43,21 +51,14 @@ public class CreateRoleUseCase {
                 .build());
     }
 
-    private Mono<Role> createRolePrivilege(Role role) {
+    private Mono<Void> createRolePrivilege(Role role) {
         return rolePrivilegeRepository.insert(Flux.fromIterable(role.getPrivilegeSet())
                         .map(privilege -> RolePrivilege.builder()
                                 .id(UlidCreator.getMonotonicUlid().toString())
                                 .roleId(role.getId())
                                 .privilege(privilege)
                                 .build()))
-                .then(Mono.just(role));
-    }
-
-    private Mono<Input> validateNameNotExists(Input input) {
-        return roleRepository.existsByName(input.getRoleName())
-                .flatMap(exists -> exists
-                        ? Mono.error(new ConflictException("Role name already exists, name = '%s'.".formatted(input.getRoleName())))
-                        : Mono.just(input));
+                .then();
     }
 
     @Data
@@ -70,7 +71,7 @@ public class CreateRoleUseCase {
     }
 
     @Data
-    @AllArgsConstructor
+    @NoArgsConstructor
     public static class Output {
         private String roleId;
     }

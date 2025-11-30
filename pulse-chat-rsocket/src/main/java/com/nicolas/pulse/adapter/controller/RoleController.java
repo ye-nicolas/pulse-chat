@@ -41,12 +41,13 @@ public class RoleController {
 
     @PostMapping("/")
     public Mono<ResponseEntity<String>> createRole(@Valid @RequestBody Mono<CreateRoleReq> req) {
+        CreateRoleUseCase.Output output = new CreateRoleUseCase.Output();
         return req.map(r -> CreateRoleUseCase.Input.builder()
                         .roleName(r.getRoleName())
                         .privileges(r.getPrivileges())
                         .remark(r.getRemark())
                         .build())
-                .transform(createRoleUseCase::execute)
-                .map(output -> ResponseEntity.ok().body(output.getRoleId()));
+                .flatMap(input -> createRoleUseCase.execute(input, output))
+                .then(Mono.defer(() -> Mono.just(ResponseEntity.ok(output.getRoleId()))));
     }
 }

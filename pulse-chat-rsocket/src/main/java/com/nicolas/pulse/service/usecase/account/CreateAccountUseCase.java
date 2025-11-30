@@ -42,8 +42,9 @@ public class CreateAccountUseCase {
                         this.validateNameNotExists(input.getName()),
                         this.validateAllRolesExist(input.getRoleIdSet())
                 ).then(this.createUser(input))
-                .doOnSuccess(account -> this.createAccountRole(account, input.getRoleIdSet()))
-                .doOnSuccess(account -> output.setAccountId(account.getId())).then();
+                .doOnSuccess(account -> output.setAccountId(account.getId()))
+                .flatMap(account -> this.createAccountRole(account, input.getRoleIdSet()))
+                .then();
     }
 
     private Mono<Account> createUser(Input input) {
@@ -73,7 +74,7 @@ public class CreateAccountUseCase {
                         : Mono.error(new TargetNotFoundException("Some roles do not exist.")));
     }
 
-    private Mono<Account> createAccountRole(Account account, Set<String> roleIdSet) {
+    private Mono<Void> createAccountRole(Account account, Set<String> roleIdSet) {
         return accountRoleRepository.saveAll(Flux.fromIterable(roleIdSet)
                         .map(id -> AccountRole.builder()
                                 .id(UlidCreator.getMonotonicUlid().toString())
@@ -81,7 +82,7 @@ public class CreateAccountUseCase {
                                 .role(Role.builder().id(id).build())
                                 .createdBy(account.getId())
                                 .build()))
-                .then(Mono.just(account));
+                .then();
     }
 
     @Data

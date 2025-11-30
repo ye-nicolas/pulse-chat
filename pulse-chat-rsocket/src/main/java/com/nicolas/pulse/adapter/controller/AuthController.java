@@ -44,19 +44,18 @@ public class AuthController {
 
     @PostMapping("/login")
     public Mono<ResponseEntity<AuthRes>> login(@Valid @RequestBody Mono<LoginReq> req) {
+        LoginUseCase.Output output = new LoginUseCase.Output();
         return req.map(r -> LoginUseCase.Input.builder()
                         .userName(r.getUserName())
                         .password(r.getPassword())
                         .build())
-                .transform(loginUseCase::execute)
-                .map(output -> {
-                    return ResponseEntity.ok()
-                            .header(HttpHeaders.SET_COOKIE, getCookie(output.getRefreshToken()).toString())
-                            .body(AuthRes.builder()
-                                    .accessToken(output.getAccessToken())
-                                    .accountId(output.getAccountId())
-                                    .build());
-                });
+                .flatMap(input -> loginUseCase.execute(input, output))
+                .then(Mono.defer(() -> Mono.just(ResponseEntity.ok()
+                        .header(HttpHeaders.SET_COOKIE, getCookie(output.getRefreshToken()).toString())
+                        .body(AuthRes.builder()
+                                .accessToken(output.getAccessToken())
+                                .accountId(output.getAccountId())
+                                .build()))));
     }
 
     @PostMapping("/refresh")
