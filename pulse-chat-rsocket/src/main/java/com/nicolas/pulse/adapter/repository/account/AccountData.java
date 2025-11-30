@@ -54,7 +54,4 @@ public class AccountData {
 
     @Column(DbMeta.AccountData.COLUMN_REMARK)
     private String remark;
-
-    @Transient
-    private List<RoleData> roleDataList;
 }

@@ -1,5 +1,6 @@
 package com.nicolas.pulse.entity.domain;
 
+import com.nicolas.pulse.entity.enumerate.FriendShipStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -11,10 +12,13 @@ import java.time.OffsetDateTime;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class AccountRole {
+public class FriendShip {
     private String id;
-    private String accountId;
-    private Role role;
+    private Account requesterAccount;
+    private Account recipientAccount;
+    private FriendShipStatus status;
     private String createdBy;
+    private String updatedBy;
     private OffsetDateTime createdAt;
+    private OffsetDateTime updatedAt;
 }
