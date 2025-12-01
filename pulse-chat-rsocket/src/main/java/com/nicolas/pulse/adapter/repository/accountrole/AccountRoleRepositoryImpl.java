@@ -10,7 +10,7 @@ import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.time.OffsetDateTime;
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 
@@ -98,17 +98,14 @@ public class AccountRoleRepositoryImpl implements AccountRoleRepository {
                 .accountId((String) mapList.getFirst().get(DbMeta.AccountRoleData.ALIAS_ACCOUNT_ID))
                 .roleId((String) mapList.getFirst().get(DbMeta.AccountRoleData.ALIAS_ROLE_ID))
                 .createdBy((String) mapList.getFirst().get(DbMeta.AccountRoleData.ALIAS_CREATED_BY))
-                .createdAt((OffsetDateTime) mapList.getFirst().get(DbMeta.AccountRoleData.ALIAS_CREATED_AT))
+                .createdAt((Instant) mapList.getFirst().get(DbMeta.AccountRoleData.ALIAS_CREATED_AT))
                 .roleData(roleData)
                 .build();
     }
 
     @Override
     public Flux<AccountRole> saveAll(Flux<AccountRole> accountRoleFlux) {
-        return accountRoleFlux.map(accountRole -> {
-                    accountRole.setCreatedAt(OffsetDateTime.now());
-                    return AccountRoleDataMapper.domainToData(accountRole);
-                })
+        return accountRoleFlux.map(AccountRoleDataMapper::domainToData)
                 .window(10)
                 .flatMap(batch -> batch.flatMap(r2dbcEntityOperations::insert), 10)
                 .map(AccountRoleDataMapper::dataToDomain);

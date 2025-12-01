@@ -5,7 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.OffsetDateTime;
+import java.time.Instant;
 
 @Data
 @Builder
@@ -16,5 +16,5 @@ public class AccountRole {
     private String accountId;
     private Role role;
     private String createdBy;
-    private OffsetDateTime createdAt;
+    private Instant createdAt;
 }
