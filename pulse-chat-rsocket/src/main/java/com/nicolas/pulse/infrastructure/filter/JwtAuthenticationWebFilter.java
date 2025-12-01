@@ -1,7 +1,5 @@
 package com.nicolas.pulse.infrastructure.filter;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nicolas.pulse.entity.domain.SecurityAccount;
 import com.nicolas.pulse.entity.enumerate.Privilege;
 import com.nicolas.pulse.util.JwtUtil;
@@ -19,7 +17,9 @@ import org.springframework.web.server.WebFilterChain;
 import reactor.core.publisher.Mono;
 
 import javax.crypto.SecretKey;
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static com.nicolas.pulse.entity.domain.SecurityAccount.PRIVILEGE;
 import static com.nicolas.pulse.entity.domain.SecurityAccount.USER_NAME;
@@ -27,12 +27,9 @@ import static com.nicolas.pulse.entity.domain.SecurityAccount.USER_NAME;
 @Component
 public class JwtAuthenticationWebFilter implements WebFilter {
     private static final String AUTH_HEADER = "Bearer ";
-    private final ObjectMapper objectMapper;
     private final SecretKey secretKey;
 
-    public JwtAuthenticationWebFilter(ObjectMapper objectMapper,
-                                      @Value("${jwt.key}") String secretKey) {
-        this.objectMapper = objectMapper;
+    public JwtAuthenticationWebFilter(@Value("${jwt.key}") String secretKey) {
         this.secretKey = JwtUtil.generateSecretKey(secretKey);
     }
 
@@ -45,28 +42,33 @@ public class JwtAuthenticationWebFilter implements WebFilter {
         }
         String token = authHeader.substring(AUTH_HEADER.length());
         return this.validateAccessToken(token)
-                .flatMap(this::processClaims)
-                .flatMap(this::toAuthentication)
-                .flatMap(auth -> chain.filter(exchange).contextWrite(ReactiveSecurityContextHolder.withAuthentication(auth)))
-                .onErrorMap(e -> new BadCredentialsException(e.getMessage(), e));
+                .flatMap(this::claimsToUserDetails)
+                .flatMap(this::userDetailstoAuthentication)
+                .onErrorMap(e -> new BadCredentialsException(e.getMessage(), e)) // 將validateAccessToken\processClaims\toAuthentication的錯誤轉換成BadCredentialsException
+                .flatMap(auth -> chain.filter(exchange).contextWrite(ReactiveSecurityContextHolder.withAuthentication(auth)));
     }
 
     private Mono<Claims> validateAccessToken(String token) {
-        // Mono.fromCallable：包裝一個同步的、可能阻塞的程式碼 或 可能拋出異常，並且您希望將這個異常優雅地在反應式流中處理
         return Mono.fromCallable(() -> JwtUtil.validateAccessToken(secretKey, token));
     }
 
-    private Mono<SecurityAccount> processClaims(Claims claims) {
+    private Mono<SecurityAccount> claimsToUserDetails(Claims claims) {
+
         return Mono.fromCallable(() -> SecurityAccount.builder()
                 .id(claims.getSubject())
                 .username(claims.get(USER_NAME, String.class))
-                .privilegeSet(objectMapper.readValue(claims.get(PRIVILEGE, String.class), new TypeReference<Set<Privilege>>() {
-                }))
+                .privilegeSet(toPrivilegeSet(claims.get(PRIVILEGE, List.class)))
                 .state(true)
                 .build());
     }
 
-    private Mono<UsernamePasswordAuthenticationToken> toAuthentication(UserDetails userDetails) {
+    private Set<Privilege> toPrivilegeSet(List<?> list) {
+        return list.stream().map(i -> (String) i)
+                .map(Privilege::valueOf)
+                .collect(Collectors.toSet());
+    }
+
+    private Mono<UsernamePasswordAuthenticationToken> userDetailstoAuthentication(UserDetails userDetails) {
         return Mono.fromCallable(() -> new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities()));
     }
 }
