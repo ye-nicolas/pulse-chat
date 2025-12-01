@@ -6,7 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.OffsetDateTime;
+import java.time.Instant;
 
 @Data
 @Builder
@@ -17,5 +17,5 @@ public class RolePrivilege {
     private String roleId;
     private Privilege privilege;
     private String createdBy;
-    private OffsetDateTime createdAt;
+    private Instant createdAt;
 }

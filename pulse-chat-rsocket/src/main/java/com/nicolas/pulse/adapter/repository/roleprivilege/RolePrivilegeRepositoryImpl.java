@@ -8,8 +8,6 @@ import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.time.OffsetDateTime;
-
 @Repository
 public class RolePrivilegeRepositoryImpl implements RolePrivilegeRepository {
     private final RolePrivilegeDataRepositoryPeer peer;
@@ -28,10 +26,7 @@ public class RolePrivilegeRepositoryImpl implements RolePrivilegeRepository {
 
     @Override
     public Flux<RolePrivilege> insert(Flux<RolePrivilege> rolePrivilegeFlux) {
-        return rolePrivilegeFlux.map(rolePrivilege -> {
-                    rolePrivilege.setCreatedAt(OffsetDateTime.now());
-                    return RolePrivilegeDataMapper.domainToData(rolePrivilege);
-                })
+        return rolePrivilegeFlux.map(RolePrivilegeDataMapper::domainToData)
                 .window(10)
                 .flatMap(batch -> batch.flatMap(r2dbcEntityOperations::insert), 32)
                 .map(RolePrivilegeDataMapper::dataToDomain);
