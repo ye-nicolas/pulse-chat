@@ -63,7 +63,7 @@ public class JwtUtil {
 
     private static Claims validateToken(SecretKey secretKey, String token, String type) {
         Claims payload = Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload();
-        if (payload.get(TYP, String.class).equals(type)) {
+        if (!payload.get(TYP, String.class).equals(type)) {
             throw new BadCredentialsException("Token type '%S' is not allowed here.".formatted(type));
         }
         return payload;
