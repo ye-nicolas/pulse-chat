@@ -4,6 +4,8 @@ import com.nicolas.pulse.entity.domain.chat.ChatRoomMember;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.List;
+
 public interface ChatRoomMemberRepository {
 
     Mono<ChatRoomMember> findById(String id);
@@ -13,6 +15,8 @@ public interface ChatRoomMemberRepository {
     Flux<ChatRoomMember> findByRoomId(String roomId);
 
     Mono<ChatRoomMember> save(ChatRoomMember chatRoomMember);
+
+    Flux<ChatRoomMember> saveAll(List<ChatRoomMember> chatRoomMemberList);
 
     Mono<Void> deleteById(String id);
 

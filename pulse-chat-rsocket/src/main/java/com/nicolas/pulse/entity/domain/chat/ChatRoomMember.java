@@ -22,6 +22,6 @@ public class ChatRoomMember {
     private Instant createdAt;
     private Instant updatedAt;
     private String lastReadMessageId;
-    private boolean isMuted;
-    private boolean isPinned;
+    private boolean isMuted; // 靜音
+    private boolean isPinned; // 置頂
 }

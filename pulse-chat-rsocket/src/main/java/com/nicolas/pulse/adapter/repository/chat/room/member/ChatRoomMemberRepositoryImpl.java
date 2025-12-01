@@ -12,6 +12,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Map;
 
 @Repository
@@ -105,6 +106,12 @@ public class ChatRoomMemberRepositoryImpl implements ChatRoomMemberRepository {
     public Mono<ChatRoomMember> save(ChatRoomMember chatRoomMember) {
         ChatRoomMemberData chatRoomMemberData = ChatRoomMemberDataMapper.domainToData(chatRoomMember);
         return peer.save(chatRoomMemberData).map(ChatRoomMemberDataMapper::dataToDomain);
+    }
+
+    @Override
+    public Flux<ChatRoomMember> saveAll(List<ChatRoomMember> chatRoomMemberList) {
+        return peer.saveAll(Flux.fromIterable(chatRoomMemberList).map(ChatRoomMemberDataMapper::domainToData))
+                .map(ChatRoomMemberDataMapper::dataToDomain);
     }
 
     @Override

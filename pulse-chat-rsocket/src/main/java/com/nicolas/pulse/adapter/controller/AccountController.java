@@ -1,15 +1,15 @@
 package com.nicolas.pulse.adapter.controller;
 
 import com.nicolas.pulse.adapter.dto.mapper.AccountMapper;
-import com.nicolas.pulse.adapter.dto.req.CreateAccountReq;
 import com.nicolas.pulse.adapter.dto.response.AccountRes;
 import com.nicolas.pulse.entity.exception.TargetNotFoundException;
 import com.nicolas.pulse.service.repository.AccountRepository;
-import com.nicolas.pulse.service.usecase.account.CreateAccountUseCase;
-import jakarta.validation.Valid;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
