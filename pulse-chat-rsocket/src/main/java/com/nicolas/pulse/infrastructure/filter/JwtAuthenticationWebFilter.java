@@ -47,8 +47,8 @@ public class JwtAuthenticationWebFilter implements WebFilter {
         return this.validateAccessToken(token)
                 .flatMap(this::processClaims)
                 .flatMap(this::toAuthentication)
-                .flatMap(auth -> chain.filter(exchange).contextWrite(ReactiveSecurityContextHolder.withAuthentication(auth)))
-                .onErrorMap(e -> new BadCredentialsException(e.getMessage(), e));
+                .onErrorMap(e -> new BadCredentialsException(e.getMessage(), e)) // 將validateAccessToken\processClaims\toAuthentication的錯誤轉換成BadCredentialsException
+                .flatMap(auth -> chain.filter(exchange).contextWrite(ReactiveSecurityContextHolder.withAuthentication(auth)));
     }
 
     private Mono<Claims> validateAccessToken(String token) {
