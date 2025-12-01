@@ -11,6 +11,7 @@ import org.springframework.util.StringUtils;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.util.Map;
 
@@ -151,8 +152,8 @@ public class FriendShipRepositoryImpl implements FriendShipRepository {
                         .isActive((Boolean) map.get(DbMeta.FriendShipData.COLUMN_REQUESTER_ACCOUNT_ID + DbMeta.AccountData.COLUMN_IS_ACTIVE))
                         .createdBy((String) map.get(DbMeta.FriendShipData.COLUMN_REQUESTER_ACCOUNT_ID + DbMeta.AccountData.ALIAS_CREATED_BY))
                         .updatedBy((String) map.get(DbMeta.FriendShipData.COLUMN_REQUESTER_ACCOUNT_ID + DbMeta.AccountData.ALIAS_UPDATED_BY))
-                        .createdAt((OffsetDateTime) map.get(DbMeta.FriendShipData.COLUMN_REQUESTER_ACCOUNT_ID + DbMeta.AccountData.ALIAS_CREATED_AT))
-                        .updatedAt((OffsetDateTime) map.get(DbMeta.FriendShipData.COLUMN_REQUESTER_ACCOUNT_ID + DbMeta.AccountData.ALIAS_UPDATED_AT))
+                        .createdAt((Instant) map.get(DbMeta.FriendShipData.COLUMN_REQUESTER_ACCOUNT_ID + DbMeta.AccountData.ALIAS_CREATED_AT))
+                        .updatedAt((Instant) map.get(DbMeta.FriendShipData.COLUMN_REQUESTER_ACCOUNT_ID + DbMeta.AccountData.ALIAS_UPDATED_AT))
                         .remark((String) map.get(DbMeta.FriendShipData.COLUMN_REQUESTER_ACCOUNT_ID + DbMeta.AccountData.COLUMN_REMARK))
                         .build())
                 .recipientAccount(AccountData.builder()
@@ -163,8 +164,8 @@ public class FriendShipRepositoryImpl implements FriendShipRepository {
                         .isActive((Boolean) map.get(DbMeta.FriendShipData.COLUMN_RECIPIENT_ACCOUNT_ID + DbMeta.AccountData.COLUMN_IS_ACTIVE))
                         .createdBy((String) map.get(DbMeta.FriendShipData.COLUMN_RECIPIENT_ACCOUNT_ID + DbMeta.AccountData.ALIAS_CREATED_BY))
                         .updatedBy((String) map.get(DbMeta.FriendShipData.COLUMN_RECIPIENT_ACCOUNT_ID + DbMeta.AccountData.ALIAS_UPDATED_BY))
-                        .createdAt((OffsetDateTime) map.get(DbMeta.FriendShipData.COLUMN_RECIPIENT_ACCOUNT_ID + DbMeta.AccountData.ALIAS_CREATED_AT))
-                        .updatedAt((OffsetDateTime) map.get(DbMeta.FriendShipData.COLUMN_RECIPIENT_ACCOUNT_ID + DbMeta.AccountData.ALIAS_UPDATED_AT))
+                        .createdAt((Instant) map.get(DbMeta.FriendShipData.COLUMN_RECIPIENT_ACCOUNT_ID + DbMeta.AccountData.ALIAS_CREATED_AT))
+                        .updatedAt((Instant) map.get(DbMeta.FriendShipData.COLUMN_RECIPIENT_ACCOUNT_ID + DbMeta.AccountData.ALIAS_UPDATED_AT))
                         .remark((String) map.get(DbMeta.FriendShipData.COLUMN_RECIPIENT_ACCOUNT_ID + DbMeta.AccountData.COLUMN_REMARK))
                         .build())
                 .build();
