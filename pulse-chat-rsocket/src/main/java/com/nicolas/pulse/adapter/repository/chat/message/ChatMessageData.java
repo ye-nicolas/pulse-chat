@@ -12,6 +12,7 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
+import java.time.Instant;
 import java.time.OffsetDateTime;
 
 @Table("chat_message")
@@ -37,7 +38,7 @@ public class ChatMessageData {
     private boolean isDelete = false;
 
     @Column("delete_at")
-    private OffsetDateTime deletedAt;
+    private Instant deletedAt;
 
     @CreatedBy
     @Column("created_by")
@@ -45,9 +46,9 @@ public class ChatMessageData {
 
     @CreatedDate
     @Column("created_at")
-    private OffsetDateTime createdAt;
+    private Instant createdAt;
 
     @LastModifiedDate
     @Column("updated_at")
-    private OffsetDateTime updatedAt;
+    private Instant updatedAt;
 }

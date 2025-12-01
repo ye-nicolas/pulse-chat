@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.Instant;
 import java.time.OffsetDateTime;
 
 @Data
@@ -19,9 +20,9 @@ public class ChatMessage {
     private ChatMessageType type;
     private String content;
     private String createdBy;
-    private OffsetDateTime createdAt;
-    private OffsetDateTime updatedAt;
-    private OffsetDateTime deletedAt;
+    private Instant createdAt;
+    private Instant updatedAt;
+    private Instant deletedAt;
     @Builder.Default
     private boolean isDelete = false;
 }
