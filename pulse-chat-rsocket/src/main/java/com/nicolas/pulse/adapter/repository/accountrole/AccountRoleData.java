@@ -13,6 +13,7 @@ import org.springframework.data.annotation.Transient;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
+import java.time.Instant;
 import java.time.OffsetDateTime;
 
 @Table(DbMeta.AccountRoleData.TABLE_NAME)
@@ -35,7 +36,7 @@ public class AccountRoleData {
 
     @CreatedDate
     @Column(DbMeta.AccountRoleData.COLUMN_CREATED_AT)
-    private OffsetDateTime createdAt;
+    private Instant createdAt;
 
     @Transient
     RoleData roleData;

@@ -10,6 +10,7 @@ import org.springframework.data.annotation.*;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
+import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.util.List;
 
@@ -37,7 +38,7 @@ public class AccountData {
     private boolean isActive;
 
     @Column(DbMeta.AccountData.COLUMN_LAST_LOGIN_AT)
-    private OffsetDateTime lastLoginAt;
+    private Instant lastLoginAt;
 
     @CreatedBy
     @Column(DbMeta.AccountData.COLUMN_CREATED_BY)
@@ -49,11 +50,11 @@ public class AccountData {
 
     @CreatedDate
     @Column(DbMeta.AccountData.COLUMN_CREATED_AT)
-    private OffsetDateTime createdAt;
+    private Instant createdAt;
 
     @LastModifiedDate
     @Column(DbMeta.AccountData.COLUMN_UPDATED_AT)
-    private OffsetDateTime updatedAt;
+    private Instant updatedAt;
 
     @Column(DbMeta.AccountData.COLUMN_REMARK)
     private String remark;

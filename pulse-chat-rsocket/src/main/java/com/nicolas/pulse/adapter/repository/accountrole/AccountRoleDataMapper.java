@@ -19,7 +19,6 @@ public class AccountRoleDataMapper {
                 .role(RoleDataMapper.dataToDomain(data.getRoleData()))
                 .createdBy(data.getCreatedBy())
                 .createdAt(data.getCreatedAt())
-
                 .build();
     }
 

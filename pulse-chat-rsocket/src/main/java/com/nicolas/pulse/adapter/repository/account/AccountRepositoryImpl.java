@@ -37,16 +37,13 @@ public class AccountRepositoryImpl implements AccountRepository {
 
     @Override
     public Mono<Account> create(Account account) {
-        OffsetDateTime now = OffsetDateTime.now();
-        account.setCreatedAt(now);
-        account.setUpdatedAt(now);
+        ;
         AccountData accountData = AccountDataMapper.domainToData(account);
         return r2dbcEntityOperations.insert(accountData).map(AccountDataMapper::dataToDomain);
     }
 
     @Override
     public Mono<Account> update(Account account) {
-        account.setUpdatedAt(OffsetDateTime.now());
         AccountData accountData = AccountDataMapper.domainToData(account);
         return r2dbcEntityOperations.update(accountData).map(AccountDataMapper::dataToDomain);
     }

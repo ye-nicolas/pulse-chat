@@ -7,8 +7,6 @@ import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.time.OffsetDateTime;
-
 @Repository
 public class ChatRoomRepositoryImpl implements ChatRoomRepository{
     private final ChatRoomDataRepositoryPeer peer;
@@ -32,16 +30,12 @@ public class ChatRoomRepositoryImpl implements ChatRoomRepository{
 
     @Override
     public Mono< ChatRoom> create(ChatRoom account) {
-        OffsetDateTime now = OffsetDateTime.now();
-        account.setCreatedAt(now);
-        account.setUpdatedAt(now);
         ChatRoomData accountData = ChatRoomDataMapper.domainToData(account);
         return r2dbcEntityOperations.insert(accountData).map(ChatRoomDataMapper::dataToDomain);
     }
 
     @Override
     public Mono< ChatRoom> update(ChatRoom account) {
-        account.setUpdatedAt(OffsetDateTime.now());
         ChatRoomData accountData = ChatRoomDataMapper.domainToData(account);
         return r2dbcEntityOperations.update(accountData).map(ChatRoomDataMapper::dataToDomain);
     }

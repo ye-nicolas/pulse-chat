@@ -11,6 +11,7 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
+import java.time.Instant;
 import java.time.OffsetDateTime;
 
 //UK  messageId + roomId + memberId
@@ -36,5 +37,5 @@ public class ChatMessageReadData {
 
     @LastModifiedBy
     @Column("created_at")
-    private OffsetDateTime createdAt;
+    private Instant createdAt;
 }

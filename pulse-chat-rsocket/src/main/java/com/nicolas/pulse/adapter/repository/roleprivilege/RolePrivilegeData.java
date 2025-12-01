@@ -12,7 +12,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
-import java.time.OffsetDateTime;
+import java.time.Instant;
 
 @Table(DbMeta.RolePrivilegeData.TABLE_NAME)
 @Data
@@ -34,5 +34,5 @@ public class RolePrivilegeData {
 
     @CreatedDate
     @Column(DbMeta.RolePrivilegeData.COLUMN_CREATED_AT)
-    private OffsetDateTime createdAt;
+    private Instant createdAt;
 }
