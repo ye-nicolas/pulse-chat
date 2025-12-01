@@ -1,13 +1,12 @@
 package com.nicolas.pulse.entity.domain.chat;
 
-import com.nicolas.pulse.entity.domain.Account;
 import com.nicolas.pulse.entity.enumerate.ChatRoomMemberRole;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.OffsetDateTime;
+import java.time.Instant;
 
 @Data
 @Builder
@@ -20,8 +19,8 @@ public class ChatRoomMember {
     private ChatRoomMemberRole role;
     private String createdBy;
     private String updatedBy;
-    private OffsetDateTime createdAt;
-    private OffsetDateTime updatedAt;
+    private Instant createdAt;
+    private Instant updatedAt;
     private String lastReadMessageId;
     private boolean isMuted;
     private boolean isPinned;

@@ -10,6 +10,7 @@ import org.springframework.data.annotation.*;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
+import java.time.Instant;
 import java.time.OffsetDateTime;
 
 import static com.nicolas.pulse.adapter.repository.DbMeta.ChatRoomMemberData.*;
@@ -40,11 +41,11 @@ public class ChatRoomMemberData {
 
     @CreatedDate
     @Column(COLUMN_CREATED_AT)
-    private OffsetDateTime createdAt;
+    private Instant createdAt;
 
     @LastModifiedDate
     @Column(COLUMN_UPDATED_AT)
-    private OffsetDateTime updatedAt;
+    private Instant updatedAt;
 
     @Column(COLUMN_LAST_READ_MESSAGE_ID)
     private String lastReadMessageId;
