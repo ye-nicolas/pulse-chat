@@ -7,7 +7,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.OffsetDateTime;
+import java.time.Instant;
 import java.util.Set;
 
 @Data
@@ -22,7 +22,7 @@ public class RoleRes {
     private String createdBy;
     private String updatedBy;
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ssXXX")
-    private OffsetDateTime createdAt;
+    private Instant createdAt;
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ssXXX")
-    private OffsetDateTime updatedAt;
+    private Instant updatedAt;
 }

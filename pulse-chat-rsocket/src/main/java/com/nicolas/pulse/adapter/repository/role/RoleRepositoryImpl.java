@@ -9,7 +9,7 @@ import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.time.OffsetDateTime;
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -81,8 +81,8 @@ public class RoleRepositoryImpl implements RoleRepository {
                 .name((String) listMap.getFirst().get(DbMeta.RoleData.ALIAS_NAME))
                 .createdBy((String) listMap.getFirst().get(DbMeta.RoleData.ALIAS_CREATED_BY))
                 .updatedBy((String) listMap.getFirst().get(DbMeta.RoleData.ALIAS_UPDATED_BY))
-                .createdAt((OffsetDateTime) listMap.getFirst().get(DbMeta.RoleData.ALIAS_CREATED_AT))
-                .updatedAt((OffsetDateTime) listMap.getFirst().get(DbMeta.RoleData.ALIAS_UPDATED_AT))
+                .createdAt((Instant) listMap.getFirst().get(DbMeta.RoleData.ALIAS_CREATED_AT))
+                .updatedAt((Instant) listMap.getFirst().get(DbMeta.RoleData.ALIAS_UPDATED_AT))
                 .remark((String) listMap.getFirst().get(DbMeta.RoleData.ALIAS_REMARK))
                 .privilegeSet(listMap.stream()
                         .map(m -> m.get(DbMeta.RolePrivilegeData.ALIAS_PRIVILEGE))
