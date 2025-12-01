@@ -11,6 +11,7 @@ import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.util.Map;
 
@@ -134,8 +135,8 @@ public class ChatRoomMemberRepositoryImpl implements ChatRoomMemberRepository {
                         .type(ChatRoomType.valueOf(map.get(ROOM_PREFIX + DbMeta.ChatRoomData.COLUMN_TYPE).toString()))
                         .createdBy(map.get(ROOM_PREFIX + DbMeta.ChatRoomData.COLUMN_CREATED_BY).toString())
                         .updatedBy(map.get(ROOM_PREFIX + DbMeta.ChatRoomData.COLUMN_UPDATED_BY).toString())
-                        .createdAt((OffsetDateTime) map.get(ROOM_PREFIX + DbMeta.ChatRoomData.COLUMN_CREATED_AT))
-                        .updatedAt((OffsetDateTime) map.get(ROOM_PREFIX + DbMeta.ChatRoomData.COLUMN_UPDATED_AT))
+                        .createdAt((Instant) map.get(ROOM_PREFIX + DbMeta.ChatRoomData.COLUMN_CREATED_AT))
+                        .updatedAt((Instant) map.get(ROOM_PREFIX + DbMeta.ChatRoomData.COLUMN_UPDATED_AT))
                         .build())
                 .build();
     }
