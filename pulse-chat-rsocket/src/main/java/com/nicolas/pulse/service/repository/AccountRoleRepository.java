@@ -4,12 +4,14 @@ import com.nicolas.pulse.entity.domain.AccountRole;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.List;
+
 public interface AccountRoleRepository {
     Flux<AccountRole> findAllByAccountId(String accountId);
 
     Flux<AccountRole> findAllByRoleId(String roleId);
 
-    Flux<AccountRole> saveAll(Flux<AccountRole> accountRoleFlux);
+    Flux<AccountRole> saveAll(List<AccountRole> accountRoleFlux);
 
     Mono<Boolean> existsByAccountIdAndRoleId(String accountId, String roleId);
 

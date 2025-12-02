@@ -10,8 +10,11 @@ import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Transient;
+import org.springframework.data.domain.Persistable;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
+import org.springframework.util.ObjectUtils;
+import org.springframework.util.StringUtils;
 
 import java.time.Instant;
 import java.time.OffsetDateTime;
@@ -21,7 +24,7 @@ import java.time.OffsetDateTime;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class AccountRoleData {
+public class AccountRoleData implements Persistable<String> {
     @Id
     @Column(DbMeta.AccountRoleData.COLUMN_ID)
     private String id;
@@ -40,4 +43,10 @@ public class AccountRoleData {
 
     @Transient
     RoleData roleData;
+
+    @Override
+    public boolean isNew() {
+        return !StringUtils.hasText(createdBy)
+                && ObjectUtils.isEmpty(createdAt);
+    }
 }

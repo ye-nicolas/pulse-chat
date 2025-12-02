@@ -75,13 +75,14 @@ public class CreateAccountUseCase {
     }
 
     private Mono<Void> createAccountRole(Account account, Set<String> roleIdSet) {
-        return accountRoleRepository.saveAll(Flux.fromIterable(roleIdSet)
+        return accountRoleRepository.saveAll(roleIdSet.stream()
                         .map(id -> AccountRole.builder()
                                 .id(UlidCreator.getMonotonicUlid().toString())
                                 .accountId(account.getId())
                                 .role(Role.builder().id(id).build())
                                 .createdBy(account.getId())
-                                .build()))
+                                .build())
+                        .toList())
                 .then();
     }
 
