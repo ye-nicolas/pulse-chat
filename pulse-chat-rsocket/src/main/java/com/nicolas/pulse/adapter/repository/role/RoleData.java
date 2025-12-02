@@ -7,8 +7,11 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.*;
+import org.springframework.data.domain.Persistable;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
+import org.springframework.util.ObjectUtils;
+import org.springframework.util.StringUtils;
 
 import java.time.Instant;
 import java.util.Set;
@@ -18,7 +21,7 @@ import java.util.Set;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class RoleData {
+public class RoleData implements Persistable<String> {
     @Id
     @Column(DbMeta.RoleData.COLUMN_ID)
     private String id;
@@ -47,4 +50,12 @@ public class RoleData {
 
     @Transient
     private Set<Privilege> privilegeSet;
+
+    @Override
+    public boolean isNew() {
+        return !StringUtils.hasText(createdBy)
+                && !StringUtils.hasText(updatedBy)
+                && ObjectUtils.isEmpty(createdAt)
+                && ObjectUtils.isEmpty(updatedAt);
+    }
 }
