@@ -1,6 +1,6 @@
 package com.nicolas.pulse.infrastructure.config;
 
-import com.nicolas.pulse.entity.domain.SecurityAccount;
+import com.nicolas.pulse.util.SecurityUtil;
 import io.r2dbc.pool.ConnectionPool;
 import io.r2dbc.pool.ConnectionPoolConfiguration;
 import io.r2dbc.postgresql.PostgresqlConnectionConfiguration;
@@ -19,10 +19,6 @@ import org.springframework.data.r2dbc.core.R2dbcEntityTemplate;
 import org.springframework.data.r2dbc.dialect.PostgresDialect;
 import org.springframework.data.r2dbc.repository.config.EnableR2dbcRepositories;
 import org.springframework.r2dbc.core.DatabaseClient;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.ReactiveSecurityContextHolder;
-import org.springframework.security.core.context.SecurityContext;
-import reactor.core.publisher.Mono;
 
 import java.time.Duration;
 
@@ -105,15 +101,6 @@ public class R2dbcConfiguration extends AbstractR2dbcConfiguration {
 
     @Bean
     public ReactiveAuditorAware<String> getAuditorProvider() {
-        return () -> ReactiveSecurityContextHolder.getContext()
-                .map(SecurityContext::getAuthentication)
-                .filter(Authentication::isAuthenticated)
-                .flatMap(authentication -> {
-                    if (authentication.getPrincipal() instanceof SecurityAccount securityAccount) {
-                        return Mono.just(securityAccount.getId());
-                    }
-                    return Mono.empty();
-                })
-                .switchIfEmpty(Mono.just("system"));
+        return SecurityUtil::getCurrentAccountId;
     }
 }
