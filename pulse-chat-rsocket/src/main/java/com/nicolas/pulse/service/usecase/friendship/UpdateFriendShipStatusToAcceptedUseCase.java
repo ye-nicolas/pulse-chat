@@ -35,7 +35,7 @@ public class UpdateFriendShipStatusToAcceptedUseCase {
 
     public Mono<Void> updateStatus(FriendShip friendShip) {
         friendShip.setStatus(FriendShipStatus.ACCEPTED);
-        return friendShipRepository.update(friendShip)
+        return friendShipRepository.save(friendShip)
                 .then();
     }
 

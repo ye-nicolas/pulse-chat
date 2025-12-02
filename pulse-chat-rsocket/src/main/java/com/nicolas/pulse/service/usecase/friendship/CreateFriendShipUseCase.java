@@ -34,7 +34,7 @@ public class CreateFriendShipUseCase {
     }
 
     private Mono<FriendShip> createFriendShip(Account requesterAccount, Account recipientAccount) {
-        return friendShipRepository.insert(FriendShip.builder()
+        return friendShipRepository.save(FriendShip.builder()
                 .id(UlidCreator.getMonotonicUlid().toString())
                 .requesterAccount(requesterAccount)
                 .recipientAccount(recipientAccount)

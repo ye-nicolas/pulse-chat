@@ -171,17 +171,10 @@ public class FriendShipRepositoryImpl implements FriendShipRepository {
                 .build();
     }
 
-
     @Override
-    public Mono<FriendShip> insert(FriendShip friendShip) {
+    public Mono<FriendShip> save(FriendShip friendShip) {
         FriendShipData friendShipData = FriendShipDataMapper.domainToData(friendShip);
-        return r2dbcEntityOperations.insert(friendShipData).map(FriendShipDataMapper::dataToDomain);
-    }
-
-    @Override
-    public Mono<FriendShip> update(FriendShip friendShip) {
-        FriendShipData friendShipData = FriendShipDataMapper.domainToData(friendShip);
-        return r2dbcEntityOperations.update(friendShipData).map(FriendShipDataMapper::dataToDomain);
+        return peer.save(friendShipData).map(FriendShipDataMapper::dataToDomain);
     }
 
     @Override
