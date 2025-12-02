@@ -9,8 +9,11 @@ import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.domain.Persistable;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
+import org.springframework.util.ObjectUtils;
+import org.springframework.util.StringUtils;
 
 import java.time.Instant;
 
@@ -19,7 +22,7 @@ import java.time.Instant;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class RolePrivilegeData {
+public class RolePrivilegeData implements Persistable<String> {
     @Id
     @Column(DbMeta.RolePrivilegeData.COLUMN_ID)
     private String id;
@@ -35,4 +38,10 @@ public class RolePrivilegeData {
     @CreatedDate
     @Column(DbMeta.RolePrivilegeData.COLUMN_CREATED_AT)
     private Instant createdAt;
+
+    @Override
+    public boolean isNew() {
+        return !StringUtils.hasText(createdBy)
+                && ObjectUtils.isEmpty(createdAt);
+    }
 }

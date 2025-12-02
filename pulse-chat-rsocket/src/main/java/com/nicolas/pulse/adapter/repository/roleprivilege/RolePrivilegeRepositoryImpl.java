@@ -3,20 +3,18 @@ package com.nicolas.pulse.adapter.repository.roleprivilege;
 import com.nicolas.pulse.entity.domain.RolePrivilege;
 import com.nicolas.pulse.entity.enumerate.Privilege;
 import com.nicolas.pulse.service.repository.RolePrivilegeRepository;
-import org.springframework.data.r2dbc.core.R2dbcEntityOperations;
 import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.List;
+
 @Repository
 public class RolePrivilegeRepositoryImpl implements RolePrivilegeRepository {
     private final RolePrivilegeDataRepositoryPeer peer;
-    private final R2dbcEntityOperations r2dbcEntityOperations;
 
-    public RolePrivilegeRepositoryImpl(RolePrivilegeDataRepositoryPeer peer,
-                                       R2dbcEntityOperations r2dbcEntityOperations) {
+    public RolePrivilegeRepositoryImpl(RolePrivilegeDataRepositoryPeer peer) {
         this.peer = peer;
-        this.r2dbcEntityOperations = r2dbcEntityOperations;
     }
 
     @Override
@@ -25,10 +23,8 @@ public class RolePrivilegeRepositoryImpl implements RolePrivilegeRepository {
     }
 
     @Override
-    public Flux<RolePrivilege> insert(Flux<RolePrivilege> rolePrivilegeFlux) {
-        return rolePrivilegeFlux.map(RolePrivilegeDataMapper::domainToData)
-                .window(10)
-                .flatMap(batch -> batch.flatMap(r2dbcEntityOperations::insert), 32)
+    public Flux<RolePrivilege> saveAll(List<RolePrivilege> rolePrivilegeFlux) {
+        return peer.saveAll(rolePrivilegeFlux.stream().map(RolePrivilegeDataMapper::domainToData).toList())
                 .map(RolePrivilegeDataMapper::dataToDomain);
     }
 

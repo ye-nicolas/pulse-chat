@@ -12,7 +12,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.stereotype.Service;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.Set;
@@ -52,12 +51,13 @@ public class CreateRoleUseCase {
     }
 
     private Mono<Void> createRolePrivilege(Role role) {
-        return rolePrivilegeRepository.insert(Flux.fromIterable(role.getPrivilegeSet())
+        return rolePrivilegeRepository.saveAll(role.getPrivilegeSet().stream()
                         .map(privilege -> RolePrivilege.builder()
                                 .id(UlidCreator.getMonotonicUlid().toString())
                                 .roleId(role.getId())
                                 .privilege(privilege)
-                                .build()))
+                                .build())
+                        .toList())
                 .then();
     }
 
