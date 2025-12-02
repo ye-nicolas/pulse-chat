@@ -48,7 +48,7 @@ public class CreateAccountUseCase {
     }
 
     private Mono<Account> createUser(Input input) {
-        return accountRepository.create(Account.builder()
+        return accountRepository.save(Account.builder()
                 .id(UlidCreator.getMonotonicUlid().toString())
                 .name(input.getName())
                 .showName(input.getShowName())

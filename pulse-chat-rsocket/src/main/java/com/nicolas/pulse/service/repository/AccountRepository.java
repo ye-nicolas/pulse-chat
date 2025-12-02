@@ -11,9 +11,7 @@ public interface AccountRepository {
 
     Mono<Account> findByName(String name);
 
-    Mono<Account> create(Account account);
-
-    Mono<Account> update(Account account);
+    Mono<Account> save(Account account);
 
     Mono<Void> deleteById(String id);
 
