@@ -2,7 +2,6 @@ package com.nicolas.pulse.adapter.repository.chat.room;
 
 import com.nicolas.pulse.entity.domain.chat.ChatRoom;
 import com.nicolas.pulse.service.repository.ChatRoomRepository;
-import org.springframework.data.r2dbc.core.R2dbcEntityOperations;
 import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -10,12 +9,9 @@ import reactor.core.publisher.Mono;
 @Repository
 public class ChatRoomRepositoryImpl implements ChatRoomRepository{
     private final ChatRoomDataRepositoryPeer peer;
-    private final R2dbcEntityOperations r2dbcEntityOperations;
 
-    public ChatRoomRepositoryImpl(ChatRoomDataRepositoryPeer peer,
-                                  R2dbcEntityOperations r2dbcEntityOperations) {
+    public ChatRoomRepositoryImpl(ChatRoomDataRepositoryPeer peer) {
         this.peer = peer;
-        this.r2dbcEntityOperations = r2dbcEntityOperations;
     }
 
     @Override
@@ -29,15 +25,9 @@ public class ChatRoomRepositoryImpl implements ChatRoomRepository{
     }
 
     @Override
-    public Mono< ChatRoom> create(ChatRoom account) {
+    public Mono< ChatRoom> save(ChatRoom account) {
         ChatRoomData accountData = ChatRoomDataMapper.domainToData(account);
-        return r2dbcEntityOperations.insert(accountData).map(ChatRoomDataMapper::dataToDomain);
-    }
-
-    @Override
-    public Mono< ChatRoom> update(ChatRoom account) {
-        ChatRoomData accountData = ChatRoomDataMapper.domainToData(account);
-        return r2dbcEntityOperations.update(accountData).map(ChatRoomDataMapper::dataToDomain);
+        return peer.save(accountData).map(ChatRoomDataMapper::dataToDomain);
     }
 
     @Override

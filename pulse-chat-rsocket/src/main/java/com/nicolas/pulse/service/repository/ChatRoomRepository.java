@@ -9,9 +9,7 @@ public interface ChatRoomRepository {
 
     Mono<ChatRoom> findById(String id);
 
-    Mono<ChatRoom> create(ChatRoom account);
-
-    Mono<ChatRoom> update(ChatRoom account);
+    Mono<ChatRoom> save(ChatRoom account);
 
     Mono<Void> deleteById(String id);
 }
