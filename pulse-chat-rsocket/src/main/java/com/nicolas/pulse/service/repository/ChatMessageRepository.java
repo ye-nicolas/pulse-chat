@@ -9,9 +9,7 @@ public interface ChatMessageRepository {
 
     Flux<ChatMessage> findByRoomIdAndMemberId(String roomId, String memberId);
 
-    Mono<ChatMessage> create(ChatMessage chatMessage);
-
-    Mono<ChatMessage> update(ChatMessage chatMessage);
+    Mono<ChatMessage> save(ChatMessage chatMessage);
 
     Mono<Void> deleteByRoomId(String roomId);
 }
