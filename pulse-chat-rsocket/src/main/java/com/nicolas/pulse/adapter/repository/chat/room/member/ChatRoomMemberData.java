@@ -7,11 +7,13 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.*;
+import org.springframework.data.domain.Persistable;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
+import org.springframework.util.ObjectUtils;
+import org.springframework.util.StringUtils;
 
 import java.time.Instant;
-import java.time.OffsetDateTime;
 
 import static com.nicolas.pulse.adapter.repository.DbMeta.ChatRoomMemberData.*;
 
@@ -20,7 +22,7 @@ import static com.nicolas.pulse.adapter.repository.DbMeta.ChatRoomMemberData.*;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class ChatRoomMemberData {
+public class ChatRoomMemberData implements Persistable<String> {
     @Id
     @Column(COLUMN_ID)
     private String id;
@@ -56,4 +58,12 @@ public class ChatRoomMemberData {
 
     @Transient
     private ChatRoomData roomData;
+
+    @Override
+    public boolean isNew() {
+        return !StringUtils.hasText(createdBy)
+                && !StringUtils.hasText(updatedBy)
+                && ObjectUtils.isEmpty(createdAt)
+                && ObjectUtils.isEmpty(updatedAt);
+    }
 }

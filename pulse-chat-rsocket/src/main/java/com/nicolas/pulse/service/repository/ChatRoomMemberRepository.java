@@ -12,9 +12,7 @@ public interface ChatRoomMemberRepository {
 
     Flux<ChatRoomMember> findByRoomId(String roomId);
 
-    Mono<ChatRoomMember> create(ChatRoomMember chatRoomMember);
-
-    Mono<ChatRoomMember> update(ChatRoomMember chatRoomMember);
+    Mono<ChatRoomMember> save(ChatRoomMember chatRoomMember);
 
     Mono<Void> deleteById(String id);
 
