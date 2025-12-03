@@ -2,22 +2,16 @@ package com.nicolas.pulse.adapter.repository.account;
 
 import com.nicolas.pulse.entity.domain.Account;
 import com.nicolas.pulse.service.repository.AccountRepository;
-import org.springframework.data.r2dbc.core.R2dbcEntityOperations;
 import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.time.OffsetDateTime;
-
 @Repository
 public class AccountRepositoryImpl implements AccountRepository {
     private final AccountDataRepositoryPeer peer;
-    private final R2dbcEntityOperations r2dbcEntityOperations;
 
-    public AccountRepositoryImpl(AccountDataRepositoryPeer peer,
-                                 R2dbcEntityOperations r2dbcEntityOperations) {
+    public AccountRepositoryImpl(AccountDataRepositoryPeer peer) {
         this.peer = peer;
-        this.r2dbcEntityOperations = r2dbcEntityOperations;
     }
 
     @Override
@@ -36,16 +30,9 @@ public class AccountRepositoryImpl implements AccountRepository {
     }
 
     @Override
-    public Mono<Account> create(Account account) {
-        ;
+    public Mono<Account> save(Account account) {
         AccountData accountData = AccountDataMapper.domainToData(account);
-        return r2dbcEntityOperations.insert(accountData).map(AccountDataMapper::dataToDomain);
-    }
-
-    @Override
-    public Mono<Account> update(Account account) {
-        AccountData accountData = AccountDataMapper.domainToData(account);
-        return r2dbcEntityOperations.update(accountData).map(AccountDataMapper::dataToDomain);
+        return peer.save(accountData).map(AccountDataMapper::dataToDomain);
     }
 
     @Override

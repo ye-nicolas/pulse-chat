@@ -7,12 +7,13 @@ import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.LastModifiedBy;
-import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.domain.Persistable;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
+import org.springframework.util.ObjectUtils;
+import org.springframework.util.StringUtils;
 
 import java.time.Instant;
-import java.time.OffsetDateTime;
 
 //UK  messageId + roomId + memberId
 @Table("chat_message_read")
@@ -20,7 +21,7 @@ import java.time.OffsetDateTime;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class ChatMessageReadData {
+public class ChatMessageReadData  implements Persistable<String> {
     @Id
     @Column("id")
     private String id;
@@ -38,4 +39,10 @@ public class ChatMessageReadData {
     @LastModifiedBy
     @Column("created_at")
     private Instant createdAt;
+
+    @Override
+    public boolean isNew() {
+        return !StringUtils.hasText(createdBy)
+                && ObjectUtils.isEmpty(createdAt);
+    }
 }

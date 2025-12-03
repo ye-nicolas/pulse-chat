@@ -118,7 +118,7 @@ public class RoleRepositoryImpl implements RoleRepository {
     @Override
     public Mono<Role> save(Role role) {
         RoleData roleData = RoleDataMapper.domainToData(role);
-        return r2dbcEntityOperations.insert(roleData).map(RoleDataMapper::dataToDomain);
+        return peer.save(roleData).map(RoleDataMapper::dataToDomain);
     }
 
     @Override

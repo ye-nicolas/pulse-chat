@@ -9,18 +9,20 @@ import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.domain.Persistable;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
+import org.springframework.util.ObjectUtils;
+import org.springframework.util.StringUtils;
 
 import java.time.Instant;
-import java.time.OffsetDateTime;
 
 @Table("chat_message")
 @Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class ChatMessageData {
+public class ChatMessageData implements Persistable<String> {
     @Id
     @Column("id")
     private String id;
@@ -51,4 +53,11 @@ public class ChatMessageData {
     @LastModifiedDate
     @Column("updated_at")
     private Instant updatedAt;
+
+    @Override
+    public boolean isNew() {
+        return !StringUtils.hasText(createdBy)
+                && ObjectUtils.isEmpty(createdAt)
+                && ObjectUtils.isEmpty(updatedAt);
+    }
 }

@@ -104,10 +104,8 @@ public class AccountRoleRepositoryImpl implements AccountRoleRepository {
     }
 
     @Override
-    public Flux<AccountRole> saveAll(Flux<AccountRole> accountRoleFlux) {
-        return accountRoleFlux.map(AccountRoleDataMapper::domainToData)
-                .window(10)
-                .flatMap(batch -> batch.flatMap(r2dbcEntityOperations::insert), 10)
+    public Flux<AccountRole> saveAll(List<AccountRole> accountRoleList) {
+        return peer.saveAll(accountRoleList.stream().map(AccountRoleDataMapper::domainToData).toList())
                 .map(AccountRoleDataMapper::dataToDomain);
     }
 

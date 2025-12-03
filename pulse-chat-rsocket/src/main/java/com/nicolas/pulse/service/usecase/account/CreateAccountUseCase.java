@@ -48,7 +48,7 @@ public class CreateAccountUseCase {
     }
 
     private Mono<Account> createUser(Input input) {
-        return accountRepository.create(Account.builder()
+        return accountRepository.save(Account.builder()
                 .id(UlidCreator.getMonotonicUlid().toString())
                 .name(input.getName())
                 .showName(input.getShowName())
@@ -75,13 +75,14 @@ public class CreateAccountUseCase {
     }
 
     private Mono<Void> createAccountRole(Account account, Set<String> roleIdSet) {
-        return accountRoleRepository.saveAll(Flux.fromIterable(roleIdSet)
+        return accountRoleRepository.saveAll(roleIdSet.stream()
                         .map(id -> AccountRole.builder()
                                 .id(UlidCreator.getMonotonicUlid().toString())
                                 .accountId(account.getId())
                                 .role(Role.builder().id(id).build())
                                 .createdBy(account.getId())
-                                .build()))
+                                .build())
+                        .toList())
                 .then();
     }
 

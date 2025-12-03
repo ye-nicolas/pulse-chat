@@ -2,26 +2,26 @@ package com.nicolas.pulse.adapter.repository.friendship;
 
 import com.nicolas.pulse.adapter.repository.DbMeta;
 import com.nicolas.pulse.adapter.repository.account.AccountData;
-import com.nicolas.pulse.entity.domain.Account;
 import com.nicolas.pulse.entity.enumerate.FriendShipStatus;
-import com.nicolas.pulse.entity.enumerate.Privilege;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.*;
+import org.springframework.data.domain.Persistable;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
+import org.springframework.util.ObjectUtils;
+import org.springframework.util.StringUtils;
 
 import java.time.OffsetDateTime;
-import java.util.Set;
 
 @Table(DbMeta.FriendShipData.TABLE_NAME)
 @Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class FriendShipData {
+public class FriendShipData implements Persistable<String> {
     @Id
     @Column(DbMeta.FriendShipData.COLUMN_ID)
     private String id;
@@ -55,4 +55,12 @@ public class FriendShipData {
     private AccountData requesterAccount;
     @Transient
     private AccountData recipientAccount;
+
+    @Override
+    public boolean isNew() {
+        return !StringUtils.hasText(createdBy)
+                && !StringUtils.hasText(updatedBy)
+                && ObjectUtils.isEmpty(createdAt)
+                && ObjectUtils.isEmpty(updatedAt);
+    }
 }

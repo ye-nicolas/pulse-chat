@@ -10,9 +10,7 @@ public interface FriendShipRepository {
 
     Mono<FriendShip> findById(String id);
 
-    Mono<FriendShip> insert(FriendShip friendShip);
-
-    Mono<FriendShip> update(FriendShip friendShip);
+    Mono<FriendShip> save(FriendShip friendShip);
 
     Mono<Void> deleteById(String id);
 

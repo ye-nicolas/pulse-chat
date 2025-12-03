@@ -1,18 +1,18 @@
 package com.nicolas.pulse.adapter.repository.account;
 
 import com.nicolas.pulse.adapter.repository.DbMeta;
-import com.nicolas.pulse.adapter.repository.role.RoleData;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.*;
+import org.springframework.data.domain.Persistable;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
+import org.springframework.util.ObjectUtils;
+import org.springframework.util.StringUtils;
 
 import java.time.Instant;
-import java.time.OffsetDateTime;
-import java.util.List;
 
 
 @Table(value = DbMeta.AccountData.TABLE_NAME)
@@ -20,7 +20,7 @@ import java.util.List;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class AccountData {
+public class AccountData implements Persistable<String> {
     @Id
     @Column(DbMeta.AccountData.COLUMN_ID)
     private String id;
@@ -58,4 +58,12 @@ public class AccountData {
 
     @Column(DbMeta.AccountData.COLUMN_REMARK)
     private String remark;
+
+    @Override
+    public boolean isNew() {
+        return !StringUtils.hasText(createdBy)
+                && !StringUtils.hasText(updatedBy)
+                && ObjectUtils.isEmpty(createdAt)
+                && ObjectUtils.isEmpty(updatedAt);
+    }
 }

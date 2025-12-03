@@ -83,15 +83,9 @@ public class ChatRoomMemberRepositoryImpl implements ChatRoomMemberRepository {
     }
 
     @Override
-    public Mono<ChatRoomMember> create(ChatRoomMember chatRoomMember) {
+    public Mono<ChatRoomMember> save(ChatRoomMember chatRoomMember) {
         ChatRoomMemberData chatRoomMemberData = ChatRoomMemberDataMapper.domainToData(chatRoomMember);
-        return r2dbcEntityOperations.insert(chatRoomMemberData).map(ChatRoomMemberDataMapper::dataToDomain);
-    }
-
-    @Override
-    public Mono<ChatRoomMember> update(ChatRoomMember chatRoomMember) {
-        ChatRoomMemberData chatRoomMemberData = ChatRoomMemberDataMapper.domainToData(chatRoomMember);
-        return r2dbcEntityOperations.insert(chatRoomMemberData).map(ChatRoomMemberDataMapper::dataToDomain);
+        return peer.save(chatRoomMemberData).map(ChatRoomMemberDataMapper::dataToDomain);
     }
 
     @Override

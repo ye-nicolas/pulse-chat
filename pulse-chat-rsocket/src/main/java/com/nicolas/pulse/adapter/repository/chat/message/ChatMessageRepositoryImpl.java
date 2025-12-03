@@ -2,7 +2,6 @@ package com.nicolas.pulse.adapter.repository.chat.message;
 
 import com.nicolas.pulse.entity.domain.chat.ChatMessage;
 import com.nicolas.pulse.service.repository.ChatMessageRepository;
-import org.springframework.data.r2dbc.core.R2dbcEntityOperations;
 import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -10,12 +9,9 @@ import reactor.core.publisher.Mono;
 @Repository
 public class ChatMessageRepositoryImpl implements ChatMessageRepository {
     private final ChatMessageDataRepositoryPeer peer;
-    private final R2dbcEntityOperations r2dbcEntityOperations;
 
-    public ChatMessageRepositoryImpl(ChatMessageDataRepositoryPeer peer,
-                                     R2dbcEntityOperations r2dbcEntityOperations) {
+    public ChatMessageRepositoryImpl(ChatMessageDataRepositoryPeer peer) {
         this.peer = peer;
-        this.r2dbcEntityOperations = r2dbcEntityOperations;
     }
 
     @Override
@@ -30,15 +26,9 @@ public class ChatMessageRepositoryImpl implements ChatMessageRepository {
     }
 
     @Override
-    public Mono<ChatMessage> create(ChatMessage chatMessage) {
+    public Mono<ChatMessage> save(ChatMessage chatMessage) {
         ChatMessageData chatMessageData = ChatMessageDataMapper.domainToData(chatMessage);
-        return r2dbcEntityOperations.insert(chatMessageData).map(ChatMessageDataMapper::dataToDomain);
-    }
-
-    @Override
-    public Mono<ChatMessage> update(ChatMessage chatMessage) {
-        ChatMessageData chatMessageData = ChatMessageDataMapper.domainToData(chatMessage);
-        return r2dbcEntityOperations.insert(chatMessageData).map(ChatMessageDataMapper::dataToDomain);
+        return peer.save(chatMessageData).map(ChatMessageDataMapper::dataToDomain);
     }
 
     @Override
