@@ -3,12 +3,9 @@ package com.nicolas.pulse.service.usecase.chat;
 import com.github.f4b6a3.ulid.UlidCreator;
 import com.nicolas.pulse.entity.domain.chat.ChatRoom;
 import com.nicolas.pulse.entity.domain.chat.ChatRoomMember;
-import com.nicolas.pulse.entity.enumerate.ChatRoomMemberRole;
-import com.nicolas.pulse.entity.enumerate.ChatRoomType;
 import com.nicolas.pulse.service.repository.AccountRepository;
 import com.nicolas.pulse.service.repository.ChatRoomMemberRepository;
 import com.nicolas.pulse.service.repository.ChatRoomRepository;
-import com.nicolas.pulse.util.SecurityUtil;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -35,18 +32,10 @@ public class CreateChatRoomUseCase {
     }
 
     public Mono<Void> execute(Input input, Output output) {
-        return Mono.when(validateAccountIdSetExists(input.getAccountIdSet()),
-                        validateMemberCountForRoomType(input.roomType, input.getAccountIdSet()))
+        return validateAccountIdSetExists(input.getAccountIdSet())
                 .then(createChatRoom(input))
                 .doOnSuccess(chatRoom -> output.setRoomId(chatRoom.getId()))
                 .flatMap(chatRoom -> createChatRoomMember(chatRoom, input.getAccountIdSet()));
-    }
-
-    private Mono<Void> validateMemberCountForRoomType(ChatRoomType roomType, Set<String> accountIdSet) {
-        if (roomType.equals(ChatRoomType.PRIVATE) && accountIdSet.size() > 2) {
-            return Mono.error(new IllegalArgumentException("Private chat rooms can only contain two members."));
-        }
-        return Mono.empty();
     }
 
     private Mono<Void> validateAccountIdSetExists(Set<String> accountIdSet) {
@@ -61,25 +50,22 @@ public class CreateChatRoomUseCase {
         return chatRoomRepository.save(ChatRoom.builder()
                 .id(UlidCreator.getMonotonicUlid().toString())
                 .name(input.getRoomName())
-                .type(input.getRoomType())
                 .build());
     }
 
     private Mono<Void> createChatRoomMember(ChatRoom chatRoom, Set<String> accountIdSet) {
-        return SecurityUtil.getCurrentAccountId()
-                .flatMap(accountId -> chatRoomMemberRepository
+        return chatRoomMemberRepository
                         .saveAll(accountIdSet.stream()
                                 .map(id -> ChatRoomMember.builder()
                                         .id(UlidCreator.getMonotonicUlid().toString())
                                         .chatRoom(chatRoom)
                                         .accountId(id)
-                                        .role(accountId.equals(id) ? ChatRoomMemberRole.OWNER : ChatRoomMemberRole.MEMBER)
                                         .isMuted(false)
                                         .isPinned(false)
                                         .build())
                                 .toList()
-                        ).then()
-                );
+                        )
+                .then();
     }
 
     @Data
@@ -87,7 +73,6 @@ public class CreateChatRoomUseCase {
     @AllArgsConstructor
     public static class Input {
         private String roomName;
-        private ChatRoomType roomType;
         private Set<String> accountIdSet;
     }
 

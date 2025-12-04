@@ -33,7 +33,7 @@ public class ChatRoomController {
     @GetMapping("/")
     public ResponseEntity<Flux<ChatRoom>> findAll(@RequestParam("accountId") String accountId) {
         if (StringUtils.hasText(accountId)) {
-            return ResponseEntity.ok(chatRoomMemberRepository.findByAccountId(accountId).map(ChatRoomMember::getChatRoom));
+            return ResponseEntity.ok(chatRoomMemberRepository.findAllByAccountId(accountId).map(ChatRoomMember::getChatRoom));
         }
         return ResponseEntity.ok(chatRoomRepository.findAll());
     }
@@ -49,7 +49,6 @@ public class ChatRoomController {
     public Mono<ResponseEntity<String>> createChatRoom(@Valid @RequestBody Mono<CreateChatRoomReq> createChatRoomReq) {
         CreateChatRoomUseCase.Output output = new CreateChatRoomUseCase.Output();
         return createChatRoomReq.map(req -> CreateChatRoomUseCase.Input.builder()
-                        .roomType(req.getRoomType())
                         .accountIdSet(req.getAccountIdSet())
                         .roomName(req.getRoomName())
                         .build())

@@ -1,7 +1,6 @@
 package com.nicolas.pulse.adapter.repository.chat.room.member;
 
 import com.nicolas.pulse.adapter.repository.chat.room.ChatRoomData;
-import com.nicolas.pulse.entity.enumerate.ChatRoomMemberRole;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -30,8 +29,6 @@ public class ChatRoomMemberData implements Persistable<String> {
     private String accountId;
     @Column(COL_ROOM_ID)
     private String roomId;
-    @Column(COL_ROLE)
-    private ChatRoomMemberRole role;
 
     @CreatedBy
     @Column(COL_CREATED_BY)

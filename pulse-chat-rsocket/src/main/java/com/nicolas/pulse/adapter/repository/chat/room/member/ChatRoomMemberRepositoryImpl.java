@@ -3,8 +3,6 @@ package com.nicolas.pulse.adapter.repository.chat.room.member;
 import com.nicolas.pulse.adapter.repository.DbMeta;
 import com.nicolas.pulse.adapter.repository.chat.room.ChatRoomData;
 import com.nicolas.pulse.entity.domain.chat.ChatRoomMember;
-import com.nicolas.pulse.entity.enumerate.ChatRoomMemberRole;
-import com.nicolas.pulse.entity.enumerate.ChatRoomType;
 import com.nicolas.pulse.service.repository.ChatRoomMemberRepository;
 import org.springframework.data.r2dbc.core.R2dbcEntityOperations;
 import org.springframework.stereotype.Repository;
@@ -83,7 +81,7 @@ public class ChatRoomMemberRepositoryImpl implements ChatRoomMemberRepository {
     }
 
     @Override
-    public Flux<ChatRoomMember> findByAccountId(String accountId) {
+    public Flux<ChatRoomMember> findAllByAccountId(String accountId) {
         return r2dbcEntityOperations.getDatabaseClient().sql(FIND_BY_ACCOUNT_ID_SQL)
                 .bind(1, accountId)
                 .fetch()
@@ -93,7 +91,7 @@ public class ChatRoomMemberRepositoryImpl implements ChatRoomMemberRepository {
     }
 
     @Override
-    public Flux<ChatRoomMember> findByRoomId(String roomId) {
+    public Flux<ChatRoomMember> findAllByRoomId(String roomId) {
         return r2dbcEntityOperations.getDatabaseClient().sql(FIND_BY_ROOM_ID_SQL)
                 .bind(1, roomId)
                 .fetch()
@@ -127,6 +125,11 @@ public class ChatRoomMemberRepositoryImpl implements ChatRoomMemberRepository {
     @Override
     public Mono<Boolean> existsByAccountIdAndRoomId(String accountId, String roomId) {
         return peer.existsByAccountIdAndRoomId(accountId, roomId);
+    }
+
+    @Override
+    public Mono<Boolean> existsByIdAndRoomId(String id, String roomId) {
+        return peer.existsByIdAndRoomId(id, roomId);
     }
 
     private ChatRoomMemberData mapToData(Map<String, Object> map) {

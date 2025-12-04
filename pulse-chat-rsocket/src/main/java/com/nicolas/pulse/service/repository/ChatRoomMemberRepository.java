@@ -10,9 +10,9 @@ public interface ChatRoomMemberRepository {
 
     Mono<ChatRoomMember> findById(String id);
 
-    Flux<ChatRoomMember> findByAccountId(String accountId);
+    Flux<ChatRoomMember> findAllByAccountId(String accountId);
 
-    Flux<ChatRoomMember> findByRoomId(String roomId);
+    Flux<ChatRoomMember> findAllByRoomId(String roomId);
 
     Mono<ChatRoomMember> save(ChatRoomMember chatRoomMember);
 
@@ -23,4 +23,6 @@ public interface ChatRoomMemberRepository {
     Mono<Void> deleteByAccountId(String accountId);
 
     Mono<Boolean> existsByAccountIdAndRoomId(String accountId, String roomId);
+
+    Mono<Boolean> existsByIdAndRoomId(String id, String roomId);
 }
