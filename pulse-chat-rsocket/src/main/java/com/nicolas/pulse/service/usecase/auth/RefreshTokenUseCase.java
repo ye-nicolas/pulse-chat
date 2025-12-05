@@ -1,7 +1,9 @@
 package com.nicolas.pulse.service.usecase.auth;
 
 import com.github.f4b6a3.ulid.UlidCreator;
+import com.nicolas.pulse.entity.domain.Account;
 import com.nicolas.pulse.entity.domain.SecurityAccount;
+import com.nicolas.pulse.entity.enumerate.Privilege;
 import com.nicolas.pulse.service.repository.AccountRepository;
 import com.nicolas.pulse.service.repository.AccountRoleRepository;
 import com.nicolas.pulse.util.JwtUtil;
@@ -16,6 +18,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import javax.crypto.SecretKey;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -42,17 +45,8 @@ public class RefreshTokenUseCase {
         return Mono.fromCallable(() -> JwtUtil.validateRefreshToken(secretKey, input.getRefreshToken()))
                 .flatMap(claims -> accountRepository.findById(claims.getSubject()))
                 .switchIfEmpty(Mono.error(new BadCredentialsException("Not Found Account")))
-                .flatMap(account -> accountRoleRepository.findAllByAccountId(account.getId())
-                        .flatMap(accountRole -> Flux.fromIterable(accountRole.getRole().getPrivilegeSet()))
-                        .collect(Collectors.toSet())
-                        .zipWith(Mono.just(account)))
-                .map(tuple2 -> SecurityAccount.builder()
-                        .id(tuple2.getT2().getId())
-                        .username(tuple2.getT2().getName())
-                        .password(tuple2.getT2().getPassword())
-                        .state(tuple2.getT2().isActive())
-                        .privilegeSet(tuple2.getT1())
-                        .build())
+                .flatMap(account -> getPrivilege(account.getId()).zipWith(Mono.just(account)))
+                .map(t -> createSecurityAccount(t.getT2(), t.getT1()))
                 .doOnSuccess(securityAccount -> {
                     String accessTokenId = UlidCreator.getMonotonicUlid().toString();
                     String refreshTokenId = UlidCreator.getMonotonicUlid().toString();
@@ -63,6 +57,22 @@ public class RefreshTokenUseCase {
                     output.setRefreshToken(JwtUtil.generateRefreshToken(secretKey, refreshTokenId, securityAccount.getId(), refreshExpiresMills));
                 })
                 .then();
+    }
+
+    private Mono<Set<Privilege>> getPrivilege(String accountId) {
+        return accountRoleRepository.findAllByAccountId(accountId)
+                .flatMap(accountRole -> Flux.fromIterable(accountRole.getRole().getPrivilegeSet()))
+                .collect(Collectors.toSet());
+    }
+
+    private SecurityAccount createSecurityAccount(Account account, Set<Privilege> privilegeSet) {
+        return SecurityAccount.builder()
+                .id(account.getId())
+                .username(account.getName())
+                .password(account.getPassword())
+                .state(account.isActive())
+                .privilegeSet(privilegeSet)
+                .build();
     }
 
     @Data
