@@ -21,7 +21,7 @@ public class UpdateFriendShipStatusToAcceptedUseCase {
     public Mono<Void> execute(Input input) {
         return friendShipRepository.findById(input.getFriendShipId())
                 .switchIfEmpty(Mono.error(new TargetNotFoundException("Friend ship not found, id = '%s'.".formatted(input.getFriendShipId()))))
-                .flatMap(f -> this.validateStatusIsPending(f).then(Mono.defer(() -> Mono.just(f))))
+                .flatMap(friendShip -> this.validateStatusIsPending(friendShip).then(Mono.just(friendShip)))
                 .flatMap(this::updateStatus);
     }
 

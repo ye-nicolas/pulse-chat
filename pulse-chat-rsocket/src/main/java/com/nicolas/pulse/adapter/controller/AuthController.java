@@ -63,12 +63,12 @@ public class AuthController {
         RefreshTokenUseCase.Input input = new RefreshTokenUseCase.Input(refreshToken);
         RefreshTokenUseCase.Output output = new RefreshTokenUseCase.Output();
         return refreshTokenUseCase.execute(input, output)
-                .then(Mono.just(ResponseEntity.ok()
+                .then(Mono.defer(() -> Mono.just(ResponseEntity.ok()
                         .header(HttpHeaders.SET_COOKIE, getCookie(output.getRefreshToken()).toString())
                         .body(AuthRes.builder()
                                 .accessToken(output.getAccessToken())
                                 .accountId(output.getAccountId())
-                                .build())));
+                                .build()))));
     }
 
     @PostMapping("/account")

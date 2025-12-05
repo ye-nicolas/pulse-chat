@@ -40,11 +40,10 @@ public class CreateAccountUseCase {
     public Mono<Void> execute(Input input, Output output) {
         return Mono.when(
                         this.validateNameNotExists(input.getName()),
-                        this.validateAllRolesExist(input.getRoleIdSet())
-                ).then(this.createUser(input))
+                        this.validateAllRolesExist(input.getRoleIdSet()))
+                .then(this.createUser(input))
                 .doOnSuccess(account -> output.setAccountId(account.getId()))
-                .flatMap(account -> this.createAccountRole(account, input.getRoleIdSet()))
-                .then();
+                .flatMap(account -> this.createAccountRole(account, input.getRoleIdSet()));
     }
 
     private Mono<Account> createUser(Input input) {
