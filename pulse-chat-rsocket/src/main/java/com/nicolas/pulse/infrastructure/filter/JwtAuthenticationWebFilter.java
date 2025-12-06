@@ -21,8 +21,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static com.nicolas.pulse.entity.domain.SecurityAccount.PRIVILEGE;
-import static com.nicolas.pulse.entity.domain.SecurityAccount.USER_NAME;
+import static com.nicolas.pulse.entity.domain.SecurityAccount.*;
 
 @Component
 public class JwtAuthenticationWebFilter implements WebFilter {
@@ -58,12 +57,18 @@ public class JwtAuthenticationWebFilter implements WebFilter {
                 .id(claims.getSubject())
                 .username(claims.get(USER_NAME, String.class))
                 .privilegeSet(toPrivilegeSet(claims.get(PRIVILEGE, List.class)))
+                .roomIdSet(toStringSet(claims.get(ROOM, List.class)))
                 .state(true)
                 .build());
     }
 
-    private Set<Privilege> toPrivilegeSet(List<?> list) {
+    private Set<String> toStringSet(List<?> list) {
         return list.stream().map(i -> (String) i)
+                .collect(Collectors.toSet());
+    }
+
+    private Set<Privilege> toPrivilegeSet(List<?> list) {
+        return toStringSet(list).stream()
                 .map(Privilege::valueOf)
                 .collect(Collectors.toSet());
     }

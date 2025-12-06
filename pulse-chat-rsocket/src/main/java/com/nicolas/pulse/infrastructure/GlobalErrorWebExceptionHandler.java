@@ -20,6 +20,7 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 import java.util.Map;
+import java.util.Objects;
 
 @Slf4j
 @Component
@@ -73,7 +74,7 @@ public class GlobalErrorWebExceptionHandler implements ErrorWebExceptionHandler 
             body.setProperties(Map.of("errors", bindEx.getBindingResult()
                     .getFieldErrors()
                     .stream()
-                    .map(error -> Map.of("field", error.getField(), "message", error.getDefaultMessage()))
+                    .map(error -> Map.of("field", error.getField(), "message", Objects.requireNonNull(error.getDefaultMessage())))
                     .toList()));
 
             // 3. 業務/自訂例外 (使用原有的 ProblemDetail 屬性)
