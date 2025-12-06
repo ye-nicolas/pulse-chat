@@ -6,15 +6,28 @@ import org.springframework.security.core.context.ReactiveSecurityContextHolder;
 import org.springframework.security.core.context.SecurityContext;
 import reactor.core.publisher.Mono;
 
+import java.util.Set;
+
 public class SecurityUtil {
     public static final String ROOT_ID = "01KBAC2JMNN7R6YJFRDNKFFHVA";
 
     public static Mono<String> getCurrentAccountId() {
+        return getSecurityAccount()
+                .map(SecurityAccount::getId)
+                .switchIfEmpty(Mono.just(ROOT_ID));
+    }
+
+    public static Mono<SecurityAccount> getSecurityAccount() {
         return ReactiveSecurityContextHolder.getContext()
                 .map(SecurityContext::getAuthentication)
                 .filter(Authentication::isAuthenticated)
                 .map(Authentication::getPrincipal)
-                .map(auth -> ((SecurityAccount) auth).getId())
-                .switchIfEmpty(Mono.just(ROOT_ID));
+                .map(auth -> ((SecurityAccount) auth));
+    }
+
+    public static Mono<Set<String>> getCurrentRoomId() {
+        return getSecurityAccount()
+                .map(SecurityAccount::getRoomIdSet)
+                .switchIfEmpty(Mono.just(Set.of()));
     }
 }

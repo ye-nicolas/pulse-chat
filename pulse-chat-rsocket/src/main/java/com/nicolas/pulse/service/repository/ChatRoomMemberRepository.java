@@ -7,8 +7,9 @@ import reactor.core.publisher.Mono;
 import java.util.List;
 
 public interface ChatRoomMemberRepository {
-
     Mono<ChatRoomMember> findById(String id);
+
+    Mono<ChatRoomMember> findByAccountAndRoomId(String accountId, String roomId);
 
     Flux<ChatRoomMember> findAllByAccountId(String accountId);
 

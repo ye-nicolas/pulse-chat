@@ -73,7 +73,18 @@ public class ChatRoomMemberRepositoryImpl implements ChatRoomMemberRepository {
     @Override
     public Mono<ChatRoomMember> findById(String id) {
         return r2dbcEntityOperations.getDatabaseClient().sql(FIND_BY_ID_SQL)
-                .bind(1, id)
+                .bind(0, id)
+                .fetch()
+                .one()
+                .map(this::mapToData)
+                .map(ChatRoomMemberDataMapper::dataToDomain);
+    }
+
+    @Override
+    public Mono<ChatRoomMember> findByAccountAndRoomId(String accountId, String roomId) {
+        return r2dbcEntityOperations.getDatabaseClient().sql(FIND_BY_ACCOUNT_ID_AND_ROOM_ID_SQL)
+                .bind(0, accountId)
+                .bind(1, roomId)
                 .fetch()
                 .one()
                 .map(this::mapToData)
@@ -83,7 +94,7 @@ public class ChatRoomMemberRepositoryImpl implements ChatRoomMemberRepository {
     @Override
     public Flux<ChatRoomMember> findAllByAccountId(String accountId) {
         return r2dbcEntityOperations.getDatabaseClient().sql(FIND_BY_ACCOUNT_ID_SQL)
-                .bind(1, accountId)
+                .bind(0, accountId)
                 .fetch()
                 .all()
                 .map(this::mapToData)
@@ -93,7 +104,7 @@ public class ChatRoomMemberRepositoryImpl implements ChatRoomMemberRepository {
     @Override
     public Flux<ChatRoomMember> findAllByRoomId(String roomId) {
         return r2dbcEntityOperations.getDatabaseClient().sql(FIND_BY_ROOM_ID_SQL)
-                .bind(1, roomId)
+                .bind(0, roomId)
                 .fetch()
                 .all()
                 .map(this::mapToData)
