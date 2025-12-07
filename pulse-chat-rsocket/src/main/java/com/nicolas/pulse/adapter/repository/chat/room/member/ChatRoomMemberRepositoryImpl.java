@@ -18,33 +18,52 @@ import java.util.Map;
 public class ChatRoomMemberRepositoryImpl implements ChatRoomMemberRepository {
     private final ChatRoomMemberDataRepositoryPeer peer;
     private final R2dbcEntityOperations r2dbcEntityOperations;
-    private static final String ROOM_PREFIX = "room_";
     private static final String BASIC_SQL = """
-             SELECT m.*,
-                   r.%s AS %s,
-                   r.%s AS %s,
-                   r.%s AS %s,
-                   r.%s AS %s,
-                   r.%s AS %s,
-                   r.%s AS %s,
-                   r.%s AS %s
-            FROM %s m
-            JOIN %s r ON m.%s = r.%s
+             SELECT
+                   %s AS %s,
+                   %s AS %s,
+                   %s AS %s,
+                   %s AS %s,
+                   %s AS %s,
+                   %s AS %s,
+                   %s AS %s,
+                   %s AS %s,
+                   %s AS %s,
+                   %s AS %s,
+                   %s AS %s,
+                   %s AS %s,
+                   %s AS %s,
+                   %s AS %s,
+                   %s AS %s,
+                   %s AS %s,
+                   %s AS %s,
+                   %s AS %s
+            FROM %s
+            JOIN %s ON %s = %s
             """.formatted(
-            DbMeta.ChatRoomData.COLUMN_ID, ROOM_PREFIX + DbMeta.ChatRoomData.COLUMN_ID,
-            DbMeta.ChatRoomData.COLUMN_NAME, ROOM_PREFIX + DbMeta.ChatRoomData.COLUMN_NAME,
-            DbMeta.ChatRoomData.COLUMN_TYPE, ROOM_PREFIX + DbMeta.ChatRoomData.COLUMN_TYPE,
-            DbMeta.ChatRoomData.COLUMN_CREATED_BY, ROOM_PREFIX + DbMeta.ChatRoomData.COLUMN_CREATED_BY,
-            DbMeta.ChatRoomData.COLUMN_UPDATED_BY, ROOM_PREFIX + DbMeta.ChatRoomData.COLUMN_UPDATED_BY,
-            DbMeta.ChatRoomData.COLUMN_CREATED_AT, ROOM_PREFIX + DbMeta.ChatRoomData.COLUMN_CREATED_AT,
-            DbMeta.ChatRoomData.COLUMN_UPDATED_AT, ROOM_PREFIX + DbMeta.ChatRoomData.COLUMN_UPDATED_AT,
+            DbMeta.ChatRoomMemberData.COLUMN_ID, DbMeta.ChatRoomMemberData.ALIAS_ID,
+            DbMeta.ChatRoomMemberData.COLUMN_ACCOUNT_ID, DbMeta.ChatRoomMemberData.ALIAS_ACCOUNT_ID,
+            DbMeta.ChatRoomMemberData.COLUMN_ROOM_ID, DbMeta.ChatRoomMemberData.ALIAS_ROOM_ID,
+            DbMeta.ChatRoomMemberData.COLUMN_ROLE, DbMeta.ChatRoomMemberData.ALIAS_ROLE,
+            DbMeta.ChatRoomMemberData.COLUMN_CREATED_BY, DbMeta.ChatRoomMemberData.ALIAS_CREATED_BY,
+            DbMeta.ChatRoomMemberData.COLUMN_UPDATED_BY, DbMeta.ChatRoomMemberData.ALIAS_UPDATED_BY,
+            DbMeta.ChatRoomMemberData.COLUMN_CREATED_AT, DbMeta.ChatRoomMemberData.ALIAS_CREATED_AT,
+            DbMeta.ChatRoomMemberData.COLUMN_UPDATED_AT, DbMeta.ChatRoomMemberData.ALIAS_UPDATED_AT,
+            DbMeta.ChatRoomMemberData.COLUMN_LAST_READ_MESSAGE_ID, DbMeta.ChatRoomMemberData.ALIAS_LAST_READ_MESSAGE_ID,
+            DbMeta.ChatRoomMemberData.COLUMN_IS_MUTED, DbMeta.ChatRoomMemberData.ALIAS_IS_MUTED,
+            DbMeta.ChatRoomMemberData.COLUMN_IS_PINNED, DbMeta.ChatRoomMemberData.ALIAS_IS_PINNED,
+            DbMeta.ChatRoomData.COLUMN_ID, DbMeta.ChatRoomData.ALIAS_ID,
+            DbMeta.ChatRoomData.COLUMN_NAME, DbMeta.ChatRoomData.ALIAS_NAME,
+            DbMeta.ChatRoomData.COLUMN_TYPE, DbMeta.ChatRoomData.ALIAS_TYPE,
+            DbMeta.ChatRoomData.COLUMN_CREATED_BY, DbMeta.ChatRoomData.ALIAS_CREATED_BY,
+            DbMeta.ChatRoomData.COLUMN_UPDATED_BY, DbMeta.ChatRoomData.ALIAS_UPDATED_BY,
+            DbMeta.ChatRoomData.COLUMN_CREATED_AT, DbMeta.ChatRoomData.ALIAS_CREATED_AT,
+            DbMeta.ChatRoomData.COLUMN_UPDATED_AT, DbMeta.ChatRoomData.ALIAS_UPDATED_AT,
             DbMeta.ChatRoomMemberData.TABLE_NAME,
-            DbMeta.ChatRoomData.TABLE_NAME,
-            DbMeta.ChatRoomMemberData.COLUMN_ROOM_ID,
-            DbMeta.ChatRoomData.COLUMN_ID);
-    private static final String FIND_BY_ID_SQL = BASIC_SQL + "where m.%s = $1".formatted(DbMeta.ChatRoomMemberData.COLUMN_ID);
-    private static final String FIND_BY_ACCOUNT_ID_SQL = BASIC_SQL + "where m.%s = $1".formatted(DbMeta.ChatRoomMemberData.COLUMN_ACCOUNT_ID);
-    private static final String FIND_BY_ROOM_ID_SQL = BASIC_SQL + "where m.%s = $1".formatted(DbMeta.ChatRoomMemberData.COLUMN_ROOM_ID);
+            DbMeta.ChatRoomData.TABLE_NAME, DbMeta.ChatRoomMemberData.COLUMN_ROOM_ID, DbMeta.ChatRoomData.COLUMN_ID);
+    private static final String FIND_BY_ID_SQL = BASIC_SQL + "where %s = $1".formatted(DbMeta.ChatRoomMemberData.COLUMN_ID);
+    private static final String FIND_BY_ACCOUNT_ID_SQL = BASIC_SQL + "where %s = $1".formatted(DbMeta.ChatRoomMemberData.COLUMN_ACCOUNT_ID);
+    private static final String FIND_BY_ROOM_ID_SQL = BASIC_SQL + "where %s = $1".formatted(DbMeta.ChatRoomMemberData.COLUMN_ROOM_ID);
 
     public ChatRoomMemberRepositoryImpl(ChatRoomMemberDataRepositoryPeer peer,
                                         R2dbcEntityOperations r2dbcEntityOperations) {
@@ -106,25 +125,25 @@ public class ChatRoomMemberRepositoryImpl implements ChatRoomMemberRepository {
     private ChatRoomMemberData mapToData(Map<String, Object> map) {
         return ChatRoomMemberData
                 .builder()
-                .id(map.get(DbMeta.ChatRoomMemberData.COLUMN_ID).toString())
-                .accountId(map.get(DbMeta.ChatRoomMemberData.COLUMN_ACCOUNT_ID).toString())
-                .roomId(map.get(DbMeta.ChatRoomMemberData.COLUMN_ROOM_ID).toString())
-                .role(ChatRoomMemberRole.valueOf(map.get(DbMeta.ChatRoomMemberData.COLUMN_ROLE).toString()))
-                .createdBy(map.get(DbMeta.ChatRoomMemberData.COLUMN_CREATED_BY).toString())
-                .updatedBy(map.get(DbMeta.ChatRoomMemberData.COLUMN_UPDATED_BY).toString())
-                .createdAt((Instant) map.get(DbMeta.ChatRoomMemberData.COLUMN_CREATED_AT))
-                .updatedAt((Instant) map.get(DbMeta.ChatRoomMemberData.COLUMN_UPDATED_AT))
-                .lastReadMessageId(map.get(DbMeta.ChatRoomMemberData.COLUMN_LAST_READ_MESSAGE_ID).toString())
-                .isMuted((Boolean) map.get(DbMeta.ChatRoomMemberData.COLUMN_IS_MUTED))
-                .isPinned((Boolean) map.get(DbMeta.ChatRoomMemberData.COLUMN_IS_PINNED))
+                .id(map.get(DbMeta.ChatRoomMemberData.ALIAS_ID).toString())
+                .accountId(map.get(DbMeta.ChatRoomMemberData.ALIAS_ACCOUNT_ID).toString())
+                .roomId(map.get(DbMeta.ChatRoomMemberData.ALIAS_ROOM_ID).toString())
+                .role(ChatRoomMemberRole.valueOf(map.get(DbMeta.ChatRoomMemberData.ALIAS_ROLE).toString()))
+                .createdBy(map.get(DbMeta.ChatRoomMemberData.ALIAS_CREATED_BY).toString())
+                .updatedBy(map.get(DbMeta.ChatRoomMemberData.ALIAS_UPDATED_BY).toString())
+                .createdAt((Instant) map.get(DbMeta.ChatRoomMemberData.ALIAS_CREATED_AT))
+                .updatedAt((Instant) map.get(DbMeta.ChatRoomMemberData.ALIAS_UPDATED_AT))
+                .lastReadMessageId(map.get(DbMeta.ChatRoomMemberData.ALIAS_LAST_READ_MESSAGE_ID).toString())
+                .isMuted((Boolean) map.get(DbMeta.ChatRoomMemberData.ALIAS_IS_MUTED))
+                .isPinned((Boolean) map.get(DbMeta.ChatRoomMemberData.ALIAS_IS_PINNED))
                 .roomData(ChatRoomData.builder()
-                        .id(map.get(ROOM_PREFIX + DbMeta.ChatRoomData.COLUMN_ID).toString())
-                        .name(map.get(ROOM_PREFIX + DbMeta.ChatRoomData.COLUMN_NAME).toString())
-                        .type(ChatRoomType.valueOf(map.get(ROOM_PREFIX + DbMeta.ChatRoomData.COLUMN_TYPE).toString()))
-                        .createdBy(map.get(ROOM_PREFIX + DbMeta.ChatRoomData.COLUMN_CREATED_BY).toString())
-                        .updatedBy(map.get(ROOM_PREFIX + DbMeta.ChatRoomData.COLUMN_UPDATED_BY).toString())
-                        .createdAt((Instant) map.get(ROOM_PREFIX + DbMeta.ChatRoomData.COLUMN_CREATED_AT))
-                        .updatedAt((Instant) map.get(ROOM_PREFIX + DbMeta.ChatRoomData.COLUMN_UPDATED_AT))
+                        .id(map.get(DbMeta.ChatRoomData.ALIAS_ID).toString())
+                        .name(map.get(DbMeta.ChatRoomData.ALIAS_NAME).toString())
+                        .type(ChatRoomType.valueOf(map.get(DbMeta.ChatRoomData.ALIAS_TYPE).toString()))
+                        .createdBy(map.get(DbMeta.ChatRoomData.ALIAS_CREATED_BY).toString())
+                        .updatedBy(map.get(DbMeta.ChatRoomData.ALIAS_UPDATED_BY).toString())
+                        .createdAt((Instant) map.get(DbMeta.ChatRoomData.ALIAS_CREATED_AT))
+                        .updatedAt((Instant) map.get(DbMeta.ChatRoomData.ALIAS_UPDATED_AT))
                         .build())
                 .build();
     }

@@ -24,36 +24,36 @@ import static com.nicolas.pulse.adapter.repository.DbMeta.ChatRoomMemberData.*;
 @NoArgsConstructor
 public class ChatRoomMemberData implements Persistable<String> {
     @Id
-    @Column(COLUMN_ID)
+    @Column(COL_ID)
     private String id;
-    @Column(COLUMN_ACCOUNT_ID)
+    @Column(COL_ACCOUNT_ID)
     private String accountId;
-    @Column(COLUMN_ROOM_ID)
+    @Column(COL_ROOM_ID)
     private String roomId;
-    @Column(COLUMN_ROLE)
+    @Column(COL_ROLE)
     private ChatRoomMemberRole role;
 
     @CreatedBy
-    @Column(COLUMN_CREATED_BY)
+    @Column(COL_CREATED_BY)
     private String createdBy;
 
     @LastModifiedBy
-    @Column(COLUMN_UPDATED_BY)
+    @Column(COL_UPDATED_BY)
     private String updatedBy;
 
     @CreatedDate
-    @Column(COLUMN_CREATED_AT)
+    @Column(COL_CREATED_AT)
     private Instant createdAt;
 
     @LastModifiedDate
-    @Column(COLUMN_UPDATED_AT)
+    @Column(COL_UPDATED_AT)
     private Instant updatedAt;
 
-    @Column(COLUMN_LAST_READ_MESSAGE_ID)
+    @Column(COL_LAST_READ_MESSAGE_ID)
     private String lastReadMessageId;
-    @Column(COLUMN_IS_MUTED)
+    @Column(COL_IS_MUTED)
     private boolean isMuted;
-    @Column(COLUMN_IS_PINNED)
+    @Column(COL_IS_PINNED)
     private boolean isPinned;
 
     @Transient

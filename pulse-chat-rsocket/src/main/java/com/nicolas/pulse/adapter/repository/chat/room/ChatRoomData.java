@@ -23,29 +23,29 @@ import static com.nicolas.pulse.adapter.repository.DbMeta.ChatRoomData.*;
 @NoArgsConstructor
 public class ChatRoomData implements Persistable<String> {
     @Id
-    @Column(COLUMN_ID)
+    @Column(COL_ID)
     private String id;
 
-    @Column(COLUMN_NAME)
+    @Column(COL_NAME)
     private String name;
 
-    @Column(COLUMN_TYPE)
+    @Column(COL_TYPE)
     private ChatRoomType type;
 
     @CreatedBy
-    @Column(COLUMN_CREATED_BY)
+    @Column(COL_CREATED_BY)
     private String createdBy;
 
     @LastModifiedBy
-    @Column(COLUMN_UPDATED_BY)
+    @Column(COL_UPDATED_BY)
     private String updatedBy;
 
     @CreatedDate
-    @Column(COLUMN_CREATED_AT)
+    @Column(COL_CREATED_AT)
     private Instant createdAt;
 
     @LastModifiedDate
-    @Column(COLUMN_UPDATED_AT)
+    @Column(COL_UPDATED_AT)
     private Instant updatedAt;
 
     @Override
