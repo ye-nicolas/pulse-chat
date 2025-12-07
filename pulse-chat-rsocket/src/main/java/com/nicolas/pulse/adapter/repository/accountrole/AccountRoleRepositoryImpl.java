@@ -27,22 +27,22 @@ public class AccountRoleRepositoryImpl implements AccountRoleRepository {
 
     private static final String BASIC_SQL = """
             SELECT
-                ar.%s as %s,
-                ar.%s as %s,
-                ar.%s as %s,
-                ar.%s as %s,
-                ar.%s as %s,
-                r.%s as %s,
-                r.%s as %s,
-                r.%s as %s,
-                r.%s as %s,
-                r.%s as %s,
-                r.%s as %s,
-                r.%s as %s,
-                rp.%s as %s
-            FROM %s ar
-            LEFT JOIN %s r on ar.%s = r.%s
-            LEFT JOIN %s rp on r.%s = rp.%s
+                %s as %s,
+                %s as %s,
+                %s as %s,
+                %s as %s,
+                %s as %s,
+                %s as %s,
+                %s as %s,
+                %s as %s,
+                %s as %s,
+                %s as %s,
+                %s as %s,
+                %s as %s,
+                %s as %s
+            FROM %s
+            LEFT JOIN %s on %s = %s
+            LEFT JOIN %s on %s = %s
             """.formatted(
             DbMeta.AccountRoleData.COLUMN_ID, DbMeta.AccountRoleData.ALIAS_ID,
             DbMeta.AccountRoleData.COLUMN_ACCOUNT_ID, DbMeta.AccountRoleData.ALIAS_ACCOUNT_ID,
@@ -58,12 +58,8 @@ public class AccountRoleRepositoryImpl implements AccountRoleRepository {
             DbMeta.RoleData.COLUMN_REMARK, DbMeta.RoleData.ALIAS_REMARK,
             DbMeta.RolePrivilegeData.COLUMN_PRIVILEGE, DbMeta.RolePrivilegeData.ALIAS_PRIVILEGE,
             DbMeta.AccountRoleData.TABLE_NAME,
-            DbMeta.RoleData.TABLE_NAME,
-            DbMeta.AccountRoleData.COLUMN_ROLE_ID,
-            DbMeta.RoleData.COLUMN_ID,
-            DbMeta.RolePrivilegeData.TABLE_NAME,
-            DbMeta.RoleData.COLUMN_ID,
-            DbMeta.RolePrivilegeData.COLUMN_ROLE_ID
+            DbMeta.RoleData.TABLE_NAME, DbMeta.AccountRoleData.COLUMN_ROLE_ID, DbMeta.RoleData.COLUMN_ID,
+            DbMeta.RolePrivilegeData.TABLE_NAME, DbMeta.RoleData.COLUMN_ID, DbMeta.RolePrivilegeData.COLUMN_ROLE_ID
     );
     private static final String FIND_BY_ACCOUNT_ID = BASIC_SQL + "WHERE ar.%s = $1".formatted(DbMeta.AccountRoleData.COLUMN_ACCOUNT_ID);
     private static final String FIND_BY_ROLE_ID = BASIC_SQL + "WHERE ar.%s = $1".formatted(DbMeta.AccountRoleData.COLUMN_ROLE_ID);

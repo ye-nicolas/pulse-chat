@@ -23,29 +23,29 @@ import java.util.Set;
 @NoArgsConstructor
 public class RoleData implements Persistable<String> {
     @Id
-    @Column(DbMeta.RoleData.COLUMN_ID)
+    @Column(DbMeta.RoleData.COL_ID)
     private String id;
 
-    @Column(DbMeta.RoleData.COLUMN_NAME)
+    @Column(DbMeta.RoleData.COL_NAME)
     private String name;
 
     @CreatedBy
-    @Column(DbMeta.RoleData.COLUMN_CREATED_BY)
+    @Column(DbMeta.RoleData.COL_CREATED_BY)
     private String createdBy;
 
     @LastModifiedBy
-    @Column(DbMeta.RoleData.COLUMN_UPDATED_BY)
+    @Column(DbMeta.RoleData.COL_UPDATED_BY)
     private String updatedBy;
 
     @CreatedDate
-    @Column(DbMeta.RoleData.COLUMN_CREATED_AT)
+    @Column(DbMeta.RoleData.COL_CREATED_AT)
     private Instant createdAt;
 
     @LastModifiedDate
-    @Column(DbMeta.RoleData.COLUMN_UPDATED_AT)
+    @Column(DbMeta.RoleData.COL_UPDATED_AT)
     private Instant updatedAt;
 
-    @Column(DbMeta.RoleData.COLUMN_REMARK)
+    @Column(DbMeta.RoleData.COL_REMARK)
     private String remark;
 
     @Transient

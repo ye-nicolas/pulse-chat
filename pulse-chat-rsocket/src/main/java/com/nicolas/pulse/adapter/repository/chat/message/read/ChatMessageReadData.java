@@ -15,29 +15,31 @@ import org.springframework.util.StringUtils;
 
 import java.time.Instant;
 
+import static com.nicolas.pulse.adapter.repository.DbMeta.ChatMessageReadData.*;
+
 //UK  messageId + roomId + memberId
-@Table("chat_message_read")
+@Table(TABLE_NAME)
 @Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
 public class ChatMessageReadData  implements Persistable<String> {
     @Id
-    @Column("id")
+    @Column(COL_ID)
     private String id;
-    @Column("message_id")
+    @Column(COL_MESSAGE_ID)
     private String messageId;
-    @Column("room_id")
+    @Column(COL_ROOM_ID)
     private String roomId;
-    @Column("memberId")
+    @Column(COL_MEMBER_ID)
     private String memberId;
 
     @CreatedBy
-    @Column("created_by")
+    @Column(COL_CREATED_BY)
     private String createdBy;
 
     @LastModifiedBy
-    @Column("created_at")
+    @Column(COL_CREATED_AT)
     private Instant createdAt;
 
     @Override

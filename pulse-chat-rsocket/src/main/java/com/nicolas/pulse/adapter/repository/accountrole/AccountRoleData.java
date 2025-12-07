@@ -26,19 +26,19 @@ import java.time.OffsetDateTime;
 @NoArgsConstructor
 public class AccountRoleData implements Persistable<String> {
     @Id
-    @Column(DbMeta.AccountRoleData.COLUMN_ID)
+    @Column(DbMeta.AccountRoleData.COL_ID)
     private String id;
-    @Column(DbMeta.AccountRoleData.COLUMN_ACCOUNT_ID)
+    @Column(DbMeta.AccountRoleData.COL_ACCOUNT_ID)
     private String accountId;
-    @Column(DbMeta.AccountRoleData.COLUMN_ROLE_ID)
+    @Column(DbMeta.AccountRoleData.COL_ROLE_ID)
     private String roleId;
 
     @CreatedBy
-    @Column(DbMeta.AccountRoleData.COLUMN_CREATED_BY)
+    @Column(DbMeta.AccountRoleData.COL_CREATED_BY)
     private String createdBy;
 
     @CreatedDate
-    @Column(DbMeta.AccountRoleData.COLUMN_CREATED_AT)
+    @Column(DbMeta.AccountRoleData.COL_CREATED_AT)
     private Instant createdAt;
 
     @Transient

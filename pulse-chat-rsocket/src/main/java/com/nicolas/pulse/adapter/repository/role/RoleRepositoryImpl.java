@@ -21,16 +21,16 @@ public class RoleRepositoryImpl implements RoleRepository {
     private final R2dbcEntityOperations r2dbcEntityOperations;
     private static final String BASIC_SQL = """
              SELECT
-                   r.%s AS %s,
-                   r.%s AS %s,
-                   r.%s AS %s,
-                   r.%s AS %s,
-                   r.%s AS %s,
-                   r.%s AS %s,
-                   r.%s AS %s,
-                   rp.%s AS %s
-            FROM %s r
-            LEFT JOIN %s rp ON r.%s = rp.%s
+                   %s AS %s,
+                   %s AS %s,
+                   %s AS %s,
+                   %s AS %s,
+                   %s AS %s,
+                   %s AS %s,
+                   %s AS %s,
+                   %s AS %s
+            FROM %s
+            LEFT JOIN %s ON %s = %s
             """.formatted(
             DbMeta.RoleData.COLUMN_ID, DbMeta.RoleData.ALIAS_ID,
             DbMeta.RoleData.COLUMN_NAME, DbMeta.RoleData.ALIAS_NAME,
@@ -41,12 +41,10 @@ public class RoleRepositoryImpl implements RoleRepository {
             DbMeta.RoleData.COLUMN_REMARK, DbMeta.RoleData.ALIAS_REMARK,
             DbMeta.RolePrivilegeData.COLUMN_PRIVILEGE, DbMeta.RolePrivilegeData.ALIAS_PRIVILEGE,
             DbMeta.RoleData.TABLE_NAME,
-            DbMeta.RolePrivilegeData.TABLE_NAME,
-            DbMeta.RoleData.COLUMN_ID,
-            DbMeta.RolePrivilegeData.COLUMN_ROLE_ID);
+            DbMeta.RolePrivilegeData.TABLE_NAME, DbMeta.RoleData.COLUMN_ID, DbMeta.RolePrivilegeData.COLUMN_ROLE_ID);
 
-    private static final String FIND_BY_ID = BASIC_SQL + "WHERE r.%s = $1".formatted(DbMeta.RoleData.COLUMN_ID);
-    private static final String FIND_BY_MORE_ID = BASIC_SQL + "WHERE r.%s = ANY($1)".formatted(DbMeta.RoleData.COLUMN_ID);
+    private static final String FIND_BY_ID = BASIC_SQL + "WHERE %s = $1".formatted(DbMeta.RoleData.COLUMN_ID);
+    private static final String FIND_BY_MORE_ID = BASIC_SQL + "WHERE %s = ANY($1)".formatted(DbMeta.RoleData.COLUMN_ID);
 
     public RoleRepositoryImpl(RoleDataRepositoryPeer peer,
                               R2dbcEntityOperations r2dbcEntityOperations) {
