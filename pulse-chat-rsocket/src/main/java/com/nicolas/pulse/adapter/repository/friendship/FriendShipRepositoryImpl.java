@@ -21,14 +21,14 @@ public class FriendShipRepositoryImpl implements FriendShipRepository {
     private final R2dbcEntityOperations r2dbcEntityOperations;
     private static final String BASIC_SQL = """
                 SELECT
-                    f.%s AS %s,
-                    f.%s AS %s,
-                    f.%s AS %s,
-                    f.%s AS %s,
-                    f.%s AS %s,
-                    f.%s AS %s,
-                    f.%s AS %s,
-                    f.%s AS %s,
+                    %s AS %s,
+                    %s AS %s,
+                    %s AS %s,
+                    %s AS %s,
+                    %s AS %s,
+                    %s AS %s,
+                    %s AS %s,
+                    %s AS %s,
                     ac.%s AS %s,
                     ac.%s AS %s,
                     ac.%s AS %s,
@@ -51,9 +51,9 @@ public class FriendShipRepositoryImpl implements FriendShipRepository {
                     ar.%s AS %s,
                     ar.%s AS %s,
                     ar.%s AS %s
-                FROM %s f
-                LEFT JOIN %s ac ON f.%s = ac.%s
-                LEFT JOIN %s ar ON f.%s = ar.%s
+                FROM %s
+                LEFT JOIN %s ac ON %s = ac.%s
+                LEFT JOIN %s ar ON %s = ar.%s
             """.formatted(
             DbMeta.FriendShipData.COLUMN_ID, DbMeta.FriendShipData.ALIAS_ID,
             DbMeta.FriendShipData.COLUMN_REQUESTER_ACCOUNT_ID, DbMeta.FriendShipData.ALIAS_REQUESTER_ACCOUNT_ID,
@@ -63,48 +63,49 @@ public class FriendShipRepositoryImpl implements FriendShipRepository {
             DbMeta.FriendShipData.COLUMN_UPDATED_BY, DbMeta.FriendShipData.ALIAS_UPDATED_BY,
             DbMeta.FriendShipData.COLUMN_CREATED_AT, DbMeta.FriendShipData.ALIAS_CREATED_AT,
             DbMeta.FriendShipData.COLUMN_UPDATED_AT, DbMeta.FriendShipData.ALIAS_UPDATED_AT,
-            DbMeta.AccountData.COLUMN_ID, DbMeta.FriendShipData.COLUMN_REQUESTER_ACCOUNT_ID + DbMeta.AccountData.COLUMN_ID,
-            DbMeta.AccountData.COLUMN_NAME, DbMeta.FriendShipData.COLUMN_REQUESTER_ACCOUNT_ID + DbMeta.AccountData.COLUMN_NAME,
-            DbMeta.AccountData.COLUMN_SHOW_NAME, DbMeta.FriendShipData.COLUMN_REQUESTER_ACCOUNT_ID + DbMeta.AccountData.COLUMN_SHOW_NAME,
-            DbMeta.AccountData.COLUMN_PASSWORD, DbMeta.FriendShipData.COLUMN_REQUESTER_ACCOUNT_ID + DbMeta.AccountData.COLUMN_PASSWORD,
-            DbMeta.AccountData.COLUMN_IS_ACTIVE, DbMeta.FriendShipData.COLUMN_REQUESTER_ACCOUNT_ID + DbMeta.AccountData.COLUMN_IS_ACTIVE,
-            DbMeta.AccountData.COLUMN_LAST_LOGIN_AT, DbMeta.FriendShipData.COLUMN_REQUESTER_ACCOUNT_ID + DbMeta.AccountData.COLUMN_LAST_LOGIN_AT,
-            DbMeta.AccountData.COLUMN_CREATED_BY, DbMeta.FriendShipData.COLUMN_REQUESTER_ACCOUNT_ID + DbMeta.AccountData.COLUMN_CREATED_BY,
-            DbMeta.AccountData.COLUMN_UPDATED_BY, DbMeta.FriendShipData.COLUMN_REQUESTER_ACCOUNT_ID + DbMeta.AccountData.COLUMN_UPDATED_BY,
-            DbMeta.AccountData.COLUMN_CREATED_AT, DbMeta.FriendShipData.COLUMN_REQUESTER_ACCOUNT_ID + DbMeta.AccountData.COLUMN_CREATED_AT,
-            DbMeta.AccountData.COLUMN_UPDATED_AT, DbMeta.FriendShipData.COLUMN_REQUESTER_ACCOUNT_ID + DbMeta.AccountData.COLUMN_UPDATED_AT,
-            DbMeta.AccountData.COLUMN_REMARK, DbMeta.FriendShipData.COLUMN_REQUESTER_ACCOUNT_ID + DbMeta.AccountData.COLUMN_REMARK,
-            DbMeta.AccountData.COLUMN_ID, DbMeta.FriendShipData.COLUMN_RECIPIENT_ACCOUNT_ID + DbMeta.AccountData.COLUMN_ID,
-            DbMeta.AccountData.COLUMN_NAME, DbMeta.FriendShipData.COLUMN_RECIPIENT_ACCOUNT_ID + DbMeta.AccountData.COLUMN_NAME,
-            DbMeta.AccountData.COLUMN_SHOW_NAME, DbMeta.FriendShipData.COLUMN_RECIPIENT_ACCOUNT_ID + DbMeta.AccountData.COLUMN_SHOW_NAME,
-            DbMeta.AccountData.COLUMN_PASSWORD, DbMeta.FriendShipData.COLUMN_RECIPIENT_ACCOUNT_ID + DbMeta.AccountData.COLUMN_PASSWORD,
-            DbMeta.AccountData.COLUMN_IS_ACTIVE, DbMeta.FriendShipData.COLUMN_RECIPIENT_ACCOUNT_ID + DbMeta.AccountData.COLUMN_IS_ACTIVE,
-            DbMeta.AccountData.COLUMN_LAST_LOGIN_AT, DbMeta.FriendShipData.COLUMN_RECIPIENT_ACCOUNT_ID + DbMeta.AccountData.COLUMN_LAST_LOGIN_AT,
-            DbMeta.AccountData.COLUMN_CREATED_BY, DbMeta.FriendShipData.COLUMN_RECIPIENT_ACCOUNT_ID + DbMeta.AccountData.COLUMN_CREATED_BY,
-            DbMeta.AccountData.COLUMN_UPDATED_BY, DbMeta.FriendShipData.COLUMN_RECIPIENT_ACCOUNT_ID + DbMeta.AccountData.COLUMN_UPDATED_BY,
-            DbMeta.AccountData.COLUMN_CREATED_AT, DbMeta.FriendShipData.COLUMN_RECIPIENT_ACCOUNT_ID + DbMeta.AccountData.COLUMN_CREATED_AT,
-            DbMeta.AccountData.COLUMN_UPDATED_AT, DbMeta.FriendShipData.COLUMN_RECIPIENT_ACCOUNT_ID + DbMeta.AccountData.COLUMN_UPDATED_AT,
-            DbMeta.AccountData.COLUMN_REMARK, DbMeta.FriendShipData.COLUMN_RECIPIENT_ACCOUNT_ID + DbMeta.AccountData.COLUMN_REMARK,
+
+            DbMeta.AccountData.COL_ID, DbMeta.FriendShipData.COL_REQUESTER_ACCOUNT_ID + DbMeta.AccountData.COL_ID,
+            DbMeta.AccountData.COL_NAME, DbMeta.FriendShipData.COL_REQUESTER_ACCOUNT_ID + DbMeta.AccountData.COL_NAME,
+            DbMeta.AccountData.COL_SHOW_NAME, DbMeta.FriendShipData.COL_REQUESTER_ACCOUNT_ID + DbMeta.AccountData.COL_SHOW_NAME,
+            DbMeta.AccountData.COL_PASSWORD, DbMeta.FriendShipData.COL_REQUESTER_ACCOUNT_ID + DbMeta.AccountData.COL_PASSWORD,
+            DbMeta.AccountData.COL_IS_ACTIVE, DbMeta.FriendShipData.COL_REQUESTER_ACCOUNT_ID + DbMeta.AccountData.COL_IS_ACTIVE,
+            DbMeta.AccountData.COL_LAST_LOGIN_AT, DbMeta.FriendShipData.COL_REQUESTER_ACCOUNT_ID + DbMeta.AccountData.COL_LAST_LOGIN_AT,
+            DbMeta.AccountData.COL_CREATED_BY, DbMeta.FriendShipData.COL_REQUESTER_ACCOUNT_ID + DbMeta.AccountData.COL_CREATED_BY,
+            DbMeta.AccountData.COL_UPDATED_BY, DbMeta.FriendShipData.COL_REQUESTER_ACCOUNT_ID + DbMeta.AccountData.COL_UPDATED_BY,
+            DbMeta.AccountData.COL_CREATED_AT, DbMeta.FriendShipData.COL_REQUESTER_ACCOUNT_ID + DbMeta.AccountData.COL_CREATED_AT,
+            DbMeta.AccountData.COL_UPDATED_AT, DbMeta.FriendShipData.COL_REQUESTER_ACCOUNT_ID + DbMeta.AccountData.COL_UPDATED_AT,
+            DbMeta.AccountData.COL_REMARK, DbMeta.FriendShipData.COL_REQUESTER_ACCOUNT_ID + DbMeta.AccountData.COL_REMARK,
+
+            DbMeta.AccountData.COL_ID, DbMeta.FriendShipData.COL_RECIPIENT_ACCOUNT_ID + DbMeta.AccountData.COL_ID,
+            DbMeta.AccountData.COL_NAME, DbMeta.FriendShipData.COL_RECIPIENT_ACCOUNT_ID + DbMeta.AccountData.COL_NAME,
+            DbMeta.AccountData.COL_SHOW_NAME, DbMeta.FriendShipData.COL_RECIPIENT_ACCOUNT_ID + DbMeta.AccountData.COL_SHOW_NAME,
+            DbMeta.AccountData.COL_PASSWORD, DbMeta.FriendShipData.COL_RECIPIENT_ACCOUNT_ID + DbMeta.AccountData.COL_PASSWORD,
+            DbMeta.AccountData.COL_IS_ACTIVE, DbMeta.FriendShipData.COL_RECIPIENT_ACCOUNT_ID + DbMeta.AccountData.COL_IS_ACTIVE,
+            DbMeta.AccountData.COL_LAST_LOGIN_AT, DbMeta.FriendShipData.COL_RECIPIENT_ACCOUNT_ID + DbMeta.AccountData.COL_LAST_LOGIN_AT,
+            DbMeta.AccountData.COL_CREATED_BY, DbMeta.FriendShipData.COL_RECIPIENT_ACCOUNT_ID + DbMeta.AccountData.COL_CREATED_BY,
+            DbMeta.AccountData.COL_UPDATED_BY, DbMeta.FriendShipData.COL_RECIPIENT_ACCOUNT_ID + DbMeta.AccountData.COL_UPDATED_BY,
+            DbMeta.AccountData.COL_CREATED_AT, DbMeta.FriendShipData.COL_RECIPIENT_ACCOUNT_ID + DbMeta.AccountData.COL_CREATED_AT,
+            DbMeta.AccountData.COL_UPDATED_AT, DbMeta.FriendShipData.COL_RECIPIENT_ACCOUNT_ID + DbMeta.AccountData.COL_UPDATED_AT,
+            DbMeta.AccountData.COL_REMARK, DbMeta.FriendShipData.COL_RECIPIENT_ACCOUNT_ID + DbMeta.AccountData.COL_REMARK,
+
             DbMeta.FriendShipData.TABLE_NAME,
-            DbMeta.AccountData.TABLE_NAME,
-            DbMeta.FriendShipData.COLUMN_REQUESTER_ACCOUNT_ID, DbMeta.AccountData.COLUMN_ID,
-            DbMeta.AccountData.TABLE_NAME,
-            DbMeta.FriendShipData.COLUMN_RECIPIENT_ACCOUNT_ID, DbMeta.AccountData.COLUMN_ID
+            DbMeta.AccountData.TABLE_NAME, DbMeta.FriendShipData.COLUMN_REQUESTER_ACCOUNT_ID, DbMeta.AccountData.COL_ID,
+            DbMeta.AccountData.TABLE_NAME, DbMeta.FriendShipData.COLUMN_RECIPIENT_ACCOUNT_ID, DbMeta.AccountData.COL_ID
     );
     private static final String FIND_ALL_BY_ACCOUNT_ID_AND_STATUS = """
             (
                 %s
-                Where f.%s = $1 AND f.%s = $2
+                Where %s = $1 AND %s = $2
             )
             UNION ALL
             (
                 %s
-                Where f.%s = $3 AND f.%s = $4
+                Where %s = $3 AND %s = $4
             )
             """
             .formatted(BASIC_SQL, DbMeta.FriendShipData.COLUMN_REQUESTER_ACCOUNT_ID, DbMeta.FriendShipData.COLUMN_STATUS,
                     BASIC_SQL, DbMeta.FriendShipData.COLUMN_RECIPIENT_ACCOUNT_ID, DbMeta.FriendShipData.COLUMN_STATUS);
-    private static final String FIND_BY_ID = "%s where f.%s = $1".formatted(BASIC_SQL, DbMeta.FriendShipData.COLUMN_ID);
+    private static final String FIND_BY_ID = BASIC_SQL + "where %s = $1".formatted(DbMeta.FriendShipData.COLUMN_ID);
 
     public FriendShipRepositoryImpl(FriendShipDataRepositoryPeer peer,
                                     R2dbcEntityOperations r2dbcEntityOperations) {
@@ -146,27 +147,27 @@ public class FriendShipRepositoryImpl implements FriendShipRepository {
                 .updatedAt((OffsetDateTime) map.get(DbMeta.FriendShipData.ALIAS_UPDATED_AT))
                 .requesterAccount(AccountData.builder()
                         .id((String) map.get(DbMeta.FriendShipData.ALIAS_REQUESTER_ACCOUNT_ID))
-                        .name((String) map.get(DbMeta.FriendShipData.COLUMN_REQUESTER_ACCOUNT_ID + DbMeta.AccountData.COLUMN_NAME))
-                        .showName((String) map.get(DbMeta.FriendShipData.COLUMN_REQUESTER_ACCOUNT_ID + DbMeta.AccountData.COLUMN_SHOW_NAME))
-                        .password((String) map.get(DbMeta.FriendShipData.COLUMN_REQUESTER_ACCOUNT_ID + DbMeta.AccountData.COLUMN_PASSWORD))
-                        .isActive((Boolean) map.get(DbMeta.FriendShipData.COLUMN_REQUESTER_ACCOUNT_ID + DbMeta.AccountData.COLUMN_IS_ACTIVE))
-                        .createdBy((String) map.get(DbMeta.FriendShipData.COLUMN_REQUESTER_ACCOUNT_ID + DbMeta.AccountData.ALIAS_CREATED_BY))
-                        .updatedBy((String) map.get(DbMeta.FriendShipData.COLUMN_REQUESTER_ACCOUNT_ID + DbMeta.AccountData.ALIAS_UPDATED_BY))
-                        .createdAt((Instant) map.get(DbMeta.FriendShipData.COLUMN_REQUESTER_ACCOUNT_ID + DbMeta.AccountData.ALIAS_CREATED_AT))
-                        .updatedAt((Instant) map.get(DbMeta.FriendShipData.COLUMN_REQUESTER_ACCOUNT_ID + DbMeta.AccountData.ALIAS_UPDATED_AT))
-                        .remark((String) map.get(DbMeta.FriendShipData.COLUMN_REQUESTER_ACCOUNT_ID + DbMeta.AccountData.COLUMN_REMARK))
+                        .name((String) map.get(DbMeta.FriendShipData.COL_REQUESTER_ACCOUNT_ID + DbMeta.AccountData.COL_NAME))
+                        .showName((String) map.get(DbMeta.FriendShipData.COL_REQUESTER_ACCOUNT_ID + DbMeta.AccountData.COL_SHOW_NAME))
+                        .password((String) map.get(DbMeta.FriendShipData.COL_REQUESTER_ACCOUNT_ID + DbMeta.AccountData.COL_PASSWORD))
+                        .isActive((Boolean) map.get(DbMeta.FriendShipData.COL_REQUESTER_ACCOUNT_ID + DbMeta.AccountData.COL_IS_ACTIVE))
+                        .createdBy((String) map.get(DbMeta.FriendShipData.COL_REQUESTER_ACCOUNT_ID + DbMeta.AccountData.COL_CREATED_BY))
+                        .updatedBy((String) map.get(DbMeta.FriendShipData.COL_REQUESTER_ACCOUNT_ID + DbMeta.AccountData.COL_UPDATED_BY))
+                        .createdAt((Instant) map.get(DbMeta.FriendShipData.COL_REQUESTER_ACCOUNT_ID + DbMeta.AccountData.COL_CREATED_AT))
+                        .updatedAt((Instant) map.get(DbMeta.FriendShipData.COL_REQUESTER_ACCOUNT_ID + DbMeta.AccountData.COL_UPDATED_AT))
+                        .remark((String) map.get(DbMeta.FriendShipData.COL_REQUESTER_ACCOUNT_ID + DbMeta.AccountData.COL_REMARK))
                         .build())
                 .recipientAccount(AccountData.builder()
                         .id((String) map.get(DbMeta.FriendShipData.ALIAS_RECIPIENT_ACCOUNT_ID))
-                        .name((String) map.get(DbMeta.FriendShipData.COLUMN_RECIPIENT_ACCOUNT_ID + DbMeta.AccountData.COLUMN_NAME))
-                        .showName((String) map.get(DbMeta.FriendShipData.COLUMN_RECIPIENT_ACCOUNT_ID + DbMeta.AccountData.COLUMN_SHOW_NAME))
-                        .password((String) map.get(DbMeta.FriendShipData.COLUMN_RECIPIENT_ACCOUNT_ID + DbMeta.AccountData.COLUMN_PASSWORD))
-                        .isActive((Boolean) map.get(DbMeta.FriendShipData.COLUMN_RECIPIENT_ACCOUNT_ID + DbMeta.AccountData.COLUMN_IS_ACTIVE))
-                        .createdBy((String) map.get(DbMeta.FriendShipData.COLUMN_RECIPIENT_ACCOUNT_ID + DbMeta.AccountData.ALIAS_CREATED_BY))
-                        .updatedBy((String) map.get(DbMeta.FriendShipData.COLUMN_RECIPIENT_ACCOUNT_ID + DbMeta.AccountData.ALIAS_UPDATED_BY))
-                        .createdAt((Instant) map.get(DbMeta.FriendShipData.COLUMN_RECIPIENT_ACCOUNT_ID + DbMeta.AccountData.ALIAS_CREATED_AT))
-                        .updatedAt((Instant) map.get(DbMeta.FriendShipData.COLUMN_RECIPIENT_ACCOUNT_ID + DbMeta.AccountData.ALIAS_UPDATED_AT))
-                        .remark((String) map.get(DbMeta.FriendShipData.COLUMN_RECIPIENT_ACCOUNT_ID + DbMeta.AccountData.COLUMN_REMARK))
+                        .name((String) map.get(DbMeta.FriendShipData.COL_RECIPIENT_ACCOUNT_ID + DbMeta.AccountData.COL_NAME))
+                        .showName((String) map.get(DbMeta.FriendShipData.COL_RECIPIENT_ACCOUNT_ID + DbMeta.AccountData.COL_SHOW_NAME))
+                        .password((String) map.get(DbMeta.FriendShipData.COL_RECIPIENT_ACCOUNT_ID + DbMeta.AccountData.COL_PASSWORD))
+                        .isActive((Boolean) map.get(DbMeta.FriendShipData.COL_RECIPIENT_ACCOUNT_ID + DbMeta.AccountData.COL_IS_ACTIVE))
+                        .createdBy((String) map.get(DbMeta.FriendShipData.COL_RECIPIENT_ACCOUNT_ID + DbMeta.AccountData.COL_CREATED_BY))
+                        .updatedBy((String) map.get(DbMeta.FriendShipData.COL_RECIPIENT_ACCOUNT_ID + DbMeta.AccountData.COL_UPDATED_BY))
+                        .createdAt((Instant) map.get(DbMeta.FriendShipData.COL_RECIPIENT_ACCOUNT_ID + DbMeta.AccountData.COL_CREATED_AT))
+                        .updatedAt((Instant) map.get(DbMeta.FriendShipData.COL_RECIPIENT_ACCOUNT_ID + DbMeta.AccountData.COL_UPDATED_AT))
+                        .remark((String) map.get(DbMeta.FriendShipData.COL_RECIPIENT_ACCOUNT_ID + DbMeta.AccountData.COL_REMARK))
                         .build())
                 .build();
     }

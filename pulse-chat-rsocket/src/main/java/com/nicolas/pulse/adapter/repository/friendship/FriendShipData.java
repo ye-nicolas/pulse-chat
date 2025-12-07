@@ -23,32 +23,32 @@ import java.time.OffsetDateTime;
 @NoArgsConstructor
 public class FriendShipData implements Persistable<String> {
     @Id
-    @Column(DbMeta.FriendShipData.COLUMN_ID)
+    @Column(DbMeta.FriendShipData.COL_ID)
     private String id;
 
-    @Column(DbMeta.FriendShipData.COLUMN_REQUESTER_ACCOUNT_ID)
+    @Column(DbMeta.FriendShipData.COL_REQUESTER_ACCOUNT_ID)
     private String requesterAccountId;
 
-    @Column(DbMeta.FriendShipData.COLUMN_RECIPIENT_ACCOUNT_ID)
+    @Column(DbMeta.FriendShipData.COL_RECIPIENT_ACCOUNT_ID)
     private String recipientAccountId;
 
-    @Column(DbMeta.FriendShipData.COLUMN_STATUS)
+    @Column(DbMeta.FriendShipData.COL_STATUS)
     private FriendShipStatus status;
 
     @CreatedBy
-    @Column(DbMeta.FriendShipData.COLUMN_CREATED_BY)
+    @Column(DbMeta.FriendShipData.COL_CREATED_BY)
     private String createdBy;
 
     @LastModifiedBy
-    @Column(DbMeta.FriendShipData.COLUMN_UPDATED_BY)
+    @Column(DbMeta.FriendShipData.COL_UPDATED_BY)
     private String updatedBy;
 
     @CreatedDate
-    @Column(DbMeta.FriendShipData.COLUMN_CREATED_AT)
+    @Column(DbMeta.FriendShipData.COL_CREATED_AT)
     private OffsetDateTime createdAt;
 
     @LastModifiedDate
-    @Column(DbMeta.FriendShipData.COLUMN_UPDATED_AT)
+    @Column(DbMeta.FriendShipData.COL_UPDATED_AT)
     private OffsetDateTime updatedAt;
 
     @Transient
