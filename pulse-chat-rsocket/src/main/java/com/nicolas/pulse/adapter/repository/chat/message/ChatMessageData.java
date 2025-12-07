@@ -17,41 +17,43 @@ import org.springframework.util.StringUtils;
 
 import java.time.Instant;
 
-@Table("chat_message")
+import static com.nicolas.pulse.adapter.repository.DbMeta.ChatMessageData.*;
+
+@Table(TABLE_NAME)
 @Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
 public class ChatMessageData implements Persistable<String> {
     @Id
-    @Column("id")
+    @Column(COL_ID)
     private String id;
-    @Column("room_id")
+    @Column(COL_ROOM_ID)
     private String roomId;
-    @Column("member_id")
+    @Column(COL_MEMBER_ID)
     private String memberId;
-    @Column("type")
+    @Column(COL_TYPE)
     private ChatMessageType type;
-    @Column("content")
+    @Column(COL_CONTENT)
     private String content;
 
     @Builder.Default
-    @Column("is_delete")
+    @Column(COL_IS_DELETE)
     private boolean isDelete = false;
 
-    @Column("delete_at")
+    @Column(COL_DELETED_AT)
     private Instant deletedAt;
 
     @CreatedBy
-    @Column("created_by")
+    @Column(COL_CREATED_BY)
     private String createdBy;
 
     @CreatedDate
-    @Column("created_at")
+    @Column(COL_CREATED_AT)
     private Instant createdAt;
 
     @LastModifiedDate
-    @Column("updated_at")
+    @Column(COL_UPDATED_AT)
     private Instant updatedAt;
 
     @Override
