@@ -35,7 +35,6 @@ public class ChatRoomMemberRepositoryImpl implements ChatRoomMemberRepository {
                    %s AS %s,
                    %s AS %s,
                    %s AS %s,
-                   %s AS %s,
                    %s AS %s
             FROM %s
             JOIN %s ON %s = %s
@@ -43,7 +42,6 @@ public class ChatRoomMemberRepositoryImpl implements ChatRoomMemberRepository {
             DbMeta.ChatRoomMemberData.COLUMN_ID, DbMeta.ChatRoomMemberData.ALIAS_ID,
             DbMeta.ChatRoomMemberData.COLUMN_ACCOUNT_ID, DbMeta.ChatRoomMemberData.ALIAS_ACCOUNT_ID,
             DbMeta.ChatRoomMemberData.COLUMN_ROOM_ID, DbMeta.ChatRoomMemberData.ALIAS_ROOM_ID,
-            DbMeta.ChatRoomMemberData.COLUMN_ROLE, DbMeta.ChatRoomMemberData.ALIAS_ROLE,
             DbMeta.ChatRoomMemberData.COLUMN_CREATED_BY, DbMeta.ChatRoomMemberData.ALIAS_CREATED_BY,
             DbMeta.ChatRoomMemberData.COLUMN_UPDATED_BY, DbMeta.ChatRoomMemberData.ALIAS_UPDATED_BY,
             DbMeta.ChatRoomMemberData.COLUMN_CREATED_AT, DbMeta.ChatRoomMemberData.ALIAS_CREATED_AT,
@@ -63,6 +61,7 @@ public class ChatRoomMemberRepositoryImpl implements ChatRoomMemberRepository {
     private static final String FIND_BY_ID_SQL = BASIC_SQL + "where %s = $1".formatted(DbMeta.ChatRoomMemberData.COLUMN_ID);
     private static final String FIND_BY_ACCOUNT_ID_SQL = BASIC_SQL + "where %s = $1".formatted(DbMeta.ChatRoomMemberData.COLUMN_ACCOUNT_ID);
     private static final String FIND_BY_ROOM_ID_SQL = BASIC_SQL + "where %s = $1".formatted(DbMeta.ChatRoomMemberData.COLUMN_ROOM_ID);
+    private static final String FIND_BY_ACCOUNT_ID_AND_ROOM_ID_SQL = BASIC_SQL + "where %s = $1 and %s = $1".formatted(DbMeta.ChatRoomMemberData.COLUMN_ACCOUNT_ID, DbMeta.ChatRoomMemberData.COLUMN_ROOM_ID);
 
     public ChatRoomMemberRepositoryImpl(ChatRoomMemberDataRepositoryPeer peer,
                                         R2dbcEntityOperations r2dbcEntityOperations) {
@@ -149,7 +148,6 @@ public class ChatRoomMemberRepositoryImpl implements ChatRoomMemberRepository {
                 .id(map.get(DbMeta.ChatRoomMemberData.ALIAS_ID).toString())
                 .accountId(map.get(DbMeta.ChatRoomMemberData.ALIAS_ACCOUNT_ID).toString())
                 .roomId(map.get(DbMeta.ChatRoomMemberData.ALIAS_ROOM_ID).toString())
-                .role(ChatRoomMemberRole.valueOf(map.get(DbMeta.ChatRoomMemberData.ALIAS_ROLE).toString()))
                 .createdBy(map.get(DbMeta.ChatRoomMemberData.ALIAS_CREATED_BY).toString())
                 .updatedBy(map.get(DbMeta.ChatRoomMemberData.ALIAS_UPDATED_BY).toString())
                 .createdAt((Instant) map.get(DbMeta.ChatRoomMemberData.ALIAS_CREATED_AT))
@@ -160,7 +158,6 @@ public class ChatRoomMemberRepositoryImpl implements ChatRoomMemberRepository {
                 .roomData(ChatRoomData.builder()
                         .id(map.get(DbMeta.ChatRoomData.ALIAS_ID).toString())
                         .name(map.get(DbMeta.ChatRoomData.ALIAS_NAME).toString())
-                        .type(ChatRoomType.valueOf(map.get(DbMeta.ChatRoomData.ALIAS_TYPE).toString()))
                         .createdBy(map.get(DbMeta.ChatRoomData.ALIAS_CREATED_BY).toString())
                         .updatedBy(map.get(DbMeta.ChatRoomData.ALIAS_UPDATED_BY).toString())
                         .createdAt((Instant) map.get(DbMeta.ChatRoomData.ALIAS_CREATED_AT))

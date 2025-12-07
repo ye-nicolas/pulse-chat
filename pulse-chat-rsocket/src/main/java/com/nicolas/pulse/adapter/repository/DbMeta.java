@@ -120,7 +120,6 @@ public class DbMeta {
         public static final String COL_ID = "id";
         public static final String COL_ACCOUNT_ID = "account_id";
         public static final String COL_ROOM_ID = "chat_room_id";
-        public static final String COL_ROLE = "role";
         public static final String COL_CREATED_BY = "created_by";
         public static final String COL_UPDATED_BY = "updated_by";
         public static final String COL_CREATED_AT = "created_at";
@@ -131,7 +130,6 @@ public class DbMeta {
         public static final String COLUMN_ID = COLUMN_PREFIX + COL_ID;
         public static final String COLUMN_ACCOUNT_ID = COLUMN_PREFIX + COL_ACCOUNT_ID;
         public static final String COLUMN_ROOM_ID = COLUMN_PREFIX + COL_ROOM_ID;
-        public static final String COLUMN_ROLE = COLUMN_PREFIX + COL_ROLE;
         public static final String COLUMN_CREATED_BY = COLUMN_PREFIX + COL_CREATED_BY;
         public static final String COLUMN_UPDATED_BY = COLUMN_PREFIX + COL_UPDATED_BY;
         public static final String COLUMN_CREATED_AT = COLUMN_PREFIX + COL_CREATED_AT;
@@ -142,7 +140,6 @@ public class DbMeta {
         public static final String ALIAS_ID = ALIAS_PREFIX + COL_ID;
         public static final String ALIAS_ACCOUNT_ID = ALIAS_PREFIX + COL_ACCOUNT_ID;
         public static final String ALIAS_ROOM_ID = ALIAS_PREFIX + COL_ROOM_ID;
-        public static final String ALIAS_ROLE = ALIAS_PREFIX + COL_ROLE;
         public static final String ALIAS_CREATED_BY = ALIAS_PREFIX + COL_CREATED_BY;
         public static final String ALIAS_UPDATED_BY = ALIAS_PREFIX + COL_UPDATED_BY;
         public static final String ALIAS_CREATED_AT = ALIAS_PREFIX + COL_CREATED_AT;
