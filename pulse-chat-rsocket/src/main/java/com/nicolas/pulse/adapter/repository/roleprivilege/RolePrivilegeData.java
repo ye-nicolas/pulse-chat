@@ -24,19 +24,19 @@ import java.time.Instant;
 @NoArgsConstructor
 public class RolePrivilegeData implements Persistable<String> {
     @Id
-    @Column(DbMeta.RolePrivilegeData.COLUMN_ID)
+    @Column(DbMeta.RolePrivilegeData.COL_ID)
     private String id;
-    @Column(DbMeta.RolePrivilegeData.COLUMN_ROLE_ID)
+    @Column(DbMeta.RolePrivilegeData.COL_ROLE_ID)
     private String roleId;
-    @Column(DbMeta.RolePrivilegeData.COLUMN_PRIVILEGE)
+    @Column(DbMeta.RolePrivilegeData.COL_PRIVILEGE)
     private Privilege privilege;
 
     @CreatedBy
-    @Column(DbMeta.RolePrivilegeData.COLUMN_CREATED_BY)
+    @Column(DbMeta.RolePrivilegeData.COL_CREATED_BY)
     private String createdBy;
 
     @CreatedDate
-    @Column(DbMeta.RolePrivilegeData.COLUMN_CREATED_AT)
+    @Column(DbMeta.RolePrivilegeData.COL_CREATED_AT)
     private Instant createdAt;
 
     @Override
