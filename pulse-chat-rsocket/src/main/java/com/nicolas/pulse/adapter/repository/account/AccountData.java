@@ -22,41 +22,41 @@ import java.time.Instant;
 @NoArgsConstructor
 public class AccountData implements Persistable<String> {
     @Id
-    @Column(DbMeta.AccountData.COLUMN_ID)
+    @Column(DbMeta.AccountData.COL_ID)
     private String id;
 
-    @Column(DbMeta.AccountData.COLUMN_NAME)
+    @Column(DbMeta.AccountData.COL_NAME)
     private String name;
 
-    @Column(DbMeta.AccountData.COLUMN_SHOW_NAME)
+    @Column(DbMeta.AccountData.COL_SHOW_NAME)
     private String showName;
 
-    @Column(DbMeta.AccountData.COLUMN_PASSWORD)
+    @Column(DbMeta.AccountData.COL_PASSWORD)
     private String password;
 
-    @Column(DbMeta.AccountData.COLUMN_IS_ACTIVE)
+    @Column(DbMeta.AccountData.COL_IS_ACTIVE)
     private boolean isActive;
 
-    @Column(DbMeta.AccountData.COLUMN_LAST_LOGIN_AT)
+    @Column(DbMeta.AccountData.COL_LAST_LOGIN_AT)
     private Instant lastLoginAt;
 
     @CreatedBy
-    @Column(DbMeta.AccountData.COLUMN_CREATED_BY)
+    @Column(DbMeta.AccountData.COL_CREATED_BY)
     private String createdBy;
 
     @LastModifiedBy
-    @Column(DbMeta.AccountData.COLUMN_UPDATED_BY)
+    @Column(DbMeta.AccountData.COL_UPDATED_BY)
     private String updatedBy;
 
     @CreatedDate
-    @Column(DbMeta.AccountData.COLUMN_CREATED_AT)
+    @Column(DbMeta.AccountData.COL_CREATED_AT)
     private Instant createdAt;
 
     @LastModifiedDate
-    @Column(DbMeta.AccountData.COLUMN_UPDATED_AT)
+    @Column(DbMeta.AccountData.COL_UPDATED_AT)
     private Instant updatedAt;
 
-    @Column(DbMeta.AccountData.COLUMN_REMARK)
+    @Column(DbMeta.AccountData.COL_REMARK)
     private String remark;
 
     @Override
