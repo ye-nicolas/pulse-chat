@@ -56,7 +56,6 @@ public class GlobalErrorWebExceptionHandler implements ErrorWebExceptionHandler 
         ProblemDetail body;
         HttpStatus status;
 
-        // 1. Security Exeception (原 @ControllerAdvice 無法捕獲的)
         if (ex instanceof AuthenticationException authEx) {
             status = HttpStatus.UNAUTHORIZED;
             body = ProblemDetail.forStatusAndDetail(status, authEx.getMessage());
@@ -65,8 +64,6 @@ public class GlobalErrorWebExceptionHandler implements ErrorWebExceptionHandler 
             status = HttpStatus.FORBIDDEN;
             body = ProblemDetail.forStatusAndDetail(status, deniedEx.getMessage());
             body.setTitle("FORBIDDEN");
-
-            // 2. 驗證例外 (WebExchangeBindException)
         } else if (ex instanceof WebExchangeBindException bindEx) {
             status = HttpStatus.BAD_REQUEST;
             body = ProblemDetail.forStatusAndDetail(status, "Validation failed for request body.");
@@ -76,8 +73,6 @@ public class GlobalErrorWebExceptionHandler implements ErrorWebExceptionHandler 
                     .stream()
                     .map(error -> Map.of("field", error.getField(), "message", Objects.requireNonNull(error.getDefaultMessage())))
                     .toList()));
-
-            // 3. 業務/自訂例外 (使用原有的 ProblemDetail 屬性)
         } else if (ex instanceof TargetNotFoundException targetEx) {
             body = targetEx.getBody();
             body.setTitle("TARGET_NOT_FOUND");
@@ -87,16 +82,12 @@ public class GlobalErrorWebExceptionHandler implements ErrorWebExceptionHandler 
         } else if (ex instanceof CustomerException customerEx) {
             body = customerEx.getBody();
             body.setTitle("BUSINESS_ERROR");
-
-            // 4. 標準 Java 例外 (IllegalArgumentException)
-        } else if (ex instanceof IllegalArgumentException illegalEx) {
+        } else if (ex instanceof IllegalArgumentException || ex instanceof IllegalStateException) {
             status = HttpStatus.BAD_REQUEST;
-            body = ProblemDetail.forStatusAndDetail(status, illegalEx.getMessage());
+            body = ProblemDetail.forStatusAndDetail(status, ex.getMessage());
             body.setTitle("ILLEGAL_ARGUMENT_FAILED");
-
-            // 5. 其他未處理的例外 (Handle All)
         } else {
-            status = HttpStatus.INTERNAL_SERVER_ERROR; // 應該改為 500
+            status = HttpStatus.INTERNAL_SERVER_ERROR;
             body = ProblemDetail.forStatusAndDetail(status, "An internal unhandled error occurred.");
             body.setTitle("UNHANDLED_EXCEPTION");
             body.setProperties(Map.of("error_class_name", ex.getClass().getSimpleName()));

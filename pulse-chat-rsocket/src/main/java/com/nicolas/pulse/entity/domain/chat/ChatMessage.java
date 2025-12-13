@@ -22,7 +22,6 @@ public class ChatMessage {
     private String createdBy;
     private Instant createdAt;
     private Instant updatedAt;
-    private Instant deletedAt;
     @Builder.Default
     private boolean isDelete = false;
 }
