@@ -5,6 +5,7 @@ import com.nicolas.pulse.entity.exception.TargetNotFoundException;
 import com.nicolas.pulse.service.repository.ChatMessageRepository;
 import com.nicolas.pulse.util.SecurityUtil;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
@@ -52,6 +53,7 @@ public class UpdateChatMessageUseCase {
     }
 
     @Data
+    @Builder
     @AllArgsConstructor
     public static class Input {
         private String messageId;

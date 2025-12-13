@@ -11,6 +11,7 @@ import com.nicolas.pulse.service.repository.ChatRoomMemberRepository;
 import com.nicolas.pulse.service.repository.ChatRoomRepository;
 import com.nicolas.pulse.util.SecurityUtil;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
@@ -62,6 +63,7 @@ public class AddChatMessageUseCase {
     }
 
     @Data
+    @Builder
     @AllArgsConstructor
     public static class Input {
         private String roomId;

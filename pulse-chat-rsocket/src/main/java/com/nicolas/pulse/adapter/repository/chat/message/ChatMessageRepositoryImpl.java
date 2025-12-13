@@ -20,8 +20,13 @@ public class ChatMessageRepositoryImpl implements ChatMessageRepository {
     }
 
     @Override
+    public Flux<ChatMessage> findAllByRoomId(String roomId) {
+        return peer.findAllByRoomId(roomId).map(ChatMessageDataMapper::dataToDomain);
+    }
+
+    @Override
     public Flux<ChatMessage> findByRoomIdAndMemberId(String roomId, String memberId) {
-        return peer.findByRoomIdAndMemberId(roomId, memberId)
+        return peer.findAllByRoomIdAndMemberId(roomId, memberId)
                 .map(ChatMessageDataMapper::dataToDomain);
     }
 

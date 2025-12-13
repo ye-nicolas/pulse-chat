@@ -1,25 +1,22 @@
-package com.nicolas.pulse.adapter.dto.res;
+package com.nicolas.pulse.adapter.dto.req;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import com.nicolas.pulse.entity.enumerate.ChatMessageType;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.Instant;
-
 @Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class ChatMessageRes {
-    private String id;
+public class AddChatMessageReq {
+    @NotNull
     private String roomId;
+    @NotNull
     private ChatMessageType type;
+    @NotEmpty
     private String content;
-    private String createBy;
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ssXXX")
-    private Instant createAt;
-    private boolean isDelete;
 }
