@@ -1,4 +1,4 @@
-package com.nicolas.pulse.adapter.dto.response;
+package com.nicolas.pulse.adapter.dto.res;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.nicolas.pulse.entity.enumerate.Privilege;

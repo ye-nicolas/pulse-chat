@@ -2,7 +2,7 @@ package com.nicolas.pulse.adapter.controller;
 
 import com.nicolas.pulse.adapter.dto.mapper.RoleMapper;
 import com.nicolas.pulse.adapter.dto.req.CreateRoleReq;
-import com.nicolas.pulse.adapter.dto.response.RoleRes;
+import com.nicolas.pulse.adapter.dto.res.RoleRes;
 import com.nicolas.pulse.entity.exception.TargetNotFoundException;
 import com.nicolas.pulse.service.repository.RoleRepository;
 import com.nicolas.pulse.service.usecase.role.CreateRoleUseCase;

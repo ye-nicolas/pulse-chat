@@ -1,4 +1,4 @@
-package com.nicolas.pulse.adapter.dto.response;
+package com.nicolas.pulse.adapter.dto.res;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

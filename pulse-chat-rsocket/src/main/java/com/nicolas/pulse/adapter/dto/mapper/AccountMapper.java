@@ -1,6 +1,6 @@
 package com.nicolas.pulse.adapter.dto.mapper;
 
-import com.nicolas.pulse.adapter.dto.response.AccountRes;
+import com.nicolas.pulse.adapter.dto.res.AccountRes;
 import com.nicolas.pulse.entity.domain.Account;
 
 public class AccountMapper {

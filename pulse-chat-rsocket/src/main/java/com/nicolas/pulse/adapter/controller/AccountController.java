@@ -1,7 +1,7 @@
 package com.nicolas.pulse.adapter.controller;
 
 import com.nicolas.pulse.adapter.dto.mapper.AccountMapper;
-import com.nicolas.pulse.adapter.dto.response.AccountRes;
+import com.nicolas.pulse.adapter.dto.res.AccountRes;
 import com.nicolas.pulse.entity.exception.TargetNotFoundException;
 import com.nicolas.pulse.service.repository.AccountRepository;
 import org.springframework.http.MediaType;

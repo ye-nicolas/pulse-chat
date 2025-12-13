@@ -1,6 +1,6 @@
 package com.nicolas.pulse.adapter.dto.mapper;
 
-import com.nicolas.pulse.adapter.dto.response.RoleRes;
+import com.nicolas.pulse.adapter.dto.res.RoleRes;
 import com.nicolas.pulse.entity.domain.Role;
 
 public class RoleMapper {
