@@ -3,6 +3,7 @@ package com.nicolas.pulse.service.usecase.sink;
 import com.nicolas.pulse.entity.domain.chat.ChatMessage;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Sinks;
 
@@ -47,10 +48,21 @@ public class ChatRoomManager {
         if (context != null) {
             context.decrement(accountId);
             log.info("Un Subscribed room '{}', account id= '{}'.", roomId, accountId);
-            if (context.getTotalSubscriber() < 1) {
-                removeRoomSink(roomId);
-                log.info("Room no account Subscribe close.");
-            }
+            removeRoom(roomId);
+        }
+    }
+
+    public void kickOutAccount(String roomId, String accountId) {
+        RoomContext context = roomContexts.get(roomId);
+        if (context == null) {
+            return;
+        }
+
+        Sinks.Many<ChatMessage> sink = context.getAccountSkins().remove(accountId);
+        if (sink != null) {
+            log.warn("Kick out account, account id = '{}', room id = '{}'.", accountId, roomId);
+            // Send error to stop sinks
+            sink.tryEmitError(new AccessDeniedException("Account is not a member of chat room, room id = '%s'.".formatted(roomId)));
         }
     }
 
@@ -66,7 +78,11 @@ public class ChatRoomManager {
         }
     }
 
-    private void removeRoomSink(String roomId) {
-        roomContexts.remove(roomId);
+    private void removeRoom(String roomId) {
+        RoomContext roomContext = roomContexts.get(roomId);
+        if (roomContext.getTotalSubscriber() < 1) {
+            roomContexts.remove(roomId);
+            log.info("Room no account Subscribe close.");
+        }
     }
 }

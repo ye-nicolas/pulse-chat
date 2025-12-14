@@ -4,6 +4,7 @@ import com.nicolas.pulse.entity.domain.chat.ChatRoom;
 import com.nicolas.pulse.entity.exception.TargetNotFoundException;
 import com.nicolas.pulse.service.repository.ChatRoomMemberRepository;
 import com.nicolas.pulse.service.repository.ChatRoomRepository;
+import com.nicolas.pulse.service.usecase.sink.ChatRoomManager;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -15,11 +16,14 @@ import java.util.Set;
 
 @Service
 public class RemoveChatRoomMemberByRoomUsecase {
+    private final ChatRoomManager chatRoomManager;
     private final ChatRoomRepository chatRoomRepository;
     private final ChatRoomMemberRepository chatRoomMemberRepository;
 
-    public RemoveChatRoomMemberByRoomUsecase(ChatRoomRepository chatRoomRepository,
+    public RemoveChatRoomMemberByRoomUsecase(ChatRoomManager chatRoomManager,
+                                             ChatRoomRepository chatRoomRepository,
                                              ChatRoomMemberRepository chatRoomMemberRepository) {
+        this.chatRoomManager = chatRoomManager;
         this.chatRoomRepository = chatRoomRepository;
         this.chatRoomMemberRepository = chatRoomMemberRepository;
     }
@@ -28,6 +32,7 @@ public class RemoveChatRoomMemberByRoomUsecase {
         return getChatRoom(input.getRoomId())
                 .flatMap(room -> this.validateMemberIdExistsByRoom(room, input.getDeleteMemberIdList()))
                 .thenMany(Flux.fromIterable(input.deleteMemberIdList).flatMap(chatRoomMemberRepository::deleteById))
+                .doOnComplete(() -> input.getDeleteMemberIdList().forEach(accountId -> chatRoomManager.kickOutAccount(input.getRoomId(), accountId)))
                 .then();
     }
 
