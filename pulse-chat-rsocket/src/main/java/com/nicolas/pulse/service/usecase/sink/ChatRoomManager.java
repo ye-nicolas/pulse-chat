@@ -6,52 +6,48 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Sinks;
 
-import java.util.Collections;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.LinkedBlockingDeque;
 
 @Slf4j
 @Service
 public class ChatRoomManager {
     private final ConcurrentMap<String, RoomContext> roomContexts = new ConcurrentHashMap<>();
 
+    @Getter
     private static class RoomContext {
-        @Getter
-        private final Sinks.Many<ChatMessage> sink;
-        private final Set<String> activeAccountIdSet = Collections.newSetFromMap(new ConcurrentHashMap<>());
-
-        public RoomContext(Sinks.Many<ChatMessage> sink) {
-            this.sink = sink;
-        }
+        final ConcurrentMap<String, Sinks.Many<ChatMessage>> accountSkins = new ConcurrentHashMap<>();
 
         public void increment(String accountId) {
-            activeAccountIdSet.add(accountId);
+            accountSkins.computeIfAbsent(accountId, k -> Sinks.many().unicast().onBackpressureBuffer(new LinkedBlockingDeque<>(10)));
         }
 
-        public int decrementAndGet(String accountId) {
-            activeAccountIdSet.remove(accountId);
-            return getTotalSubscriber();
+        public void decrement(String accountId) {
+            Sinks.Many<ChatMessage> removedSink = accountSkins.remove(accountId);
+            if (removedSink != null) {
+                removedSink.tryEmitComplete();
+            }
         }
 
         public int getTotalSubscriber() {
-            return activeAccountIdSet.size();
+            return accountSkins.size();
         }
     }
 
     public Sinks.Many<ChatMessage> subscribe(String accountId, String roomId) {
-        RoomContext context = roomContexts.computeIfAbsent(roomId, k -> new RoomContext(Sinks.many().multicast().onBackpressureBuffer(256)));
+        RoomContext context = roomContexts.computeIfAbsent(roomId, k -> new RoomContext());
         context.increment(accountId);
         log.info("Subscribed room '{}', account id= '{}'.", roomId, accountId);
-        return context.getSink();
+        return context.getAccountSkins().get(roomId);
     }
 
     public void unSubscribe(String accountId, String roomId) {
         RoomContext context = roomContexts.get(roomId);
         if (context != null) {
-            int totalSubscribe = context.decrementAndGet(accountId);
+            context.decrement(accountId);
             log.info("Un Subscribed room '{}', account id= '{}'.", roomId, accountId);
-            if (totalSubscribe < 1) {
+            if (context.getTotalSubscriber() < 1) {
                 removeRoomSink(roomId);
                 log.info("Room no account Subscribe close.");
             }
@@ -61,17 +57,16 @@ public class ChatRoomManager {
     public void broadcastMessage(ChatMessage message) {
         RoomContext context = roomContexts.get(message.getRoomId());
         if (context != null) {
-            Sinks.EmitResult emitResult = context.sink.tryEmitNext(message);
-            if (emitResult.isFailure()) {
-                log.warn("Failed to emit message to room \"{}\". Result: {}.", message.getRoomId(), emitResult);
-            }
+            context.getAccountSkins().forEach((accountId, sink) -> {
+                Sinks.EmitResult result = sink.tryEmitNext(message);
+                if (result.isFailure()) {
+                    log.warn("Failed to emit message to AccountId: {} in RoomId: {}. Result: {}", accountId, message.getRoomId(), result);
+                }
+            });
         }
     }
 
     private void removeRoomSink(String roomId) {
-        RoomContext removedContext = roomContexts.remove(roomId);
-        if (removedContext != null) {
-            removedContext.sink.tryEmitComplete();
-        }
+        roomContexts.remove(roomId);
     }
 }
