@@ -7,7 +7,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Repository
-public class ChatRoomRepositoryImpl implements ChatRoomRepository{
+public class ChatRoomRepositoryImpl implements ChatRoomRepository {
     private final ChatRoomDataRepositoryPeer peer;
 
     public ChatRoomRepositoryImpl(ChatRoomDataRepositoryPeer peer) {
@@ -20,14 +20,19 @@ public class ChatRoomRepositoryImpl implements ChatRoomRepository{
     }
 
     @Override
-    public Mono< ChatRoom> findById(String id) {
+    public Mono<ChatRoom> findById(String id) {
         return peer.findById(id).map(ChatRoomDataMapper::dataToDomain);
     }
 
     @Override
-    public Mono< ChatRoom> save(ChatRoom account) {
+    public Mono<ChatRoom> save(ChatRoom account) {
         ChatRoomData accountData = ChatRoomDataMapper.domainToData(account);
         return peer.save(accountData).map(ChatRoomDataMapper::dataToDomain);
+    }
+
+    @Override
+    public Mono<Boolean> existsById(String id) {
+        return peer.existsById(id);
     }
 
     @Override
