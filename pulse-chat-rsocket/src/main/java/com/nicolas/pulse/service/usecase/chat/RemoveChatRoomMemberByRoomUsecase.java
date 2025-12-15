@@ -2,6 +2,7 @@ package com.nicolas.pulse.service.usecase.chat;
 
 import com.nicolas.pulse.entity.domain.chat.ChatRoom;
 import com.nicolas.pulse.entity.exception.TargetNotFoundException;
+import com.nicolas.pulse.service.repository.ChatMessageReadRepository;
 import com.nicolas.pulse.service.repository.ChatRoomMemberRepository;
 import com.nicolas.pulse.service.repository.ChatRoomRepository;
 import com.nicolas.pulse.service.usecase.sink.ChatRoomManager;
@@ -19,21 +20,35 @@ public class RemoveChatRoomMemberByRoomUsecase {
     private final ChatRoomManager chatRoomManager;
     private final ChatRoomRepository chatRoomRepository;
     private final ChatRoomMemberRepository chatRoomMemberRepository;
+    private final ChatMessageReadRepository chatMessageReadRepository;
 
     public RemoveChatRoomMemberByRoomUsecase(ChatRoomManager chatRoomManager,
                                              ChatRoomRepository chatRoomRepository,
-                                             ChatRoomMemberRepository chatRoomMemberRepository) {
+                                             ChatRoomMemberRepository chatRoomMemberRepository,
+                                             ChatMessageReadRepository chatMessageReadRepository) {
         this.chatRoomManager = chatRoomManager;
         this.chatRoomRepository = chatRoomRepository;
         this.chatRoomMemberRepository = chatRoomMemberRepository;
+        this.chatMessageReadRepository = chatMessageReadRepository;
     }
 
     public Mono<Void> execute(Input input) {
         return getChatRoom(input.getRoomId())
                 .flatMap(room -> this.validateMemberIdExistsByRoom(room, input.getDeleteMemberIdList()))
-                .thenMany(Flux.fromIterable(input.deleteMemberIdList).flatMap(chatRoomMemberRepository::deleteById))
-                .doOnComplete(() -> input.getDeleteMemberIdList().forEach(accountId -> chatRoomManager.kickOutAccount(input.getRoomId(), accountId)))
+                .then(this.deleteChatRoomMember(input.getDeleteMemberIdList()))
+                .then(Mono.fromRunnable(() -> kickOutChatRoomMembers(input.getDeleteMemberIdList(), input.getRoomId())))
                 .then();
+    }
+
+    private Mono<Void> deleteChatRoomMember(Set<String> deleteMemberIdList) {
+        return Flux.fromIterable(deleteMemberIdList)
+                .flatMap(memberId -> Mono.when(chatRoomMemberRepository.deleteById(memberId),
+                        chatMessageReadRepository.deleteByMemberId(memberId)))
+                .then();
+    }
+
+    private void kickOutChatRoomMembers(Set<String> deleteMemberIdList, String roomId) {
+        deleteMemberIdList.forEach(accountId -> chatRoomManager.kickOutAccount(roomId, accountId));
     }
 
     private Mono<ChatRoom> getChatRoom(String roomId) {

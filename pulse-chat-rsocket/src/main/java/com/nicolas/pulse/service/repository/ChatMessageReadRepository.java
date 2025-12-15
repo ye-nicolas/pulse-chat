@@ -13,7 +13,9 @@ public interface ChatMessageReadRepository {
 
     Flux<ChatMessageRead> saveAll(List<ChatMessageRead> chatMessageReadFlux);
 
+    Mono<Boolean> existsByMessageIdAndRoomIdAndMemberId(String messageId, String roomId, String memberId);
+
     Mono<Void> deleteByRoomId(String roomId);
 
-    Mono<Boolean> existsByMessageIdAndRoomIdAndMemberId(String messageId, String roomId, String memberId);
+    Mono<Void> deleteByMemberId(String memberId);
 }

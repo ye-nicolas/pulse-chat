@@ -9,4 +9,6 @@ public interface ChatMessageReadDataRepositoryPeer extends R2dbcRepository<ChatM
     Mono<Boolean> existsByMessageIdAndRoomIdAndMemberId(String messageId, String roomId, String memberId);
 
     Mono<Void> deleteByRoomId(String roomId);
+
+    Mono<Void> deleteByMemberId(String memberId);
 }

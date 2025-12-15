@@ -33,6 +33,10 @@ public class ChatMessageReadRepositoryImp implements ChatMessageReadRepository {
         return peer.saveAll(Flux.fromStream(chatMessageReadList.stream().map(ChatMessageReadDataMapper::domainToData)))
                 .map(ChatMessageReadDataMapper::dataToDomain);
     }
+    @Override
+    public Mono<Boolean> existsByMessageIdAndRoomIdAndMemberId(String messageId, String roomId, String memberId) {
+        return peer.existsByMessageIdAndRoomIdAndMemberId(messageId, roomId, memberId);
+    }
 
     @Override
     public Mono<Void> deleteByRoomId(String roomId) {
@@ -40,7 +44,7 @@ public class ChatMessageReadRepositoryImp implements ChatMessageReadRepository {
     }
 
     @Override
-    public Mono<Boolean> existsByMessageIdAndRoomIdAndMemberId(String messageId, String roomId, String memberId) {
-        return peer.existsByMessageIdAndRoomIdAndMemberId(messageId, roomId, memberId);
+    public Mono<Void> deleteByMemberId(String memberId) {
+        return peer.deleteByMemberId(memberId);
     }
 }
