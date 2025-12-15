@@ -10,6 +10,7 @@ import com.nicolas.pulse.service.repository.ChatRoomMemberRepository;
 import com.nicolas.pulse.service.repository.ChatRoomRepository;
 import com.nicolas.pulse.service.usecase.chat.AddChatRoomMemberUseCase;
 import com.nicolas.pulse.service.usecase.chat.CreateChatRoomUseCase;
+import com.nicolas.pulse.service.usecase.chat.DeleteChatRoomUseCase;
 import com.nicolas.pulse.service.usecase.chat.RemoveChatRoomMemberByRoomUsecase;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -29,17 +30,20 @@ public class ChatRoomController {
     private final CreateChatRoomUseCase createChatRoomUseCase;
     private final AddChatRoomMemberUseCase addChatRoomMemberUseCase;
     private final RemoveChatRoomMemberByRoomUsecase removeChatRoomMemberByRoomUsecase;
+    private final DeleteChatRoomUseCase deleteChatRoomUseCase;
 
     public ChatRoomController(ChatRoomRepository chatRoomRepository,
                               ChatRoomMemberRepository chatRoomMemberRepository,
                               CreateChatRoomUseCase createChatRoomUseCase,
                               AddChatRoomMemberUseCase addChatRoomMemberUseCase,
-                              RemoveChatRoomMemberByRoomUsecase removeChatRoomMemberByRoomUsecase) {
+                              RemoveChatRoomMemberByRoomUsecase removeChatRoomMemberByRoomUsecase,
+                              DeleteChatRoomUseCase deleteChatRoomUseCase) {
         this.chatRoomRepository = chatRoomRepository;
         this.chatRoomMemberRepository = chatRoomMemberRepository;
         this.createChatRoomUseCase = createChatRoomUseCase;
         this.addChatRoomMemberUseCase = addChatRoomMemberUseCase;
         this.removeChatRoomMemberByRoomUsecase = removeChatRoomMemberByRoomUsecase;
+        this.deleteChatRoomUseCase = deleteChatRoomUseCase;
     }
 
     @GetMapping("/")
@@ -79,7 +83,7 @@ public class ChatRoomController {
                 .map(ResponseEntity::ok);
     }
 
-    @DeleteMapping("/{roomId}")
+    @DeleteMapping("/{roomId}/member")
     public Mono<ResponseEntity<Void>> removeRoomMember(@PathVariable("roomId") String roomId,
                                                        @Valid @RequestBody Mono<RemoveChatRoomMemberReq> roomMemberReqMono) {
         return roomMemberReqMono.map(req -> RemoveChatRoomMemberByRoomUsecase.Input.builder()
@@ -87,6 +91,12 @@ public class ChatRoomController {
                         .deleteMemberIdList(new HashSet<>(req.getMemberId()))
                         .build())
                 .flatMap(removeChatRoomMemberByRoomUsecase::execute)
+                .map(ResponseEntity::ok);
+    }
+
+    @DeleteMapping("/{roomId}")
+    public Mono<ResponseEntity<Void>> deleteRoom(@PathVariable("roomId") String roomId) {
+        return deleteChatRoomUseCase.execute(new DeleteChatRoomUseCase.Input(roomId))
                 .map(ResponseEntity::ok);
     }
 }

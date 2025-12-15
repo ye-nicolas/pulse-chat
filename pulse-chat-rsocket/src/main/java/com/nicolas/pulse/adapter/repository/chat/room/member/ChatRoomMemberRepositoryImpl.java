@@ -128,6 +128,11 @@ public class ChatRoomMemberRepositoryImpl implements ChatRoomMemberRepository {
     }
 
     @Override
+    public Mono<Void> deleteByRoomId(String roomId) {
+        return peer.deleteByRoomId(roomId);
+    }
+
+    @Override
     public Mono<Void> deleteByAccountId(String accountId) {
         return peer.deleteByAccountId(accountId);
     }
