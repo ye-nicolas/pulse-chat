@@ -1,6 +1,5 @@
 package com.nicolas.pulse.adapter.repository.chat.room;
 
-import com.nicolas.pulse.entity.enumerate.ChatRoomType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -28,9 +27,6 @@ public class ChatRoomData implements Persistable<String> {
 
     @Column(COL_NAME)
     private String name;
-
-    @Column(COL_TYPE)
-    private ChatRoomType type;
 
     @CreatedBy
     @Column(COL_CREATED_BY)

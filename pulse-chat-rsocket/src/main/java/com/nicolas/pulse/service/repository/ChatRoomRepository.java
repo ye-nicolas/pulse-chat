@@ -11,5 +11,7 @@ public interface ChatRoomRepository {
 
     Mono<ChatRoom> save(ChatRoom account);
 
+    Mono<Boolean> existsById(String id);
+
     Mono<Void> deleteById(String id);
 }

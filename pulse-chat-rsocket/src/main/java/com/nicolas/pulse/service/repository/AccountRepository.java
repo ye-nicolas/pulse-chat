@@ -15,5 +15,7 @@ public interface AccountRepository {
 
     Mono<Void> deleteById(String id);
 
+    Mono<Boolean> existsById(String id);
+
     Mono<Boolean> existsByName(String name);
 }

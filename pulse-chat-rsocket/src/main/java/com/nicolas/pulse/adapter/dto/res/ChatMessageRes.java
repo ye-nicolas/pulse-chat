@@ -1,5 +1,6 @@
-package com.nicolas.pulse.entity.domain.chat;
+package com.nicolas.pulse.adapter.dto.res;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.nicolas.pulse.entity.enumerate.ChatMessageType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -7,21 +8,18 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.Instant;
-import java.time.OffsetDateTime;
 
 @Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class ChatMessage {
+public class ChatMessageRes {
     private String id;
     private String roomId;
-    private String memberId;
     private ChatMessageType type;
     private String content;
-    private String createdBy;
-    private Instant createdAt;
-    private Instant updatedAt;
-    @Builder.Default
-    private boolean isDelete = false;
+    private String createBy;
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ssXXX")
+    private Instant createAt;
+    private boolean isDelete;
 }

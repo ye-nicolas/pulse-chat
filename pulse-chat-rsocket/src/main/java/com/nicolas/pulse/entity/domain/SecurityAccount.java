@@ -20,11 +20,15 @@ import java.util.stream.Collectors;
 public class SecurityAccount implements UserDetails {
     public static final String USER_NAME = "userName";
     public static final String PRIVILEGE = "privilege";
+    public static final String ROOM = "room";
     private String id;
     private String username;
     private String password;
-    private Set<Privilege> privilegeSet;
     private Set<GrantedAuthority> grantedAuthoritySet;
+    @Builder.Default
+    private Set<Privilege> privilegeSet = Set.of();
+    @Builder.Default
+    private Set<String> roomIdSet = Set.of();
     private boolean state;
 
     @Override
@@ -51,7 +55,10 @@ public class SecurityAccount implements UserDetails {
     }
 
     public Map<String, Object> toMap() {
-        return Map.of(USER_NAME, username,
-                PRIVILEGE, privilegeSet);
+        return Map.of(
+                USER_NAME, username,
+                PRIVILEGE, privilegeSet,
+                ROOM, roomIdSet
+        );
     }
 }

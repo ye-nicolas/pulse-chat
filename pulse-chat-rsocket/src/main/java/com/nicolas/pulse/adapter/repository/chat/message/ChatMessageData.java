@@ -41,9 +41,6 @@ public class ChatMessageData implements Persistable<String> {
     @Column(COL_IS_DELETE)
     private boolean isDelete = false;
 
-    @Column(COL_DELETED_AT)
-    private Instant deletedAt;
-
     @CreatedBy
     @Column(COL_CREATED_BY)
     private String createdBy;

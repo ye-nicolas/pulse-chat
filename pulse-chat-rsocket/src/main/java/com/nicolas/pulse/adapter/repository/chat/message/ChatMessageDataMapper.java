@@ -21,7 +21,6 @@ public class ChatMessageDataMapper {
                 .createdBy(data.getCreatedBy())
                 .createdAt(data.getCreatedAt())
                 .updatedAt(data.getUpdatedAt())
-                .deletedAt(data.getDeletedAt())
                 .isDelete(data.isDelete())
                 .build();
     }
@@ -39,7 +38,6 @@ public class ChatMessageDataMapper {
                 .createdBy(domain.getCreatedBy())
                 .createdAt(domain.getCreatedAt())
                 .updatedAt(domain.getUpdatedAt())
-                .deletedAt(domain.getDeletedAt())
                 .isDelete(domain.isDelete())
                 .build();
     }

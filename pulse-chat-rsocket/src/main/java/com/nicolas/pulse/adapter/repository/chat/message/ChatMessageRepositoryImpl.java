@@ -20,8 +20,13 @@ public class ChatMessageRepositoryImpl implements ChatMessageRepository {
     }
 
     @Override
+    public Flux<ChatMessage> findAllByRoomId(String roomId) {
+        return peer.findAllByRoomId(roomId).map(ChatMessageDataMapper::dataToDomain);
+    }
+
+    @Override
     public Flux<ChatMessage> findByRoomIdAndMemberId(String roomId, String memberId) {
-        return peer.findByRoomIdAndMemberId(roomId, memberId)
+        return peer.findAllByRoomIdAndMemberId(roomId, memberId)
                 .map(ChatMessageDataMapper::dataToDomain);
     }
 
@@ -29,6 +34,16 @@ public class ChatMessageRepositoryImpl implements ChatMessageRepository {
     public Mono<ChatMessage> save(ChatMessage chatMessage) {
         ChatMessageData chatMessageData = ChatMessageDataMapper.domainToData(chatMessage);
         return peer.save(chatMessageData).map(ChatMessageDataMapper::dataToDomain);
+    }
+
+    @Override
+    public Mono<Boolean> existsById(String id) {
+        return peer.existsById(id);
+    }
+
+    @Override
+    public Mono<Boolean> existsByIdAndRoomId(String id, String roomId) {
+        return peer.existsByIdAndRoomId(id, roomId);
     }
 
     @Override

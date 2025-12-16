@@ -1,0 +1,51 @@
+package com.nicolas.pulse.adapter.repository.chat.message.read;
+
+import com.nicolas.pulse.entity.domain.chat.ChatMessageLastRead;
+import com.nicolas.pulse.service.repository.ChatMessageReadLastRepository;
+import org.springframework.stereotype.Repository;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+
+import java.util.List;
+
+
+@Repository
+public class ChatMessageReadLastRepositoryImp implements ChatMessageReadLastRepository {
+    private final ChatMessageReadDataRepositoryPeer peer;
+
+    public ChatMessageReadLastRepositoryImp(ChatMessageReadDataRepositoryPeer peer) {
+        this.peer = peer;
+    }
+
+    @Override
+    public Mono<ChatMessageLastRead> findByMessageIdAndRoomIdAndMemberId(String messageId, String roomId, String memberId) {
+        return peer.findByMessageIdAndRoomIdAndMemberId(messageId, roomId, memberId).map(ChatMessageReadDataMapper::dataToDomain);
+    }
+
+    @Override
+    public Mono<ChatMessageLastRead> save(ChatMessageLastRead messageRead) {
+        ChatMessageLastReadData chatMessageLastReadData = ChatMessageReadDataMapper.domainToData(messageRead);
+        return peer.save(chatMessageLastReadData).map(ChatMessageReadDataMapper::dataToDomain);
+    }
+
+    @Override
+    public Flux<ChatMessageLastRead> saveAll(List<ChatMessageLastRead> chatMessageLastReadList) {
+        return peer.saveAll(Flux.fromStream(chatMessageLastReadList.stream().map(ChatMessageReadDataMapper::domainToData)))
+                .map(ChatMessageReadDataMapper::dataToDomain);
+    }
+
+    @Override
+    public Mono<Boolean> existsByMessageIdAndRoomIdAndMemberId(String messageId, String roomId, String memberId) {
+        return peer.existsByMessageIdAndRoomIdAndMemberId(messageId, roomId, memberId);
+    }
+
+    @Override
+    public Mono<Void> deleteByRoomId(String roomId) {
+        return peer.deleteByRoomId(roomId);
+    }
+
+    @Override
+    public Mono<Void> deleteByMemberId(String memberId) {
+        return peer.deleteByMemberId(memberId);
+    }
+}

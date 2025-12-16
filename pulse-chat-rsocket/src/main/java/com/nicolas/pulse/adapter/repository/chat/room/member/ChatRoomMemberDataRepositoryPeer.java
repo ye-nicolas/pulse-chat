@@ -6,5 +6,9 @@ import reactor.core.publisher.Mono;
 public interface ChatRoomMemberDataRepositoryPeer extends R2dbcRepository<ChatRoomMemberData, String> {
     Mono<Boolean> existsByAccountIdAndRoomId(String accountId, String roomId);
 
+    Mono<Boolean> existsByIdAndRoomId(String id, String roomId);
+
+    Mono<Void> deleteByRoomId(String roomId);
+
     Mono<Void> deleteByAccountId(String accountId);
 }

@@ -5,7 +5,11 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 public interface ChatMessageDataRepositoryPeer extends R2dbcRepository<ChatMessageData, String> {
-    Flux<ChatMessageData> findByRoomIdAndMemberId(String roomId, String memberId);
+    Flux<ChatMessageData> findAllByRoomId(String roomId);
+
+    Flux<ChatMessageData> findAllByRoomIdAndMemberId(String roomId, String memberId);
+
+    Mono<Boolean> existsByIdAndRoomId(String id, String roomId);
 
     Mono<Void> deleteByRoomId(String roomId);
 }

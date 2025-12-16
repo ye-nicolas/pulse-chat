@@ -2,7 +2,7 @@ package com.nicolas.pulse.adapter.controller;
 
 import com.nicolas.pulse.adapter.dto.req.CreateAccountReq;
 import com.nicolas.pulse.adapter.dto.req.LoginReq;
-import com.nicolas.pulse.adapter.dto.response.AuthRes;
+import com.nicolas.pulse.adapter.dto.res.AuthRes;
 import com.nicolas.pulse.service.usecase.account.CreateAccountUseCase;
 import com.nicolas.pulse.service.usecase.auth.LoginUseCase;
 import com.nicolas.pulse.service.usecase.auth.RefreshTokenUseCase;

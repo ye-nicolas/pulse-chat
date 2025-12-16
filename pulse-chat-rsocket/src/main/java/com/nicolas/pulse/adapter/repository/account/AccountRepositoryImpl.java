@@ -41,6 +41,11 @@ public class AccountRepositoryImpl implements AccountRepository {
     }
 
     @Override
+    public Mono<Boolean> existsById(String id) {
+        return peer.existsById(id);
+    }
+
+    @Override
     public Mono<Boolean> existsByName(String name) {
         return peer.existsByName(name);
     }
