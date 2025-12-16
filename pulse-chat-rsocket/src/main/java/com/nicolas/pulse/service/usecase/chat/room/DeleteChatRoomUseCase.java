@@ -1,4 +1,4 @@
-package com.nicolas.pulse.service.usecase.chat;
+package com.nicolas.pulse.service.usecase.chat.room;
 
 import com.nicolas.pulse.service.repository.ChatMessageReadLastRepository;
 import com.nicolas.pulse.service.repository.ChatMessageRepository;
@@ -40,7 +40,7 @@ public class DeleteChatRoomUseCase {
 
     private Mono<Void> validateDeleteAllow(String roomId) {
         return SecurityUtil.getCurrentAccountId()
-                .flatMap(a -> chatRoomMemberRepository.existsByIdAndRoomId(a, roomId))
+                .flatMap(accountId -> chatRoomMemberRepository.existsByIdAndRoomId(accountId, roomId))
                 .filter(bol -> bol)
                 .switchIfEmpty(Mono.error(new AccessDeniedException("Not allow delete chat room, room id = '%s'.".formatted(roomId))))
                 .then();

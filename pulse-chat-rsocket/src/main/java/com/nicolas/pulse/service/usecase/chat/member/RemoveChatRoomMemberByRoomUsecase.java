@@ -1,4 +1,4 @@
-package com.nicolas.pulse.service.usecase.chat;
+package com.nicolas.pulse.service.usecase.chat.member;
 
 import com.nicolas.pulse.entity.domain.chat.ChatRoom;
 import com.nicolas.pulse.entity.exception.TargetNotFoundException;

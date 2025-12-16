@@ -1,4 +1,4 @@
-package com.nicolas.pulse.service.usecase.chat;
+package com.nicolas.pulse.service.usecase.chat.member;
 
 import com.github.f4b6a3.ulid.UlidCreator;
 import com.nicolas.pulse.entity.domain.chat.ChatRoom;
