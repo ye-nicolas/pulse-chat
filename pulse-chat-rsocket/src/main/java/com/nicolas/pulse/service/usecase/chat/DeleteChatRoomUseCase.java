@@ -1,6 +1,6 @@
 package com.nicolas.pulse.service.usecase.chat;
 
-import com.nicolas.pulse.service.repository.ChatMessageReadRepository;
+import com.nicolas.pulse.service.repository.ChatMessageReadLastRepository;
 import com.nicolas.pulse.service.repository.ChatMessageRepository;
 import com.nicolas.pulse.service.repository.ChatRoomMemberRepository;
 import com.nicolas.pulse.service.repository.ChatRoomRepository;
@@ -16,23 +16,23 @@ public class DeleteChatRoomUseCase {
     private final ChatRoomRepository chatRoomRepository;
     private final ChatRoomMemberRepository chatRoomMemberRepository;
     private final ChatMessageRepository chatMessageRepository;
-    private final ChatMessageReadRepository chatMessageReadRepository;
+    private final ChatMessageReadLastRepository chatMessageReadLastRepository;
 
     public DeleteChatRoomUseCase(ChatRoomRepository chatRoomRepository,
                                  ChatRoomMemberRepository chatRoomMemberRepository,
                                  ChatMessageRepository chatMessageRepository,
-                                 ChatMessageReadRepository chatMessageReadRepository) {
+                                 ChatMessageReadLastRepository chatMessageReadLastRepository) {
         this.chatRoomRepository = chatRoomRepository;
         this.chatRoomMemberRepository = chatRoomMemberRepository;
         this.chatMessageRepository = chatMessageRepository;
-        this.chatMessageReadRepository = chatMessageReadRepository;
+        this.chatMessageReadLastRepository = chatMessageReadLastRepository;
     }
 
     public Mono<Void> execute(Input input) {
         return chatRoomRepository.existsById(input.getRoomId())
                 .filter(f -> f)
                 .then(validateDeleteAllow(input.getRoomId()))
-                .then(Mono.when(chatMessageReadRepository.deleteByRoomId(input.getRoomId()),
+                .then(Mono.when(chatMessageReadLastRepository.deleteByRoomId(input.getRoomId()),
                         chatRoomMemberRepository.deleteByRoomId(input.getRoomId()),
                         chatMessageRepository.deleteByRoomId(input.getRoomId()),
                         chatRoomRepository.deleteById(input.getRoomId())));

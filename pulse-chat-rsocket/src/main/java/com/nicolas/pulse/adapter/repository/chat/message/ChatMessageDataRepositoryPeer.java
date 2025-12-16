@@ -9,5 +9,7 @@ public interface ChatMessageDataRepositoryPeer extends R2dbcRepository<ChatMessa
 
     Flux<ChatMessageData> findAllByRoomIdAndMemberId(String roomId, String memberId);
 
+    Mono<Boolean> existsByIdAndRoomId(String id, String roomId);
+
     Mono<Void> deleteByRoomId(String roomId);
 }

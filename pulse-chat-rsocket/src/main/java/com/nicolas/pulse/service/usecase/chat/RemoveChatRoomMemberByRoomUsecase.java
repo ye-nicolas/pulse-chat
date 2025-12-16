@@ -2,7 +2,7 @@ package com.nicolas.pulse.service.usecase.chat;
 
 import com.nicolas.pulse.entity.domain.chat.ChatRoom;
 import com.nicolas.pulse.entity.exception.TargetNotFoundException;
-import com.nicolas.pulse.service.repository.ChatMessageReadRepository;
+import com.nicolas.pulse.service.repository.ChatMessageReadLastRepository;
 import com.nicolas.pulse.service.repository.ChatRoomMemberRepository;
 import com.nicolas.pulse.service.repository.ChatRoomRepository;
 import com.nicolas.pulse.service.usecase.sink.ChatRoomManager;
@@ -20,16 +20,16 @@ public class RemoveChatRoomMemberByRoomUsecase {
     private final ChatRoomManager chatRoomManager;
     private final ChatRoomRepository chatRoomRepository;
     private final ChatRoomMemberRepository chatRoomMemberRepository;
-    private final ChatMessageReadRepository chatMessageReadRepository;
+    private final ChatMessageReadLastRepository chatMessageReadLastRepository;
 
     public RemoveChatRoomMemberByRoomUsecase(ChatRoomManager chatRoomManager,
                                              ChatRoomRepository chatRoomRepository,
                                              ChatRoomMemberRepository chatRoomMemberRepository,
-                                             ChatMessageReadRepository chatMessageReadRepository) {
+                                             ChatMessageReadLastRepository chatMessageReadLastRepository) {
         this.chatRoomManager = chatRoomManager;
         this.chatRoomRepository = chatRoomRepository;
         this.chatRoomMemberRepository = chatRoomMemberRepository;
-        this.chatMessageReadRepository = chatMessageReadRepository;
+        this.chatMessageReadLastRepository = chatMessageReadLastRepository;
     }
 
     public Mono<Void> execute(Input input) {
@@ -43,7 +43,7 @@ public class RemoveChatRoomMemberByRoomUsecase {
     private Mono<Void> deleteChatRoomMember(Set<String> deleteMemberIdList) {
         return Flux.fromIterable(deleteMemberIdList)
                 .flatMap(memberId -> Mono.when(chatRoomMemberRepository.deleteById(memberId),
-                        chatMessageReadRepository.deleteByMemberId(memberId)))
+                        chatMessageReadLastRepository.deleteByMemberId(memberId)))
                 .then();
     }
 

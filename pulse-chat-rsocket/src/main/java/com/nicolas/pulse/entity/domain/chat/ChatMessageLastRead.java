@@ -6,15 +6,14 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.Instant;
-import java.time.OffsetDateTime;
 
 @Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class ChatMessageRead {
+public class ChatMessageLastRead {
     private String id;
-    private String messageId;
+    private String lastMessageId;
     private String roomId;
     private String memberId;
     private String createdBy;

@@ -37,6 +37,16 @@ public class ChatMessageRepositoryImpl implements ChatMessageRepository {
     }
 
     @Override
+    public Mono<Boolean> existsById(String id) {
+        return peer.existsById(id);
+    }
+
+    @Override
+    public Mono<Boolean> existsByIdAndRoomId(String id, String roomId) {
+        return peer.existsByIdAndRoomId(id, roomId);
+    }
+
+    @Override
     public Mono<Void> deleteByRoomId(String roomId) {
         return peer.deleteByRoomId(roomId);
     }

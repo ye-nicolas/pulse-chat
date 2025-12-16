@@ -242,24 +242,24 @@ public class DbMeta {
         public static final String ALIAS_UPDATED_AT = ALIAS_PREFIX + COL_UPDATED_AT;
     }
 
-    public static final class ChatMessageReadData {
+    public static final class ChatMessageLastReadData {
         public static final String TABLE_NAME = "chat_message_read";
         public static final String COLUMN_PREFIX = TABLE_NAME + ".";
         public static final String ALIAS_PREFIX = TABLE_NAME + "_";
         public static final String COL_ID = "id";
-        public static final String COL_MESSAGE_ID = "message_id";
+        public static final String COL_LAST_MESSAGE_ID = "last_message_id";
         public static final String COL_ROOM_ID = "room_id";
         public static final String COL_MEMBER_ID = "member_id";
         public static final String COL_CREATED_BY = "created_by";
         public static final String COL_CREATED_AT = "created_at";
         public static final String COLUMN_ID = COLUMN_PREFIX + COL_ID;
-        public static final String COLUMN_MESSAGE_ID = COLUMN_PREFIX + COL_MESSAGE_ID;
+        public static final String COLUMN_LAST_MESSAGE_ID = COLUMN_PREFIX + COL_LAST_MESSAGE_ID;
         public static final String COLUMN_ROOM_ID = COLUMN_PREFIX + COL_ROOM_ID;
         public static final String COLUMN_MEMBER_ID = COLUMN_PREFIX + COL_MEMBER_ID;
         public static final String COLUMN_CREATED_BY = COLUMN_PREFIX + COL_CREATED_BY;
         public static final String COLUMN_CREATED_AT = COLUMN_PREFIX + COL_CREATED_AT;
         public static final String ALIAS_ID = ALIAS_PREFIX + COL_ID;
-        public static final String ALIAS_MESSAGE_ID = ALIAS_PREFIX + COL_MESSAGE_ID;
+        public static final String ALIAS_LAST_MESSAGE_ID = ALIAS_PREFIX + COL_LAST_MESSAGE_ID;
         public static final String ALIAS_ROOM_ID = ALIAS_PREFIX + COL_ROOM_ID;
         public static final String ALIAS_MEMBER_ID = ALIAS_PREFIX + COL_MEMBER_ID;
         public static final String ALIAS_CREATED_BY = ALIAS_PREFIX + COL_CREATED_BY;

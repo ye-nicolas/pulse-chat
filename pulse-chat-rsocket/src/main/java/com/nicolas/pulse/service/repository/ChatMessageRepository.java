@@ -14,5 +14,9 @@ public interface ChatMessageRepository {
 
     Mono<ChatMessage> save(ChatMessage chatMessage);
 
+    Mono<Boolean> existsById(String id);
+
+    Mono<Boolean> existsByIdAndRoomId(String id, String roomId);
+
     Mono<Void> deleteByRoomId(String roomId);
 }

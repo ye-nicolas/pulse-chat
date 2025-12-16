@@ -1,15 +1,6 @@
 package com.nicolas.pulse.adapter.repository.chat.message.read;
 
-import com.nicolas.pulse.entity.domain.chat.ChatMessageRead;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.relational.core.mapping.Column;
-import org.springframework.data.relational.core.mapping.Table;
-
-import java.time.OffsetDateTime;
+import com.nicolas.pulse.entity.domain.chat.ChatMessageLastRead;
 
 
 public class ChatMessageReadDataMapper {
@@ -17,13 +8,13 @@ public class ChatMessageReadDataMapper {
 
     }
 
-    public static ChatMessageRead dataToDomain(ChatMessageReadData data) {
+    public static ChatMessageLastRead dataToDomain(ChatMessageLastReadData data) {
         if (data == null) {
             return null;
         }
-        return ChatMessageRead.builder()
+        return ChatMessageLastRead.builder()
                 .id(data.getId())
-                .messageId(data.getMessageId())
+                .lastMessageId(data.getLastMessageId())
                 .roomId(data.getRoomId())
                 .memberId(data.getMemberId())
                 .createdBy(data.getCreatedBy())
@@ -31,13 +22,13 @@ public class ChatMessageReadDataMapper {
                 .build();
     }
 
-    public static ChatMessageReadData domainToData(ChatMessageRead domain) {
+    public static ChatMessageLastReadData domainToData(ChatMessageLastRead domain) {
         if (domain == null) {
             return null;
         }
-        return ChatMessageReadData.builder()
+        return ChatMessageLastReadData.builder()
                 .id(domain.getId())
-                .messageId(domain.getMessageId())
+                .lastMessageId(domain.getLastMessageId())
                 .roomId(domain.getRoomId())
                 .memberId(domain.getMemberId())
                 .createdBy(domain.getCreatedBy())

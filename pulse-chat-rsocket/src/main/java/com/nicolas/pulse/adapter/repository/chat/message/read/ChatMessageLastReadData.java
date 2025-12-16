@@ -15,7 +15,7 @@ import org.springframework.util.StringUtils;
 
 import java.time.Instant;
 
-import static com.nicolas.pulse.adapter.repository.DbMeta.ChatMessageReadData.*;
+import static com.nicolas.pulse.adapter.repository.DbMeta.ChatMessageLastReadData.*;
 
 //UK  messageId + roomId + memberId
 @Table(TABLE_NAME)
@@ -23,12 +23,12 @@ import static com.nicolas.pulse.adapter.repository.DbMeta.ChatMessageReadData.*;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class ChatMessageReadData  implements Persistable<String> {
+public class ChatMessageLastReadData implements Persistable<String> {
     @Id
     @Column(COL_ID)
     private String id;
-    @Column(COL_MESSAGE_ID)
-    private String messageId;
+    @Column(COL_LAST_MESSAGE_ID)
+    private String lastMessageId;
     @Column(COL_ROOM_ID)
     private String roomId;
     @Column(COL_MEMBER_ID)

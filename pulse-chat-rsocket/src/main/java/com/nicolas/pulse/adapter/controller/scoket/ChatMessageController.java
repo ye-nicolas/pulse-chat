@@ -8,6 +8,7 @@ import com.nicolas.pulse.service.repository.ChatMessageRepository;
 import com.nicolas.pulse.service.usecase.chat.message.AddChatMessageUseCase;
 import com.nicolas.pulse.service.usecase.chat.message.DeleteChatMessageUseCase;
 import com.nicolas.pulse.service.usecase.chat.message.UpdateChatMessageUseCase;
+import com.nicolas.pulse.service.usecase.chat.message.read.UpdateChatRoomMemberLastReadMessageUseCase;
 import com.nicolas.pulse.service.usecase.sink.ChatRoomManager;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
@@ -31,6 +32,7 @@ public class ChatMessageController {
     private final AddChatMessageUseCase addChatMessageUseCase;
     private final UpdateChatMessageUseCase updateChatMessageUseCase;
     private final DeleteChatMessageUseCase deleteChatMessageUseCase;
+    private final UpdateChatRoomMemberLastReadMessageUseCase updateChatRoomMemberLastReadMessageUseCase;
 
 
     public ChatMessageController(Validator validator, ChatMessageRepository
@@ -38,22 +40,24 @@ public class ChatMessageController {
                                  ChatRoomManager chatRoomManager,
                                  AddChatMessageUseCase addChatMessageUseCase,
                                  UpdateChatMessageUseCase updateChatMessageUseCase,
-                                 DeleteChatMessageUseCase deleteChatMessageUseCase) {
+                                 DeleteChatMessageUseCase deleteChatMessageUseCase,
+                                 UpdateChatRoomMemberLastReadMessageUseCase updateChatRoomMemberLastReadMessageUseCase) {
         this.validator = validator;
         this.chatMessageRepository = chatMessageRepository;
         this.chatRoomManager = chatRoomManager;
         this.addChatMessageUseCase = addChatMessageUseCase;
         this.updateChatMessageUseCase = updateChatMessageUseCase;
         this.deleteChatMessageUseCase = deleteChatMessageUseCase;
+        this.updateChatRoomMemberLastReadMessageUseCase = updateChatRoomMemberLastReadMessageUseCase;
     }
 
     @MessageMapping("chat.message.add")
     public Mono<Void> addMessage(@Payload Mono<AddChatMessageReq> mono) {
         AddChatMessageUseCase.Output output = new AddChatMessageUseCase.Output();
         return mono.flatMap(this::validate)
-                .flatMap(req1 -> addChatMessageUseCase.execute(AddChatMessageUseCase.Input.builder().roomId(req1.getRoomId())
-                        .chatMessageType(req1.getType())
-                        .content(req1.getContent())
+                .flatMap(req -> addChatMessageUseCase.execute(AddChatMessageUseCase.Input.builder().roomId(req.getRoomId())
+                        .chatMessageType(req.getType())
+                        .content(req.getContent())
                         .build(), output))
                 .doOnSuccess(s -> chatRoomManager.broadcastMessage(output.getChatMessage()));
     }
@@ -72,10 +76,16 @@ public class ChatMessageController {
 
     @MessageMapping("chat.message.delete.{messageId}")
     public Mono<Void> deleteMessage(@DestinationVariable String messageId) {
-        DeleteChatMessageUseCase.Input input = new DeleteChatMessageUseCase.Input(messageId);
         DeleteChatMessageUseCase.Output output = new DeleteChatMessageUseCase.Output();
-        return deleteChatMessageUseCase.execute(input, output)
+        return deleteChatMessageUseCase.execute(new DeleteChatMessageUseCase.Input(messageId), output)
                 .doOnSuccess(s -> chatRoomManager.broadcastMessage(output.getNewChatMessage()));
+    }
+
+    @MessageMapping("chat.message.read.{messageId}")
+    public Mono<Void> readMessage(@DestinationVariable String messageId) {
+        UpdateChatRoomMemberLastReadMessageUseCase.Input input = new UpdateChatRoomMemberLastReadMessageUseCase.Input(messageId);
+        UpdateChatRoomMemberLastReadMessageUseCase.Output output = new UpdateChatRoomMemberLastReadMessageUseCase.Output();
+        return updateChatRoomMemberLastReadMessageUseCase.execute(input, output);
     }
 
     @MessageMapping("chat.history.get.{roomId}")
