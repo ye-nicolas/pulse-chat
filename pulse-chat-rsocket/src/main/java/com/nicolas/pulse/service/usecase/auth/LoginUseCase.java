@@ -7,10 +7,10 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.authentication.ReactiveAuthenticationManager;
+import org.springframework.security.authentication.UserDetailsRepositoryReactiveAuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
@@ -21,20 +21,20 @@ public class LoginUseCase {
     private final long accessExpiresMills;
     private final long refreshExpiresMills;
     private final SecretKey secretKey;
-    private final ReactiveAuthenticationManager reactiveAuthenticationManager;
+    private final UserDetailsRepositoryReactiveAuthenticationManager userDetailsRepositoryReactiveAuthenticationManager;
 
     public LoginUseCase(@Value("${jwt.key}") String secret,
                         @Value("${auth.access.expires-minute}") Long accessExpiresMinute,
                         @Value("${auth.refresh.expires-minute}") Long refreshExpiresMinute,
-                        ReactiveAuthenticationManager reactiveAuthenticationManager) {
+                        @Qualifier("UserDetailsRepositoryReactiveAuthenticationManager") UserDetailsRepositoryReactiveAuthenticationManager userDetailsRepositoryReactiveAuthenticationManager) {
         this.accessExpiresMills = accessExpiresMinute * 60 * 1_000;
         this.refreshExpiresMills = refreshExpiresMinute * 60 * 1_000;
         this.secretKey = JwtUtil.generateSecretKey(secret);
-        this.reactiveAuthenticationManager = reactiveAuthenticationManager;
+        this.userDetailsRepositoryReactiveAuthenticationManager = userDetailsRepositoryReactiveAuthenticationManager;
     }
 
     public Mono<Void> execute(Input input, Output output) {
-        return reactiveAuthenticationManager.authenticate(new UsernamePasswordAuthenticationToken(input.getUserName(), input.getPassword()))
+        return userDetailsRepositoryReactiveAuthenticationManager.authenticate(new UsernamePasswordAuthenticationToken(input.getUserName(), input.getPassword()))
                 .map(authentication -> (SecurityAccount) authentication.getPrincipal())
                 .doOnSuccess(securityAccount -> {
                     String accessTokenId = UlidCreator.getMonotonicUlid().toString();
