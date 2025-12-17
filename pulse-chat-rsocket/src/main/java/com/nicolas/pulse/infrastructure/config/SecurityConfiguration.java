@@ -1,14 +1,13 @@
 package com.nicolas.pulse.infrastructure.config;
 
-import com.nicolas.pulse.infrastructure.filter.JwtAuthenticationWebFilter;
+import com.nicolas.pulse.infrastructure.CustomerJwtReactiveAuthenticationManager;
 import com.nicolas.pulse.infrastructure.filter.MdcFilter;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.rsocket.messaging.RSocketStrategiesCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.ReactiveAuthenticationManager;
 import org.springframework.security.authentication.UserDetailsRepositoryReactiveAuthenticationManager;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableReactiveMethodSecurity;
 import org.springframework.security.config.annotation.rsocket.EnableRSocketSecurity;
 import org.springframework.security.config.annotation.rsocket.RSocketSecurity;
@@ -18,15 +17,13 @@ import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.core.userdetails.ReactiveUserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.oauth2.jwt.NimbusReactiveJwtDecoder;
-import org.springframework.security.oauth2.jwt.ReactiveJwtDecoder;
+import org.springframework.security.oauth2.server.resource.web.server.authentication.ServerBearerTokenAuthenticationConverter;
 import org.springframework.security.rsocket.core.PayloadSocketAcceptorInterceptor;
+import org.springframework.security.rsocket.metadata.BearerTokenAuthenticationEncoder;
 import org.springframework.security.web.server.SecurityWebFilterChain;
+import org.springframework.security.web.server.authentication.AuthenticationWebFilter;
 import org.springframework.security.web.server.context.NoOpServerSecurityContextRepository;
 import reactor.core.publisher.Mono;
-
-import javax.crypto.spec.SecretKeySpec;
-import java.nio.charset.StandardCharsets;
 
 @EnableReactiveMethodSecurity
 @EnableRSocketSecurity
@@ -34,46 +31,35 @@ import java.nio.charset.StandardCharsets;
 @Configuration
 public class SecurityConfiguration {
     private final ReactiveUserDetailsService reactiveUserDetailsService;
-    private final JwtAuthenticationWebFilter jwtAuthenticationWebFilter;
     private final MdcFilter mdcFilter;
-    private final String jwtKey;
+    private final CustomerJwtReactiveAuthenticationManager customerJwtReactiveAuthenticationManager;
 
     public SecurityConfiguration(ReactiveUserDetailsService reactiveUserDetailsService,
-                                 JwtAuthenticationWebFilter jwtAuthenticationWebFilter,
                                  MdcProperties mdcProperties,
-                                 @Value("${jwt.key}") String jwtKey) {
+                                 CustomerJwtReactiveAuthenticationManager customerJwtReactiveAuthenticationManager) {
         this.reactiveUserDetailsService = reactiveUserDetailsService;
-        this.jwtAuthenticationWebFilter = jwtAuthenticationWebFilter;
         this.mdcFilter = new MdcFilter(mdcProperties);
-        this.jwtKey = jwtKey;
+        this.customerJwtReactiveAuthenticationManager = customerJwtReactiveAuthenticationManager;
     }
 
     @Bean
-    public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http,
-                                                         @Qualifier("UserDetailsRepositoryReactiveAuthenticationManager") ReactiveAuthenticationManager authenticationManager) {
+    public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http) {
+        AuthenticationWebFilter jwtFilter = new AuthenticationWebFilter(customerJwtReactiveAuthenticationManager);
+        jwtFilter.setServerAuthenticationConverter(new ServerBearerTokenAuthenticationConverter());
         return http.csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .httpBasic(ServerHttpSecurity.HttpBasicSpec::disable)
                 .formLogin(ServerHttpSecurity.FormLoginSpec::disable)
-                .authenticationManager(authenticationManager)
                 .securityContextRepository(NoOpServerSecurityContextRepository.getInstance())
                 .authorizeExchange(exchanges -> {
 //                    exchanges.pathMatchers(AuthController.AUTH_BASE_URL).permitAll();
                     exchanges.anyExchange().permitAll();
                 })
                 .addFilterAt(mdcFilter, SecurityWebFiltersOrder.FIRST)
-                .addFilterAt(jwtAuthenticationWebFilter, SecurityWebFiltersOrder.AUTHENTICATION)
+                .addFilterAt(jwtFilter, SecurityWebFiltersOrder.AUTHENTICATION)
                 .exceptionHandling(e -> e
                         .accessDeniedHandler((webExchange, accessDeniedException) -> Mono.error(accessDeniedException))
                         .authenticationEntryPoint((webExchange, authenticationException) -> Mono.error(authenticationException)))
                 .build();
-    }
-
-    @Bean("UserDetailsRepositoryReactiveAuthenticationManager")
-    public ReactiveAuthenticationManager getUserDetailsRepositoryReactiveAuthenticationManager() {
-        UserDetailsRepositoryReactiveAuthenticationManager authenticationManager =
-                new UserDetailsRepositoryReactiveAuthenticationManager(reactiveUserDetailsService);
-        authenticationManager.setPasswordEncoder(passwordEncoder());
-        return authenticationManager;
     }
 
     @Bean
@@ -82,21 +68,27 @@ public class SecurityConfiguration {
     }
 
     @Bean
-    PayloadSocketAcceptorInterceptor rsocketInterceptor(RSocketSecurity rsocket) {
-        return rsocket
-                .authorizePayload(authorize -> authorize
+    PayloadSocketAcceptorInterceptor rsocketInterceptor(RSocketSecurity rsocket,
+                                                        @Qualifier("CustomerReactiveAuthenticationManager") ReactiveAuthenticationManager reactiveAuthenticationManager) {
+        return rsocket.authorizePayload(authorize -> authorize
                         .setup().authenticated()
-                        .anyRequest().authenticated()
-                ).jwt(Customizer.withDefaults())
+                        .anyRequest().authenticated())
+                .jwt(jwtSpec -> jwtSpec.authenticationManager(reactiveAuthenticationManager))
                 .build();
     }
 
+
+    @Bean("UserDetailsRepositoryReactiveAuthenticationManager")
+    public UserDetailsRepositoryReactiveAuthenticationManager getUserDetailsRepositoryReactiveAuthenticationManager() {
+        UserDetailsRepositoryReactiveAuthenticationManager reactiveAuthenticationManager = new UserDetailsRepositoryReactiveAuthenticationManager(reactiveUserDetailsService);
+        reactiveAuthenticationManager.setPasswordEncoder(passwordEncoder());
+        return reactiveAuthenticationManager;
+    }
+
     @Bean
-    ReactiveJwtDecoder jwtDecoder() {
-        SecretKeySpec secretKey = new SecretKeySpec(
-                jwtKey.getBytes(StandardCharsets.UTF_8),
-                "HmacSha256"
-        );
-        return NimbusReactiveJwtDecoder.withSecretKey(secretKey).build();
+    public RSocketStrategiesCustomizer rsocketStrategiesCustomizer() {
+        return strategies -> {
+            strategies.encoder(new BearerTokenAuthenticationEncoder());
+        };
     }
 }
