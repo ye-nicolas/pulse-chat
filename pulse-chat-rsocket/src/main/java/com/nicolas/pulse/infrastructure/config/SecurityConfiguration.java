@@ -1,5 +1,6 @@
 package com.nicolas.pulse.infrastructure.config;
 
+import com.nicolas.pulse.adapter.controller.AuthController;
 import com.nicolas.pulse.infrastructure.CustomerJwtReactiveAuthenticationManager;
 import com.nicolas.pulse.infrastructure.filter.MdcFilter;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -51,8 +52,8 @@ public class SecurityConfiguration {
                 .formLogin(ServerHttpSecurity.FormLoginSpec::disable)
                 .securityContextRepository(NoOpServerSecurityContextRepository.getInstance())
                 .authorizeExchange(exchanges -> {
-//                    exchanges.pathMatchers(AuthController.AUTH_BASE_URL).permitAll();
-                    exchanges.anyExchange().permitAll();
+                    exchanges.pathMatchers(AuthController.AUTH_BASE_URL+"/**").permitAll();
+                    exchanges.anyExchange().authenticated();
                 })
                 .addFilterAt(mdcFilter, SecurityWebFiltersOrder.FIRST)
                 .addFilterAt(jwtFilter, SecurityWebFiltersOrder.AUTHENTICATION)
@@ -70,10 +71,11 @@ public class SecurityConfiguration {
     @Bean
     PayloadSocketAcceptorInterceptor rsocketInterceptor(RSocketSecurity rsocket,
                                                         @Qualifier("CustomerReactiveAuthenticationManager") ReactiveAuthenticationManager reactiveAuthenticationManager) {
-        return rsocket.authorizePayload(authorize -> authorize
+        return rsocket
+                .authenticationManager(reactiveAuthenticationManager)
+                .authorizePayload(authorize -> authorize
                         .setup().authenticated()
                         .anyRequest().authenticated())
-                .jwt(jwtSpec -> jwtSpec.authenticationManager(reactiveAuthenticationManager))
                 .build();
     }
 
