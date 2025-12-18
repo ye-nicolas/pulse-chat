@@ -18,8 +18,8 @@ public class ChatMessageReadLastRepositoryImp implements ChatMessageReadLastRepo
     }
 
     @Override
-    public Mono<ChatMessageLastRead> findByMessageIdAndRoomIdAndMemberId(String messageId, String roomId, String memberId) {
-        return peer.findByMessageIdAndRoomIdAndMemberId(messageId, roomId, memberId).map(ChatMessageReadDataMapper::dataToDomain);
+    public Mono<ChatMessageLastRead> findByLastMessageIdAndRoomIdAndMemberId(String messageId, String roomId, String memberId) {
+        return peer.findByLastMessageIdAndRoomIdAndMemberId(messageId, roomId, memberId).map(ChatMessageReadDataMapper::dataToDomain);
     }
 
     @Override
@@ -35,8 +35,8 @@ public class ChatMessageReadLastRepositoryImp implements ChatMessageReadLastRepo
     }
 
     @Override
-    public Mono<Boolean> existsByMessageIdAndRoomIdAndMemberId(String messageId, String roomId, String memberId) {
-        return peer.existsByMessageIdAndRoomIdAndMemberId(messageId, roomId, memberId);
+    public Mono<Boolean> existsByLastMessageIdAndRoomIdAndMemberId(String messageId, String roomId, String memberId) {
+        return peer.existsByLastMessageIdAndRoomIdAndMemberId(messageId, roomId, memberId);
     }
 
     @Override

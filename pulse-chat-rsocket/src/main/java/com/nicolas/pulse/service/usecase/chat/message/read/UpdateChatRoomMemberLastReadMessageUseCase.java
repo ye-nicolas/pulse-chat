@@ -40,7 +40,7 @@ public class UpdateChatRoomMemberLastReadMessageUseCase {
     }
 
     private Mono<ChatMessageLastRead> saveChatMessageRead(String messageId, ChatRoomMember chatRoomMember) {
-        return chatMessageReadLastRepository.findByMessageIdAndRoomIdAndMemberId(messageId, chatRoomMember.getChatRoom().getId(), chatRoomMember.getId())
+        return chatMessageReadLastRepository.findByLastMessageIdAndRoomIdAndMemberId(messageId, chatRoomMember.getChatRoom().getId(), chatRoomMember.getId())
                 .switchIfEmpty(Mono.defer(() -> Mono.just(ChatMessageLastRead.builder()
                         .id(UlidCreator.getMonotonicUlid().toString())
                         .roomId(chatRoomMember.getChatRoom().getId())

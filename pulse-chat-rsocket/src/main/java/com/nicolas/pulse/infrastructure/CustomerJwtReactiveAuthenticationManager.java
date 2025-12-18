@@ -5,6 +5,7 @@ import com.nicolas.pulse.entity.enumerate.Privilege;
 import com.nicolas.pulse.util.JwtUtil;
 import io.jsonwebtoken.Claims;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Primary;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.ReactiveAuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -12,7 +13,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.oauth2.server.resource.authentication.BearerTokenAuthenticationToken;
 import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
 import javax.crypto.SecretKey;
@@ -22,7 +22,8 @@ import java.util.stream.Collectors;
 
 import static com.nicolas.pulse.entity.domain.SecurityAccount.*;
 
-@Component
+@Primary
+@Component("CustomerReactiveAuthenticationManager")
 public class CustomerJwtReactiveAuthenticationManager implements ReactiveAuthenticationManager {
     private final SecretKey secretKey;
 

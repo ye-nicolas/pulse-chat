@@ -34,7 +34,6 @@ public class ChatRoomMemberRepositoryImpl implements ChatRoomMemberRepository {
                    %s AS %s,
                    %s AS %s,
                    %s AS %s,
-                   %s AS %s,
                    %s AS %s
             FROM %s
             JOIN %s ON %s = %s
@@ -46,7 +45,6 @@ public class ChatRoomMemberRepositoryImpl implements ChatRoomMemberRepository {
             DbMeta.ChatRoomMemberData.COLUMN_UPDATED_BY, DbMeta.ChatRoomMemberData.ALIAS_UPDATED_BY,
             DbMeta.ChatRoomMemberData.COLUMN_CREATED_AT, DbMeta.ChatRoomMemberData.ALIAS_CREATED_AT,
             DbMeta.ChatRoomMemberData.COLUMN_UPDATED_AT, DbMeta.ChatRoomMemberData.ALIAS_UPDATED_AT,
-            DbMeta.ChatRoomMemberData.COLUMN_LAST_READ_MESSAGE_ID, DbMeta.ChatRoomMemberData.ALIAS_LAST_READ_MESSAGE_ID,
             DbMeta.ChatRoomMemberData.COLUMN_IS_MUTED, DbMeta.ChatRoomMemberData.ALIAS_IS_MUTED,
             DbMeta.ChatRoomMemberData.COLUMN_IS_PINNED, DbMeta.ChatRoomMemberData.ALIAS_IS_PINNED,
             DbMeta.ChatRoomData.COLUMN_ID, DbMeta.ChatRoomData.ALIAS_ID,
@@ -157,7 +155,6 @@ public class ChatRoomMemberRepositoryImpl implements ChatRoomMemberRepository {
                 .updatedBy(map.get(DbMeta.ChatRoomMemberData.ALIAS_UPDATED_BY).toString())
                 .createdAt((Instant) map.get(DbMeta.ChatRoomMemberData.ALIAS_CREATED_AT))
                 .updatedAt((Instant) map.get(DbMeta.ChatRoomMemberData.ALIAS_UPDATED_AT))
-                .lastReadMessageId(map.get(DbMeta.ChatRoomMemberData.ALIAS_LAST_READ_MESSAGE_ID).toString())
                 .isMuted((Boolean) map.get(DbMeta.ChatRoomMemberData.ALIAS_IS_MUTED))
                 .isPinned((Boolean) map.get(DbMeta.ChatRoomMemberData.ALIAS_IS_PINNED))
                 .roomData(ChatRoomData.builder()

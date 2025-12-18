@@ -7,13 +7,13 @@ import reactor.core.publisher.Mono;
 import java.util.List;
 
 public interface ChatMessageReadLastRepository {
-    Mono<ChatMessageLastRead> findByMessageIdAndRoomIdAndMemberId(String messageId, String roomId, String memberId);
+    Mono<ChatMessageLastRead> findByLastMessageIdAndRoomIdAndMemberId(String messageId, String roomId, String memberId);
 
     Mono<ChatMessageLastRead> save(ChatMessageLastRead messageRead);
 
     Flux<ChatMessageLastRead> saveAll(List<ChatMessageLastRead> chatMessageLastReadFluxes);
 
-    Mono<Boolean> existsByMessageIdAndRoomIdAndMemberId(String messageId, String roomId, String memberId);
+    Mono<Boolean> existsByLastMessageIdAndRoomIdAndMemberId(String messageId, String roomId, String memberId);
 
     Mono<Void> deleteByRoomId(String roomId);
 

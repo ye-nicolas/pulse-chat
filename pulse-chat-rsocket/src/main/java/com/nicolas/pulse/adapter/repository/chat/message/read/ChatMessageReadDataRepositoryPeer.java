@@ -4,9 +4,9 @@ import org.springframework.data.r2dbc.repository.R2dbcRepository;
 import reactor.core.publisher.Mono;
 
 public interface ChatMessageReadDataRepositoryPeer extends R2dbcRepository<ChatMessageLastReadData, String> {
-    Mono<ChatMessageLastReadData> findByMessageIdAndRoomIdAndMemberId(String messageId, String roomId, String memberId);
+    Mono<ChatMessageLastReadData> findByLastMessageIdAndRoomIdAndMemberId(String lastMessageId, String roomId, String memberId);
 
-    Mono<Boolean> existsByMessageIdAndRoomIdAndMemberId(String messageId, String roomId, String memberId);
+    Mono<Boolean> existsByLastMessageIdAndRoomIdAndMemberId(String lastMessageId, String roomId, String memberId);
 
     Mono<Void> deleteByRoomId(String roomId);
 
