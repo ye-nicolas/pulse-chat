@@ -4,12 +4,14 @@ import com.nicolas.pulse.adapter.repository.DbMeta;
 import com.nicolas.pulse.entity.domain.Role;
 import com.nicolas.pulse.entity.enumerate.Privilege;
 import com.nicolas.pulse.service.repository.RoleRepository;
+import com.nicolas.pulse.util.TypeUtil;
 import org.springframework.data.r2dbc.core.R2dbcEntityOperations;
 import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.time.Instant;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -79,8 +81,8 @@ public class RoleRepositoryImpl implements RoleRepository {
                 .name((String) listMap.getFirst().get(DbMeta.RoleData.ALIAS_NAME))
                 .createdBy((String) listMap.getFirst().get(DbMeta.RoleData.ALIAS_CREATED_BY))
                 .updatedBy((String) listMap.getFirst().get(DbMeta.RoleData.ALIAS_UPDATED_BY))
-                .createdAt((Instant) listMap.getFirst().get(DbMeta.RoleData.ALIAS_CREATED_AT))
-                .updatedAt((Instant) listMap.getFirst().get(DbMeta.RoleData.ALIAS_UPDATED_AT))
+                .createdAt(TypeUtil.toInstant((OffsetDateTime) listMap.getFirst().get(DbMeta.RoleData.ALIAS_CREATED_AT)))
+                .updatedAt(TypeUtil.toInstant((OffsetDateTime) listMap.getFirst().get(DbMeta.RoleData.ALIAS_UPDATED_AT)))
                 .remark((String) listMap.getFirst().get(DbMeta.RoleData.ALIAS_REMARK))
                 .privilegeSet(listMap.stream()
                         .map(m -> m.get(DbMeta.RolePrivilegeData.ALIAS_PRIVILEGE))
