@@ -1,4 +1,4 @@
-package com.nicolas.pulse.infrastructure;
+package com.nicolas.pulse.infrastructure.security;
 
 import com.nicolas.pulse.entity.domain.SecurityAccount;
 import com.nicolas.pulse.entity.enumerate.Privilege;
@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 import static com.nicolas.pulse.entity.domain.SecurityAccount.*;
 
 @Primary
-@Component("CustomerReactiveAuthenticationManager")
+@Component
 public class CustomerJwtReactiveAuthenticationManager implements ReactiveAuthenticationManager {
     private final SecretKey secretKey;
 
@@ -40,7 +40,7 @@ public class CustomerJwtReactiveAuthenticationManager implements ReactiveAuthent
                 .flatMap(this::validateAccessToken)
                 .flatMap(this::claimsToUserDetails)
                 .flatMap(this::userDetailsToAuthentication)
-                .onErrorMap(e -> new BadCredentialsException(e.getMessage(), e));
+                .onErrorMap(ex -> new BadCredentialsException(ex.getMessage(), ex));
     }
 
     private Mono<Claims> validateAccessToken(String token) {
