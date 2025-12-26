@@ -12,7 +12,6 @@ import org.springframework.util.StringUtils;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.util.Map;
 
@@ -91,19 +90,19 @@ public class FriendShipRepositoryImpl implements FriendShipRepository {
             DbMeta.AccountData.TABLE_NAME, DbMeta.FriendShipData.COLUMN_REQUESTER_ACCOUNT_ID, DbMeta.AccountData.COL_ID,
             DbMeta.AccountData.TABLE_NAME, DbMeta.FriendShipData.COLUMN_RECIPIENT_ACCOUNT_ID, DbMeta.AccountData.COL_ID
     );
-    private static final String FIND_ALL_BY_ACCOUNT_ID_AND_STATUS = """
+    private static final String FIND_ALL_BY_ACCOUNT_ID = """
             (
                 %s
-                Where %s = $1 AND %s = $2
+                Where %s = $1
             )
             UNION ALL
             (
                 %s
-                Where %s = $3 AND %s = $4
+                Where %s = $2
             )
             """
-            .formatted(BASIC_SQL, DbMeta.FriendShipData.COLUMN_REQUESTER_ACCOUNT_ID, DbMeta.FriendShipData.COLUMN_STATUS,
-                    BASIC_SQL, DbMeta.FriendShipData.COLUMN_RECIPIENT_ACCOUNT_ID, DbMeta.FriendShipData.COLUMN_STATUS);
+            .formatted(BASIC_SQL, DbMeta.FriendShipData.COLUMN_REQUESTER_ACCOUNT_ID,
+                    BASIC_SQL, DbMeta.FriendShipData.COLUMN_RECIPIENT_ACCOUNT_ID);
     private static final String FIND_BY_ID = BASIC_SQL + "where %s = $1".formatted(DbMeta.FriendShipData.COLUMN_ID);
 
     public FriendShipRepositoryImpl(FriendShipDataRepositoryPeer peer,
@@ -113,12 +112,10 @@ public class FriendShipRepositoryImpl implements FriendShipRepository {
     }
 
     @Override
-    public Flux<FriendShip> findAllByAccountIdAndStatus(String accountId, FriendShipStatus status) {
-        return r2dbcEntityOperations.getDatabaseClient().sql(FIND_ALL_BY_ACCOUNT_ID_AND_STATUS)
+    public Flux<FriendShip> findAllByAccountId(String accountId) {
+        return r2dbcEntityOperations.getDatabaseClient().sql(FIND_ALL_BY_ACCOUNT_ID)
                 .bind(0, accountId)
-                .bind(1, status)
-                .bind(2, accountId)
-                .bind(3, status)
+                .bind(1, accountId)
                 .fetch().all()
                 .map(this::mapToData)
                 .map(FriendShipDataMapper::dataToDomain);
