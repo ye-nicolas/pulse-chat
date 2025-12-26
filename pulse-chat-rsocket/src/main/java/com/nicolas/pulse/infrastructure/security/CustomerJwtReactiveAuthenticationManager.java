@@ -4,6 +4,7 @@ import com.nicolas.pulse.entity.domain.SecurityAccount;
 import com.nicolas.pulse.entity.enumerate.Privilege;
 import com.nicolas.pulse.util.JwtUtil;
 import io.jsonwebtoken.Claims;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Primary;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -22,13 +23,14 @@ import java.util.stream.Collectors;
 
 import static com.nicolas.pulse.entity.domain.SecurityAccount.*;
 
+@Slf4j
 @Primary
 @Component
 public class CustomerJwtReactiveAuthenticationManager implements ReactiveAuthenticationManager {
     private final SecretKey secretKey;
 
-    public CustomerJwtReactiveAuthenticationManager(@Value("${jwt.key}") String secretKey) {
-        this.secretKey = JwtUtil.generateSecretKey(secretKey);
+    public CustomerJwtReactiveAuthenticationManager(SecretKey secretKey) {
+        this.secretKey = secretKey;
     }
 
     @Override
