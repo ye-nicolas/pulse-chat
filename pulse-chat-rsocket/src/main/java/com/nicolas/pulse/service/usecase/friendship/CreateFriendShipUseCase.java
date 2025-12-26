@@ -8,6 +8,7 @@ import com.nicolas.pulse.entity.exception.ConflictException;
 import com.nicolas.pulse.entity.exception.TargetNotFoundException;
 import com.nicolas.pulse.service.repository.AccountRepository;
 import com.nicolas.pulse.service.repository.FriendShipRepository;
+import com.nicolas.pulse.util.SecurityUtil;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -26,8 +27,8 @@ public class CreateFriendShipUseCase {
     }
 
     public Mono<Void> execute(Input input, Output output) {
-        return this.validateFriendShipExists(input.getRequesterAccountId(), input.getRecipientAccountId())
-                .then(Mono.zip(findAccount(input.getRequesterAccountId()), findAccount(input.getRecipientAccountId())))
+        return this.validateFriendShipExists(input.getRecipientAccountId())
+                .then(Mono.zip(SecurityUtil.getCurrentAccountId().flatMap(this::findAccount), findAccount(input.getRecipientAccountId())))
                 .flatMap(tuple -> this.createFriendShip(tuple.getT1(), tuple.getT2()))
                 .doOnSuccess(friendShipMono -> output.setFriendShipId(friendShipMono.getId()))
                 .then();
@@ -42,11 +43,13 @@ public class CreateFriendShipUseCase {
                 .build());
     }
 
-    private Mono<Void> validateFriendShipExists(String requesterAccountId, String recipientAccountId) {
-        return friendShipRepository.existsByRequesterAccountIdAndRecipientAccountId(requesterAccountId, recipientAccountId)
-                .flatMap(exists -> exists
-                        ? Mono.error(new ConflictException("Friend ship already exists, requesterAccountId = '%s' and recipientAccountId = '%s'.".formatted(requesterAccountId, recipientAccountId)))
-                        : Mono.empty());
+    private Mono<Void> validateFriendShipExists(String recipientAccountId) {
+        return SecurityUtil.getCurrentAccountId().flatMap(currentAccountId ->
+                friendShipRepository.existsByRequesterAccountIdAndRecipientAccountId(currentAccountId, recipientAccountId)
+                        .flatMap(exists -> exists
+                                ? Mono.error(new ConflictException("Friend ship already exists, requesterAccountId = '%s' and recipientAccountId = '%s'.".formatted(currentAccountId, recipientAccountId)))
+                                : Mono.empty())
+        );
     }
 
     private Mono<Account> findAccount(String accountId) {
@@ -57,7 +60,6 @@ public class CreateFriendShipUseCase {
     @Data
     @AllArgsConstructor
     public static class Input {
-        private String requesterAccountId;
         private String recipientAccountId;
     }
 
