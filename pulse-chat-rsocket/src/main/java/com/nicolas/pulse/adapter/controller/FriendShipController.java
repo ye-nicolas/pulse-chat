@@ -11,7 +11,7 @@ import reactor.core.publisher.Mono;
 @RestController
 @RequestMapping(FriendShipController.FRIEND_SHIP_BASE_URL)
 public class FriendShipController {
-    public static final String FRIEND_SHIP_BASE_URL = "/friend-ship";
+    public static final String FRIEND_SHIP_BASE_URL = "/friend-ships";
     private final CreateFriendShipUseCase createFriendShipUseCase;
     private final UpdateFriendShipStatusToAcceptedUseCase updateFriendShipStatusToAcceptedUseCase;
 
@@ -30,7 +30,7 @@ public class FriendShipController {
     }
 
     @PatchMapping("/{friendShipId}")
-    public Mono<ResponseEntity<String>> createFriendShip(@PathVariable("friendShipId") String friendShipId) {
+    public Mono<ResponseEntity<String>> updateFriendShipStatusToAccepted(@PathVariable("friendShipId") String friendShipId) {
         return Mono.just(new UpdateFriendShipStatusToAcceptedUseCase.Input(friendShipId))
                 .flatMap(updateFriendShipStatusToAcceptedUseCase::execute)
                 .then(Mono.just(ResponseEntity.ok(friendShipId)));

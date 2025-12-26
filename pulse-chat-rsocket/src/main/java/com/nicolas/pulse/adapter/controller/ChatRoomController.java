@@ -24,7 +24,7 @@ import java.util.HashSet;
 @RestController
 @RequestMapping(ChatRoomController.CHAT_ROOM_BASE_URL)
 public class ChatRoomController {
-    public static final String CHAT_ROOM_BASE_URL = "/chat-room";
+    public static final String CHAT_ROOM_BASE_URL = "/chat-rooms";
     private final ChatRoomRepository chatRoomRepository;
     private final ChatRoomMemberRepository chatRoomMemberRepository;
     private final CreateChatRoomUseCase createChatRoomUseCase;
@@ -72,7 +72,7 @@ public class ChatRoomController {
                 .then(Mono.defer(() -> Mono.just(ResponseEntity.ok(output.getRoomId()))));
     }
 
-    @PostMapping("/{roomId}")
+    @PostMapping("/{roomId}/member")
     public Mono<ResponseEntity<Void>> addRoomMember(@PathVariable("roomId") String roomId,
                                                     @Valid @RequestBody Mono<AddChatRoomMemberReq> roomMemberReqMono) {
         return roomMemberReqMono.map(req -> AddChatRoomMemberUseCase.Input.builder()

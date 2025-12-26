@@ -14,7 +14,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @RestController
-@RequestMapping("/role")
+@RequestMapping("/roles")
 public class RoleController {
     private final RoleRepository roleRepository;
     private final CreateRoleUseCase createRoleUseCase;
@@ -24,7 +24,6 @@ public class RoleController {
         this.roleRepository = roleRepository;
         this.createRoleUseCase = createRoleUseCase;
     }
-
 
     @GetMapping(value = "/", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Flux<RoleRes>> findAll() {
