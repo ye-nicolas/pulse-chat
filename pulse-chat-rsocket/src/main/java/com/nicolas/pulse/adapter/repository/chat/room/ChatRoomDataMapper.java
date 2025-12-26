@@ -8,6 +8,9 @@ public class ChatRoomDataMapper {
     }
 
     public static ChatRoom dataToDomain(ChatRoomData data) {
+        if (data == null) {
+            return null;
+        }
         return ChatRoom.builder()
                 .id(data.getId())
                 .name(data.getName())
@@ -19,6 +22,9 @@ public class ChatRoomDataMapper {
     }
 
     public static ChatRoomData domainToData(ChatRoom domain) {
+        if (domain == null) {
+            return null;
+        }
         return ChatRoomData.builder()
                 .id(domain.getId())
                 .name(domain.getName())

@@ -61,9 +61,8 @@ public class AccountRoleRepositoryImpl implements AccountRoleRepository {
             DbMeta.RoleData.TABLE_NAME, DbMeta.AccountRoleData.COLUMN_ROLE_ID, DbMeta.RoleData.COLUMN_ID,
             DbMeta.RolePrivilegeData.TABLE_NAME, DbMeta.RoleData.COLUMN_ID, DbMeta.RolePrivilegeData.COLUMN_ROLE_ID
     );
-    private static final String FIND_BY_ACCOUNT_ID = BASIC_SQL + "WHERE ar.%s = $1".formatted(DbMeta.AccountRoleData.COLUMN_ACCOUNT_ID);
-    private static final String FIND_BY_ROLE_ID = BASIC_SQL + "WHERE ar.%s = $1".formatted(DbMeta.AccountRoleData.COLUMN_ROLE_ID);
-
+    private static final String FIND_BY_ACCOUNT_ID = BASIC_SQL + "WHERE %s = $1".formatted(DbMeta.AccountRoleData.COLUMN_ACCOUNT_ID);
+    private static final String FIND_BY_ROLE_ID = BASIC_SQL + "WHERE %s = $1".formatted(DbMeta.AccountRoleData.COLUMN_ROLE_ID);
 
     @Override
     public Flux<AccountRole> findAllByAccountId(String accountId) {

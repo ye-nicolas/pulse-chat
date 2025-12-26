@@ -4,12 +4,14 @@ import com.nicolas.pulse.adapter.repository.DbMeta;
 import com.nicolas.pulse.adapter.repository.chat.room.ChatRoomData;
 import com.nicolas.pulse.entity.domain.chat.ChatRoomMember;
 import com.nicolas.pulse.service.repository.ChatRoomMemberRepository;
+import com.nicolas.pulse.util.TypeUtil;
 import org.springframework.data.r2dbc.core.R2dbcEntityOperations;
 import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.time.Instant;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -19,8 +21,6 @@ public class ChatRoomMemberRepositoryImpl implements ChatRoomMemberRepository {
     private final R2dbcEntityOperations r2dbcEntityOperations;
     private static final String BASIC_SQL = """
              SELECT
-                   %s AS %s,
-                   %s AS %s,
                    %s AS %s,
                    %s AS %s,
                    %s AS %s,
@@ -46,12 +46,10 @@ public class ChatRoomMemberRepositoryImpl implements ChatRoomMemberRepository {
             DbMeta.ChatRoomMemberData.COLUMN_UPDATED_BY, DbMeta.ChatRoomMemberData.ALIAS_UPDATED_BY,
             DbMeta.ChatRoomMemberData.COLUMN_CREATED_AT, DbMeta.ChatRoomMemberData.ALIAS_CREATED_AT,
             DbMeta.ChatRoomMemberData.COLUMN_UPDATED_AT, DbMeta.ChatRoomMemberData.ALIAS_UPDATED_AT,
-            DbMeta.ChatRoomMemberData.COLUMN_LAST_READ_MESSAGE_ID, DbMeta.ChatRoomMemberData.ALIAS_LAST_READ_MESSAGE_ID,
             DbMeta.ChatRoomMemberData.COLUMN_IS_MUTED, DbMeta.ChatRoomMemberData.ALIAS_IS_MUTED,
             DbMeta.ChatRoomMemberData.COLUMN_IS_PINNED, DbMeta.ChatRoomMemberData.ALIAS_IS_PINNED,
             DbMeta.ChatRoomData.COLUMN_ID, DbMeta.ChatRoomData.ALIAS_ID,
             DbMeta.ChatRoomData.COLUMN_NAME, DbMeta.ChatRoomData.ALIAS_NAME,
-            DbMeta.ChatRoomData.COLUMN_TYPE, DbMeta.ChatRoomData.ALIAS_TYPE,
             DbMeta.ChatRoomData.COLUMN_CREATED_BY, DbMeta.ChatRoomData.ALIAS_CREATED_BY,
             DbMeta.ChatRoomData.COLUMN_UPDATED_BY, DbMeta.ChatRoomData.ALIAS_UPDATED_BY,
             DbMeta.ChatRoomData.COLUMN_CREATED_AT, DbMeta.ChatRoomData.ALIAS_CREATED_AT,
@@ -155,9 +153,8 @@ public class ChatRoomMemberRepositoryImpl implements ChatRoomMemberRepository {
                 .roomId(map.get(DbMeta.ChatRoomMemberData.ALIAS_ROOM_ID).toString())
                 .createdBy(map.get(DbMeta.ChatRoomMemberData.ALIAS_CREATED_BY).toString())
                 .updatedBy(map.get(DbMeta.ChatRoomMemberData.ALIAS_UPDATED_BY).toString())
-                .createdAt((Instant) map.get(DbMeta.ChatRoomMemberData.ALIAS_CREATED_AT))
-                .updatedAt((Instant) map.get(DbMeta.ChatRoomMemberData.ALIAS_UPDATED_AT))
-                .lastReadMessageId(map.get(DbMeta.ChatRoomMemberData.ALIAS_LAST_READ_MESSAGE_ID).toString())
+                .createdAt(TypeUtil.toInstant((OffsetDateTime) map.get(DbMeta.ChatRoomMemberData.ALIAS_CREATED_AT)))
+                .updatedAt(TypeUtil.toInstant((OffsetDateTime) map.get(DbMeta.ChatRoomMemberData.ALIAS_UPDATED_AT)))
                 .isMuted((Boolean) map.get(DbMeta.ChatRoomMemberData.ALIAS_IS_MUTED))
                 .isPinned((Boolean) map.get(DbMeta.ChatRoomMemberData.ALIAS_IS_PINNED))
                 .roomData(ChatRoomData.builder()
@@ -165,8 +162,8 @@ public class ChatRoomMemberRepositoryImpl implements ChatRoomMemberRepository {
                         .name(map.get(DbMeta.ChatRoomData.ALIAS_NAME).toString())
                         .createdBy(map.get(DbMeta.ChatRoomData.ALIAS_CREATED_BY).toString())
                         .updatedBy(map.get(DbMeta.ChatRoomData.ALIAS_UPDATED_BY).toString())
-                        .createdAt((Instant) map.get(DbMeta.ChatRoomData.ALIAS_CREATED_AT))
-                        .updatedAt((Instant) map.get(DbMeta.ChatRoomData.ALIAS_UPDATED_AT))
+                        .createdAt(TypeUtil.toInstant((OffsetDateTime) map.get(DbMeta.ChatRoomData.ALIAS_CREATED_AT)))
+                        .updatedAt(TypeUtil.toInstant((OffsetDateTime) map.get(DbMeta.ChatRoomData.ALIAS_UPDATED_AT)))
                         .build())
                 .build();
     }

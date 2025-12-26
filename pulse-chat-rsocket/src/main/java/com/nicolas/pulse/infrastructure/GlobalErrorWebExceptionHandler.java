@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nicolas.pulse.entity.exception.ConflictException;
 import com.nicolas.pulse.entity.exception.CustomerException;
 import com.nicolas.pulse.entity.exception.TargetNotFoundException;
+import com.nicolas.pulse.util.ExceptionHandlerUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.web.reactive.error.ErrorWebExceptionHandler;
 import org.springframework.core.annotation.Order;
@@ -37,7 +38,7 @@ public class GlobalErrorWebExceptionHandler implements ErrorWebExceptionHandler 
         log.error(ex.getMessage(), ex);
 
         // 1. 根據例外類型獲取 ProblemDetail
-        ProblemDetail problemDetail = createProblemDetail(ex, exchange);
+        ProblemDetail problemDetail = ExceptionHandlerUtils.createProblemDetail(ex, exchange);
 
         // 2. 設置 HTTP 狀態碼和 Content-Type
         exchange.getResponse().setStatusCode(HttpStatus.resolve(problemDetail.getStatus()));
@@ -50,53 +51,6 @@ public class GlobalErrorWebExceptionHandler implements ErrorWebExceptionHandler 
         return exchange.getResponse().writeWith(Mono.just(bufferFactory.wrap(simplifyProblemDetailToJson(problemDetail))));
     }
 
-    // --- 核心邏輯：將 Throwable 轉換為 ProblemDetail ---
-
-    private ProblemDetail createProblemDetail(Throwable ex, ServerWebExchange exchange) {
-        ProblemDetail body;
-        HttpStatus status;
-
-        if (ex instanceof AuthenticationException authEx) {
-            status = HttpStatus.UNAUTHORIZED;
-            body = ProblemDetail.forStatusAndDetail(status, authEx.getMessage());
-            body.setTitle("UNAUTHORIZED");
-        } else if (ex instanceof AccessDeniedException deniedEx) {
-            status = HttpStatus.FORBIDDEN;
-            body = ProblemDetail.forStatusAndDetail(status, deniedEx.getMessage());
-            body.setTitle("FORBIDDEN");
-        } else if (ex instanceof WebExchangeBindException bindEx) {
-            status = HttpStatus.BAD_REQUEST;
-            body = ProblemDetail.forStatusAndDetail(status, "Validation failed for request body.");
-            body.setTitle("VALIDATION_FAILED");
-            body.setProperties(Map.of("errors", bindEx.getBindingResult()
-                    .getFieldErrors()
-                    .stream()
-                    .map(error -> Map.of("field", error.getField(), "message", Objects.requireNonNull(error.getDefaultMessage())))
-                    .toList()));
-        } else if (ex instanceof TargetNotFoundException targetEx) {
-            body = targetEx.getBody();
-            body.setTitle("TARGET_NOT_FOUND");
-        } else if (ex instanceof ConflictException conflictEx) {
-            body = conflictEx.getBody();
-            body.setTitle("RESOURCE_CONFLICT");
-        } else if (ex instanceof CustomerException customerEx) {
-            body = customerEx.getBody();
-            body.setTitle("BUSINESS_ERROR");
-        } else if (ex instanceof IllegalArgumentException || ex instanceof IllegalStateException) {
-            status = HttpStatus.BAD_REQUEST;
-            body = ProblemDetail.forStatusAndDetail(status, ex.getMessage());
-            body.setTitle("ILLEGAL_ARGUMENT_FAILED");
-        } else {
-            status = HttpStatus.INTERNAL_SERVER_ERROR;
-            body = ProblemDetail.forStatusAndDetail(status, "An internal unhandled error occurred.");
-            body.setTitle("UNHANDLED_EXCEPTION");
-            body.setProperties(Map.of("error_class_name", ex.getClass().getSimpleName()));
-        }
-
-        // 共同屬性設置
-        body.setProperties(Map.of("requestId", exchange.getRequest().getId()));
-        return body;
-    }
 
     // 簡化的 JSON 序列化，實際項目中應使用 ObjectMapper
     private byte[] simplifyProblemDetailToJson(ProblemDetail pd) {

@@ -4,9 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.CreatedBy;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.annotation.*;
 import org.springframework.data.domain.Persistable;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
@@ -38,13 +36,19 @@ public class ChatMessageLastReadData implements Persistable<String> {
     @Column(COL_CREATED_BY)
     private String createdBy;
 
-    @LastModifiedBy
+    @CreatedDate
     @Column(COL_CREATED_AT)
     private Instant createdAt;
+
+    @LastModifiedDate
+    @Column(COL_UPDATED_AT)
+    private Instant updateAt;
 
     @Override
     public boolean isNew() {
         return !StringUtils.hasText(createdBy)
+                && ObjectUtils.isEmpty(createdAt)
+                && StringUtils.hasText(createdBy)
                 && ObjectUtils.isEmpty(createdAt);
     }
 }

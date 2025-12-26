@@ -5,6 +5,7 @@ import com.nicolas.pulse.adapter.repository.account.AccountData;
 import com.nicolas.pulse.entity.domain.FriendShip;
 import com.nicolas.pulse.entity.enumerate.FriendShipStatus;
 import com.nicolas.pulse.service.repository.FriendShipRepository;
+import com.nicolas.pulse.util.TypeUtil;
 import org.springframework.data.r2dbc.core.R2dbcEntityOperations;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.StringUtils;
@@ -75,7 +76,6 @@ public class FriendShipRepositoryImpl implements FriendShipRepository {
             DbMeta.AccountData.COL_CREATED_AT, DbMeta.FriendShipData.COL_REQUESTER_ACCOUNT_ID + DbMeta.AccountData.COL_CREATED_AT,
             DbMeta.AccountData.COL_UPDATED_AT, DbMeta.FriendShipData.COL_REQUESTER_ACCOUNT_ID + DbMeta.AccountData.COL_UPDATED_AT,
             DbMeta.AccountData.COL_REMARK, DbMeta.FriendShipData.COL_REQUESTER_ACCOUNT_ID + DbMeta.AccountData.COL_REMARK,
-
             DbMeta.AccountData.COL_ID, DbMeta.FriendShipData.COL_RECIPIENT_ACCOUNT_ID + DbMeta.AccountData.COL_ID,
             DbMeta.AccountData.COL_NAME, DbMeta.FriendShipData.COL_RECIPIENT_ACCOUNT_ID + DbMeta.AccountData.COL_NAME,
             DbMeta.AccountData.COL_SHOW_NAME, DbMeta.FriendShipData.COL_RECIPIENT_ACCOUNT_ID + DbMeta.AccountData.COL_SHOW_NAME,
@@ -87,7 +87,6 @@ public class FriendShipRepositoryImpl implements FriendShipRepository {
             DbMeta.AccountData.COL_CREATED_AT, DbMeta.FriendShipData.COL_RECIPIENT_ACCOUNT_ID + DbMeta.AccountData.COL_CREATED_AT,
             DbMeta.AccountData.COL_UPDATED_AT, DbMeta.FriendShipData.COL_RECIPIENT_ACCOUNT_ID + DbMeta.AccountData.COL_UPDATED_AT,
             DbMeta.AccountData.COL_REMARK, DbMeta.FriendShipData.COL_RECIPIENT_ACCOUNT_ID + DbMeta.AccountData.COL_REMARK,
-
             DbMeta.FriendShipData.TABLE_NAME,
             DbMeta.AccountData.TABLE_NAME, DbMeta.FriendShipData.COLUMN_REQUESTER_ACCOUNT_ID, DbMeta.AccountData.COL_ID,
             DbMeta.AccountData.TABLE_NAME, DbMeta.FriendShipData.COLUMN_RECIPIENT_ACCOUNT_ID, DbMeta.AccountData.COL_ID
@@ -153,8 +152,8 @@ public class FriendShipRepositoryImpl implements FriendShipRepository {
                         .isActive((Boolean) map.get(DbMeta.FriendShipData.COL_REQUESTER_ACCOUNT_ID + DbMeta.AccountData.COL_IS_ACTIVE))
                         .createdBy((String) map.get(DbMeta.FriendShipData.COL_REQUESTER_ACCOUNT_ID + DbMeta.AccountData.COL_CREATED_BY))
                         .updatedBy((String) map.get(DbMeta.FriendShipData.COL_REQUESTER_ACCOUNT_ID + DbMeta.AccountData.COL_UPDATED_BY))
-                        .createdAt((Instant) map.get(DbMeta.FriendShipData.COL_REQUESTER_ACCOUNT_ID + DbMeta.AccountData.COL_CREATED_AT))
-                        .updatedAt((Instant) map.get(DbMeta.FriendShipData.COL_REQUESTER_ACCOUNT_ID + DbMeta.AccountData.COL_UPDATED_AT))
+                        .createdAt(TypeUtil.toInstant((OffsetDateTime) map.get(DbMeta.FriendShipData.COL_REQUESTER_ACCOUNT_ID + DbMeta.AccountData.COL_CREATED_AT)))
+                        .updatedAt(TypeUtil.toInstant((OffsetDateTime) map.get(DbMeta.FriendShipData.COL_REQUESTER_ACCOUNT_ID + DbMeta.AccountData.COL_UPDATED_AT)))
                         .remark((String) map.get(DbMeta.FriendShipData.COL_REQUESTER_ACCOUNT_ID + DbMeta.AccountData.COL_REMARK))
                         .build())
                 .recipientAccount(AccountData.builder()
@@ -165,8 +164,8 @@ public class FriendShipRepositoryImpl implements FriendShipRepository {
                         .isActive((Boolean) map.get(DbMeta.FriendShipData.COL_RECIPIENT_ACCOUNT_ID + DbMeta.AccountData.COL_IS_ACTIVE))
                         .createdBy((String) map.get(DbMeta.FriendShipData.COL_RECIPIENT_ACCOUNT_ID + DbMeta.AccountData.COL_CREATED_BY))
                         .updatedBy((String) map.get(DbMeta.FriendShipData.COL_RECIPIENT_ACCOUNT_ID + DbMeta.AccountData.COL_UPDATED_BY))
-                        .createdAt((Instant) map.get(DbMeta.FriendShipData.COL_RECIPIENT_ACCOUNT_ID + DbMeta.AccountData.COL_CREATED_AT))
-                        .updatedAt((Instant) map.get(DbMeta.FriendShipData.COL_RECIPIENT_ACCOUNT_ID + DbMeta.AccountData.COL_UPDATED_AT))
+                        .createdAt(TypeUtil.toInstant((OffsetDateTime) map.get(DbMeta.FriendShipData.COL_RECIPIENT_ACCOUNT_ID + DbMeta.AccountData.COL_CREATED_AT)))
+                        .updatedAt(TypeUtil.toInstant((OffsetDateTime) map.get(DbMeta.FriendShipData.COL_RECIPIENT_ACCOUNT_ID + DbMeta.AccountData.COL_UPDATED_AT)))
                         .remark((String) map.get(DbMeta.FriendShipData.COL_RECIPIENT_ACCOUNT_ID + DbMeta.AccountData.COL_REMARK))
                         .build())
                 .build();

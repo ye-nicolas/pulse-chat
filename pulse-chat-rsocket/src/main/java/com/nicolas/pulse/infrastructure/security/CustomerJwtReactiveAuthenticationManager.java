@@ -1,19 +1,19 @@
-package com.nicolas.pulse.infrastructure.filter;
+package com.nicolas.pulse.infrastructure.security;
 
 import com.nicolas.pulse.entity.domain.SecurityAccount;
 import com.nicolas.pulse.entity.enumerate.Privilege;
 import com.nicolas.pulse.util.JwtUtil;
 import io.jsonwebtoken.Claims;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpHeaders;
+import org.springframework.context.annotation.Primary;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.ReactiveAuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.context.ReactiveSecurityContextHolder;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.oauth2.server.resource.authentication.BearerTokenAuthenticationToken;
 import org.springframework.stereotype.Component;
-import org.springframework.web.server.ServerWebExchange;
-import org.springframework.web.server.WebFilter;
-import org.springframework.web.server.WebFilterChain;
 import reactor.core.publisher.Mono;
 
 import javax.crypto.SecretKey;
@@ -23,28 +23,26 @@ import java.util.stream.Collectors;
 
 import static com.nicolas.pulse.entity.domain.SecurityAccount.*;
 
+@Slf4j
+@Primary
 @Component
-public class JwtAuthenticationWebFilter implements WebFilter {
-    private static final String AUTH_HEADER = "Bearer ";
+public class CustomerJwtReactiveAuthenticationManager implements ReactiveAuthenticationManager {
     private final SecretKey secretKey;
 
-    public JwtAuthenticationWebFilter(@Value("${jwt.key}") String secretKey) {
-        this.secretKey = JwtUtil.generateSecretKey(secretKey);
+    public CustomerJwtReactiveAuthenticationManager(SecretKey secretKey) {
+        this.secretKey = secretKey;
     }
 
     @Override
-    public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
-        // 輕量處理
-        String authHeader = exchange.getRequest().getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
-        if (authHeader == null || !authHeader.startsWith(AUTH_HEADER)) {
-            return chain.filter(exchange);
-        }
-        String token = authHeader.substring(AUTH_HEADER.length());
-        return this.validateAccessToken(token)
+    public Mono<Authentication> authenticate(Authentication authentication) {
+        return Mono.justOrEmpty(authentication)
+                .filter((a) -> a instanceof BearerTokenAuthenticationToken)
+                .cast(BearerTokenAuthenticationToken.class)
+                .map(BearerTokenAuthenticationToken::getToken)
+                .flatMap(this::validateAccessToken)
                 .flatMap(this::claimsToUserDetails)
-                .flatMap(this::userDetailstoAuthentication)
-                .onErrorMap(e -> new BadCredentialsException(e.getMessage(), e)) // 將validateAccessToken\processClaims\toAuthentication的錯誤轉換成BadCredentialsException
-                .flatMap(auth -> chain.filter(exchange).contextWrite(ReactiveSecurityContextHolder.withAuthentication(auth)));
+                .flatMap(this::userDetailsToAuthentication)
+                .onErrorMap(ex -> new BadCredentialsException(ex.getMessage(), ex));
     }
 
     private Mono<Claims> validateAccessToken(String token) {
@@ -52,7 +50,6 @@ public class JwtAuthenticationWebFilter implements WebFilter {
     }
 
     private Mono<SecurityAccount> claimsToUserDetails(Claims claims) {
-
         return Mono.fromCallable(() -> SecurityAccount.builder()
                 .id(claims.getSubject())
                 .username(claims.get(USER_NAME, String.class))
@@ -73,7 +70,7 @@ public class JwtAuthenticationWebFilter implements WebFilter {
                 .collect(Collectors.toSet());
     }
 
-    private Mono<UsernamePasswordAuthenticationToken> userDetailstoAuthentication(UserDetails userDetails) {
+    private Mono<Authentication> userDetailsToAuthentication(UserDetails userDetails) {
         return Mono.fromCallable(() -> new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities()));
     }
 }

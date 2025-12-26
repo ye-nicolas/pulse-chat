@@ -46,8 +46,6 @@ public class ChatRoomMemberData implements Persistable<String> {
     @Column(COL_UPDATED_AT)
     private Instant updatedAt;
 
-    @Column(COL_LAST_READ_MESSAGE_ID)
-    private String lastReadMessageId;
     @Column(COL_IS_MUTED)
     private boolean isMuted;
     @Column(COL_IS_PINNED)
