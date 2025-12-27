@@ -39,13 +39,12 @@ public class FriendShipController {
         CreateFriendShipUseCase.Output output = new CreateFriendShipUseCase.Output();
         return reqMono.map(req -> new CreateFriendShipUseCase.Input(req.getRecipientAccountId()))
                 .flatMap(input -> createFriendShipUseCase.execute(input, output))
-                .then(Mono.defer(() -> Mono.just(ResponseEntity.ok(output.getFriendShipId()))));
+                .then(Mono.fromSupplier(() -> ResponseEntity.ok(output.getFriendShipId())));
     }
 
     @PatchMapping("/{friendShipId}")
-    public Mono<ResponseEntity<String>> updateFriendShipStatusToAccepted(@PathVariable("friendShipId") String friendShipId) {
-        return Mono.just(new UpdateFriendShipStatusToAcceptedUseCase.Input(friendShipId))
-                .flatMap(updateFriendShipStatusToAcceptedUseCase::execute)
-                .then(Mono.just(ResponseEntity.ok(friendShipId)));
+    public Mono<ResponseEntity<Void>> updateFriendShipStatusToAccepted(@PathVariable("friendShipId") String friendShipId) {
+        return updateFriendShipStatusToAcceptedUseCase.execute(new UpdateFriendShipStatusToAcceptedUseCase.Input(friendShipId))
+                .then(Mono.just(ResponseEntity.ok().build()));
     }
 }

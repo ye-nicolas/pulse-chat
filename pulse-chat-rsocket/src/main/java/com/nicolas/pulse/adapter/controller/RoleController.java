@@ -47,6 +47,6 @@ public class RoleController {
                         .remark(req.getRemark())
                         .build())
                 .flatMap(input -> createRoleUseCase.execute(input, output))
-                .then(Mono.defer(() -> Mono.just(ResponseEntity.ok(output.getRoleId()))));
+                .then(Mono.fromSupplier(() -> ResponseEntity.ok(output.getRoleId())));
     }
 }

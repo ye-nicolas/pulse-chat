@@ -90,11 +90,9 @@ public class ChatMessageController {
 
     @MessageMapping("chat.history.get.{roomId}")
     public Flux<ChatMessageRes> getHistory(@DestinationVariable String roomId) {
-        return Flux.defer(() -> {
-            FindHistoryMessageUseCase.Output output = new FindHistoryMessageUseCase.Output();
-            findHistoryMessageUseCase.execute(new FindHistoryMessageUseCase.Input(roomId), output);
-            return output.getMessageFlux().map(ChatMessageMapper::domainToRes);
-        });
+        FindHistoryMessageUseCase.Output output = new FindHistoryMessageUseCase.Output();
+        return findHistoryMessageUseCase.execute(new FindHistoryMessageUseCase.Input(roomId), output)
+                .thenMany(Flux.defer(() -> output.getMessageFlux().map(ChatMessageMapper::domainToRes)));
     }
 
     private <T> Mono<Void> validate(T body) {

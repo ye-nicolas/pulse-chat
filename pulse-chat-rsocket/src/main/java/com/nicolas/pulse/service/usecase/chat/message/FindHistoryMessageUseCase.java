@@ -28,10 +28,10 @@ public class FindHistoryMessageUseCase {
         this.chatMessageRepository = chatMessageRepository;
     }
 
-    public void execute(Input input, Output output) {
-        output.setMessageFlux(validateRoomIsExists(input.getRoomId())
+    public Mono<Void> execute(Input input, Output output) {
+        return validateRoomIsExists(input.getRoomId())
                 .then(validateIsMember(input.getRoomId()))
-                .thenMany(chatMessageRepository.findAllByRoomId(input.getRoomId())));
+                .then(Mono.fromRunnable(() -> output.setMessageFlux(chatMessageRepository.findAllByRoomId(input.getRoomId()))));
     }
 
     private Mono<Void> validateRoomIsExists(String roomId) {
