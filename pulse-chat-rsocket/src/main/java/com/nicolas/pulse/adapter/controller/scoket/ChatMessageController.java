@@ -7,6 +7,7 @@ import com.nicolas.pulse.adapter.dto.res.ChatMessageRes;
 import com.nicolas.pulse.service.repository.ChatMessageRepository;
 import com.nicolas.pulse.service.usecase.chat.message.AddChatMessageUseCase;
 import com.nicolas.pulse.service.usecase.chat.message.DeleteChatMessageUseCase;
+import com.nicolas.pulse.service.usecase.chat.message.FindHistoryMessageUseCase;
 import com.nicolas.pulse.service.usecase.chat.message.UpdateChatMessageUseCase;
 import com.nicolas.pulse.service.usecase.chat.message.read.UpdateChatRoomMemberLastReadMessageUseCase;
 import com.nicolas.pulse.service.usecase.sink.ChatRoomManager;
@@ -27,24 +28,23 @@ import java.util.Set;
 @Controller
 public class ChatMessageController {
     private final Validator validator;
-    private final ChatMessageRepository chatMessageRepository;
     private final ChatRoomManager chatRoomManager;
+    private final FindHistoryMessageUseCase findHistoryMessageUseCase;
     private final AddChatMessageUseCase addChatMessageUseCase;
     private final UpdateChatMessageUseCase updateChatMessageUseCase;
     private final DeleteChatMessageUseCase deleteChatMessageUseCase;
     private final UpdateChatRoomMemberLastReadMessageUseCase updateChatRoomMemberLastReadMessageUseCase;
 
-
-    public ChatMessageController(Validator validator, ChatMessageRepository
-                                         chatMessageRepository,
+    public ChatMessageController(Validator validator,
                                  ChatRoomManager chatRoomManager,
+                                 FindHistoryMessageUseCase findHistoryMessageUseCase,
                                  AddChatMessageUseCase addChatMessageUseCase,
                                  UpdateChatMessageUseCase updateChatMessageUseCase,
                                  DeleteChatMessageUseCase deleteChatMessageUseCase,
                                  UpdateChatRoomMemberLastReadMessageUseCase updateChatRoomMemberLastReadMessageUseCase) {
         this.validator = validator;
-        this.chatMessageRepository = chatMessageRepository;
         this.chatRoomManager = chatRoomManager;
+        this.findHistoryMessageUseCase = findHistoryMessageUseCase;
         this.addChatMessageUseCase = addChatMessageUseCase;
         this.updateChatMessageUseCase = updateChatMessageUseCase;
         this.deleteChatMessageUseCase = deleteChatMessageUseCase;
@@ -90,15 +90,17 @@ public class ChatMessageController {
 
     @MessageMapping("chat.history.get.{roomId}")
     public Flux<ChatMessageRes> getHistory(@DestinationVariable String roomId) {
-        return chatMessageRepository.findAllByRoomId(roomId)
-                .map(ChatMessageMapper::domainToRes);
+        return Flux.defer(() -> {
+            FindHistoryMessageUseCase.Output output = new FindHistoryMessageUseCase.Output();
+            findHistoryMessageUseCase.execute(new FindHistoryMessageUseCase.Input(roomId), output);
+            return output.getMessageFlux().map(ChatMessageMapper::domainToRes);
+        });
     }
 
     private <T> Mono<Void> validate(T body) {
         Set<ConstraintViolation<T>> errors = validator.validate(body);
-        if (!errors.isEmpty()) {
-            return Mono.error(() -> new ConstraintViolationException(errors));
-        }
-        return Mono.empty();
+        return errors.isEmpty()
+                ? Mono.empty()
+                : Mono.error(() -> new ConstraintViolationException(errors));
     }
 }
