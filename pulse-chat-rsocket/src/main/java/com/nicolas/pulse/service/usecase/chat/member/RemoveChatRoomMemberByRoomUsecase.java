@@ -6,9 +6,11 @@ import com.nicolas.pulse.service.repository.ChatMessageReadLastRepository;
 import com.nicolas.pulse.service.repository.ChatRoomMemberRepository;
 import com.nicolas.pulse.service.repository.ChatRoomRepository;
 import com.nicolas.pulse.service.usecase.sink.ChatRoomManager;
+import com.nicolas.pulse.util.SecurityUtil;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -34,7 +36,9 @@ public class RemoveChatRoomMemberByRoomUsecase {
 
     public Mono<Void> execute(Input input) {
         return getChatRoom(input.getRoomId())
-                .flatMap(room -> this.validateMemberIdExistsByRoom(room, input.getDeleteMemberIdList()))
+                .flatMap(room -> Mono.when(
+                        this.validateCurrentAccountInRoom(room),
+                        this.validateMemberIsExists(room, input.getDeleteMemberIdList())))
                 .then(this.deleteChatRoomMember(input.getDeleteMemberIdList()))
                 .then(Mono.fromRunnable(() -> kickOutChatRoomMembers(input.getDeleteMemberIdList(), input.getRoomId())))
                 .then();
@@ -42,8 +46,8 @@ public class RemoveChatRoomMemberByRoomUsecase {
 
     private Mono<Void> deleteChatRoomMember(Set<String> deleteMemberIdList) {
         return Flux.fromIterable(deleteMemberIdList)
-                .flatMap(memberId -> Mono.when(chatRoomMemberRepository.deleteById(memberId),
-                        chatMessageReadLastRepository.deleteByMemberId(memberId)))
+                .flatMap(memberId -> chatRoomMemberRepository.deleteById(memberId)
+                        .then(chatMessageReadLastRepository.deleteByMemberId(memberId)))
                 .then();
     }
 
@@ -53,15 +57,23 @@ public class RemoveChatRoomMemberByRoomUsecase {
 
     private Mono<ChatRoom> getChatRoom(String roomId) {
         return chatRoomRepository.findById(roomId)
-                .switchIfEmpty(Mono.error(new TargetNotFoundException("Chat Room not found, room id = '%s'.".formatted(roomId))));
+                .switchIfEmpty(Mono.error(() -> new TargetNotFoundException("Chat Room not found, room id = '%s'.".formatted(roomId))));
     }
 
-    private Mono<Void> validateMemberIdExistsByRoom(ChatRoom room, Set<String> deleteMemberIdList) {
+    private Mono<Void> validateMemberIsExists(ChatRoom room, Set<String> deleteMemberIdList) {
         return Flux.fromIterable(deleteMemberIdList)
                 .flatMap(memberId -> chatRoomMemberRepository.existsByIdAndRoomId(memberId, room.getId())
-                        .flatMap(bol -> bol ? Mono.empty() :
-                                Mono.error(new TargetNotFoundException("Member not found by '%s', member id = '%s'.".formatted(room.getName(), memberId)))))
+                        .switchIfEmpty(Mono.error(() -> new TargetNotFoundException("Member not found by '%s', member id = '%s'.".formatted(room.getName(), memberId))))
+                        .then())
                 .then();
+    }
+
+    private Mono<Void> validateCurrentAccountInRoom(ChatRoom room) {
+        return SecurityUtil.getCurrentAccountId()
+                .flatMap(accountId -> chatRoomMemberRepository.existsByAccountIdAndRoomId(accountId, room.getId())
+                        .filter(Boolean::booleanValue)
+                        .switchIfEmpty(Mono.error(() -> new AccessDeniedException("Account '%s' is not a member of ChatRoom '%s'.".formatted(accountId, room.getId()))))
+                        .then());
     }
 
     @Data
