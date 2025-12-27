@@ -17,8 +17,6 @@ public class AccountRes {
     private String name;
     private String showName;
     private boolean isActive;
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ssXXX")
-    private Instant lastLoginAt;
     private String createdBy;
     private String updatedBy;
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ssXXX")

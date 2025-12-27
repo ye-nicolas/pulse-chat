@@ -37,9 +37,6 @@ public class AccountData implements Persistable<String> {
     @Column(DbMeta.AccountData.COL_IS_ACTIVE)
     private boolean isActive;
 
-    @Column(DbMeta.AccountData.COL_LAST_LOGIN_AT)
-    private Instant lastLoginAt;
-
     @CreatedBy
     @Column(DbMeta.AccountData.COL_CREATED_BY)
     private String createdBy;
