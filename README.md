@@ -7,13 +7,6 @@ High QPS Stand-alone chat system
 | /accounts/            | Get    | 查找全部        |
 | /accounts/{accountId} | Get    | 查找AccountById |
 
-## Role
-| Url             | Method | 功能         |
-| --------------- | ------ | ------------ |
-| /roles/         | Get    | 查找全部     |
-| /roles/{roleId} | Get    | 查找RoleById |
-| /roles/         | Post   | 建立Create   |
-
 ## Auth
 | Url           | Method | 功能        |
 | ------------- | ------ | ----------- |

@@ -21,7 +21,5 @@ public class CreateAccountReq {
     private String showName;
     @NotBlank
     private String password;
-    @NotEmpty
-    private Set<@Valid @NotBlank String> roleIdSet;
     private String remark;
 }

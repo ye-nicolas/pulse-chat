@@ -23,10 +23,4 @@ public class SecurityUtil {
                 .map(auth -> ((SecurityAccount) auth))
                 .switchIfEmpty(Mono.error(() -> new BadCredentialsException("Unable to retrieve account details.")));
     }
-
-    public static Mono<Set<String>> getCurrentRoomIdSet() {
-        return getSecurityAccount()
-                .map(SecurityAccount::getRoomIdSet)
-                .switchIfEmpty(Mono.just(Set.of()));
-    }
 }

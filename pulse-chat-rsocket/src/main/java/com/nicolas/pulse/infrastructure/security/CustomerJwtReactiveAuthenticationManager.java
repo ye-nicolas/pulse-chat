@@ -53,8 +53,6 @@ public class CustomerJwtReactiveAuthenticationManager implements ReactiveAuthent
         return Mono.fromCallable(() -> SecurityAccount.builder()
                 .id(claims.getSubject())
                 .username(claims.get(USER_NAME, String.class))
-                .privilegeSet(toPrivilegeSet(claims.get(PRIVILEGE, List.class)))
-                .roomIdSet(toStringSet(claims.get(ROOM, List.class)))
                 .state(true)
                 .build());
     }
