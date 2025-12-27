@@ -43,11 +43,11 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public Mono<ResponseEntity<AuthRes>> login(@Valid @RequestBody Mono<LoginReq> req) {
+    public Mono<ResponseEntity<AuthRes>> login(@Valid @RequestBody Mono<LoginReq> reqMono) {
         LoginUseCase.Output output = new LoginUseCase.Output();
-        return req.map(r -> LoginUseCase.Input.builder()
-                        .userName(r.getUserName())
-                        .password(r.getPassword())
+        return reqMono.map(req -> LoginUseCase.Input.builder()
+                        .userName(req.getUserName())
+                        .password(req.getPassword())
                         .build())
                 .flatMap(input -> loginUseCase.execute(input, output))
                 .then(Mono.defer(() -> Mono.just(ResponseEntity.ok()
@@ -63,26 +63,26 @@ public class AuthController {
         RefreshTokenUseCase.Input input = new RefreshTokenUseCase.Input(refreshToken);
         RefreshTokenUseCase.Output output = new RefreshTokenUseCase.Output();
         return refreshTokenUseCase.execute(input, output)
-                .then(Mono.defer(() -> Mono.just(ResponseEntity.ok()
+                .then(Mono.fromSupplier(() -> ResponseEntity.ok()
                         .header(HttpHeaders.SET_COOKIE, getCookie(output.getRefreshToken()).toString())
                         .body(AuthRes.builder()
                                 .accessToken(output.getAccessToken())
                                 .accountId(output.getAccountId())
-                                .build()))));
+                                .build())));
     }
 
     @PostMapping("/account")
-    public Mono<ResponseEntity<String>> createAccount(@Valid @RequestBody Mono<CreateAccountReq> req) {
+    public Mono<ResponseEntity<String>> createAccount(@Valid @RequestBody Mono<CreateAccountReq> reqMono) {
         CreateAccountUseCase.Output output = new CreateAccountUseCase.Output();
-        return req.map(dto -> CreateAccountUseCase.Input.builder()
-                        .name(dto.getName())
-                        .showName(dto.getShowName())
-                        .password(dto.getPassword())
-                        .roleIdSet(dto.getRoleIdSet())
-                        .remark(dto.getRemark())
+        return reqMono.map(req -> CreateAccountUseCase.Input.builder()
+                        .name(req.getName())
+                        .showName(req.getShowName())
+                        .password(req.getPassword())
+                        .roleIdSet(req.getRoleIdSet())
+                        .remark(req.getRemark())
                         .build())
                 .flatMap(input -> createAccountUseCase.execute(input, output))
-                .then(Mono.defer(() -> Mono.just(ResponseEntity.ok(output.getAccountId()))));
+                .then(Mono.fromSupplier(() -> ResponseEntity.ok(output.getAccountId())));
     }
 
     private ResponseCookie getCookie(String refreshToken) {

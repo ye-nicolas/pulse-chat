@@ -3,6 +3,7 @@ package com.nicolas.pulse.service.usecase.chat.room;
 import com.github.f4b6a3.ulid.UlidCreator;
 import com.nicolas.pulse.entity.domain.chat.ChatRoom;
 import com.nicolas.pulse.entity.domain.chat.ChatRoomMember;
+import com.nicolas.pulse.entity.exception.TargetNotFoundException;
 import com.nicolas.pulse.service.repository.AccountRepository;
 import com.nicolas.pulse.service.repository.ChatRoomMemberRepository;
 import com.nicolas.pulse.service.repository.ChatRoomRepository;
@@ -34,15 +35,16 @@ public class CreateChatRoomUseCase {
     public Mono<Void> execute(Input input, Output output) {
         return validateAccountIdSetExists(input.getAccountIdSet())
                 .then(createChatRoom(input))
-                .doOnSuccess(chatRoom -> output.setRoomId(chatRoom.getId()))
+                .doOnNext(chatRoom -> output.setRoomId(chatRoom.getId()))
                 .flatMap(chatRoom -> createChatRoomMember(chatRoom, input.getAccountIdSet()));
     }
 
     private Mono<Void> validateAccountIdSetExists(Set<String> accountIdSet) {
         return Flux.fromIterable(accountIdSet)
                 .flatMap(id -> accountRepository.existsById(id)
-                        .filter(res -> res)
-                        .switchIfEmpty(Mono.error(new AccountNotFoundException("Account with ID " + id + " does not exist."))))
+                        .filter(Boolean::booleanValue)
+                        .switchIfEmpty(Mono.error(() -> new TargetNotFoundException("Account not found, account id = '%s'.".formatted(id))))
+                        .then())
                 .then();
     }
 
@@ -54,17 +56,15 @@ public class CreateChatRoomUseCase {
     }
 
     private Mono<Void> createChatRoomMember(ChatRoom chatRoom, Set<String> accountIdSet) {
-        return chatRoomMemberRepository
-                        .saveAll(accountIdSet.stream()
-                                .map(id -> ChatRoomMember.builder()
-                                        .id(UlidCreator.getMonotonicUlid().toString())
-                                        .chatRoom(chatRoom)
-                                        .accountId(id)
-                                        .isMuted(false)
-                                        .isPinned(false)
-                                        .build())
-                                .toList()
-                        )
+        return chatRoomMemberRepository.saveAll(accountIdSet.stream()
+                        .map(id -> ChatRoomMember.builder()
+                                .id(UlidCreator.getMonotonicUlid().toString())
+                                .chatRoom(chatRoom)
+                                .accountId(id)
+                                .isMuted(false)
+                                .isPinned(false)
+                                .build())
+                        .toList())
                 .then();
     }
 

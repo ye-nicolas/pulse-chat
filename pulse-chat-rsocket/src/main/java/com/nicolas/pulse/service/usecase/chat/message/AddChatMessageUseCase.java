@@ -37,7 +37,7 @@ public class AddChatMessageUseCase {
         return getChatRoom(input.getRoomId())
                 .flatMap(chatRoom -> getChatMember(chatRoom.getId()))
                 .flatMap(chatRoomMember -> createChatMessage(chatRoomMember, input.getContent(), input.chatMessageType))
-                .doOnSuccess(output::setChatMessage)
+                .doOnNext(output::setChatMessage)
                 .then();
     }
 
@@ -53,13 +53,13 @@ public class AddChatMessageUseCase {
 
     private Mono<ChatRoom> getChatRoom(String roomId) {
         return chatRoomRepository.findById(roomId)
-                .switchIfEmpty(Mono.error(new TargetNotFoundException("Room not found, id = '%s'.".formatted(roomId))));
+                .switchIfEmpty(Mono.error(() -> new TargetNotFoundException("Room not found, id = '%s'.".formatted(roomId))));
     }
 
     private Mono<ChatRoomMember> getChatMember(String roomId) {
         return SecurityUtil.getCurrentAccountId()
                 .flatMap(id -> chatRoomMemberRepository.findByAccountAndRoomId(id, roomId))
-                .switchIfEmpty(Mono.error(new AccessDeniedException("Account is not a member of chat room, room id = '%s'.".formatted(roomId))));
+                .switchIfEmpty(Mono.error(() -> new AccessDeniedException("Account is not a member of chat room, room id = '%s'.".formatted(roomId))));
     }
 
     @Data

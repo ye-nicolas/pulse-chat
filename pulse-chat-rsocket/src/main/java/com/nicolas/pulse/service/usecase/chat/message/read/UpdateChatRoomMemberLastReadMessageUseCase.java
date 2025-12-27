@@ -35,18 +35,18 @@ public class UpdateChatRoomMemberLastReadMessageUseCase {
         return getMessage(input.getMessageId())
                 .flatMap(chatMessage -> getMember(chatMessage.getRoomId()))
                 .flatMap(chatRoomMember -> this.saveChatMessageRead(input.getMessageId(), chatRoomMember))
-                .doOnSuccess(output::setChatMessageLastRead)
+                .doOnNext(output::setChatMessageLastRead)
                 .then();
     }
 
     private Mono<ChatMessageLastRead> saveChatMessageRead(String messageId, ChatRoomMember chatRoomMember) {
         return chatMessageReadLastRepository.findByLastMessageIdAndRoomIdAndMemberId(messageId, chatRoomMember.getChatRoom().getId(), chatRoomMember.getId())
-                .switchIfEmpty(Mono.defer(() -> Mono.just(ChatMessageLastRead.builder()
+                .switchIfEmpty(Mono.fromSupplier(() -> ChatMessageLastRead.builder()
                         .id(UlidCreator.getMonotonicUlid().toString())
                         .roomId(chatRoomMember.getChatRoom().getId())
                         .lastMessageId(messageId)
                         .memberId(chatRoomMember.getId())
-                        .build())))
+                        .build()))
                 .filter(chatMessageLastRead -> messageId.compareTo(chatMessageLastRead.getLastMessageId()) > 0)
                 .doOnNext(chatMessageLastRead -> chatMessageLastRead.setLastMessageId(messageId))
                 .flatMap(chatMessageReadLastRepository::save);
@@ -55,12 +55,12 @@ public class UpdateChatRoomMemberLastReadMessageUseCase {
     private Mono<ChatRoomMember> getMember(String roomId) {
         return SecurityUtil.getCurrentAccountId()
                 .flatMap(accountId -> chatRoomMemberRepository.findByAccountAndRoomId(accountId, roomId)
-                        .switchIfEmpty(Mono.error(new AccessDeniedException("Account is not a member of the requested room, account id = '%s'.".formatted(accountId)))));
+                        .switchIfEmpty(Mono.error(() -> new AccessDeniedException("Account is not a member of the requested room, account id = '%s'.".formatted(accountId)))));
     }
 
     private Mono<ChatMessage> getMessage(String messageId) {
         return chatMessageRepository.findById(messageId)
-                .switchIfEmpty(Mono.error(new TargetNotFoundException("Message not found, message id = '%s'.")));
+                .switchIfEmpty(Mono.error(() -> new TargetNotFoundException("Message not found, message id = '%s'.")));
     }
 
     @Data

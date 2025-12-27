@@ -1,5 +1,6 @@
 package com.nicolas.pulse.service.usecase.chat.room;
 
+import com.nicolas.pulse.entity.exception.TargetNotFoundException;
 import com.nicolas.pulse.service.repository.ChatMessageReadLastRepository;
 import com.nicolas.pulse.service.repository.ChatMessageRepository;
 import com.nicolas.pulse.service.repository.ChatRoomMemberRepository;
@@ -29,8 +30,7 @@ public class DeleteChatRoomUseCase {
     }
 
     public Mono<Void> execute(Input input) {
-        return chatRoomRepository.existsById(input.getRoomId())
-                .filter(f -> f)
+        return validateRoomIsExists(input.roomId)
                 .then(validateDeleteAllow(input.getRoomId()))
                 .then(Mono.when(chatMessageReadLastRepository.deleteByRoomId(input.getRoomId()),
                         chatRoomMemberRepository.deleteByRoomId(input.getRoomId()),
@@ -38,12 +38,19 @@ public class DeleteChatRoomUseCase {
                         chatRoomRepository.deleteById(input.getRoomId())));
     }
 
+    private Mono<Void> validateRoomIsExists(String roomId) {
+        return chatRoomRepository.existsById(roomId)
+                .flatMap(bol -> bol
+                        ? Mono.empty()
+                        : Mono.error(() -> new TargetNotFoundException("Chat room not found, room id = '%s'.".formatted(roomId))));
+    }
+
     private Mono<Void> validateDeleteAllow(String roomId) {
         return SecurityUtil.getCurrentAccountId()
                 .flatMap(accountId -> chatRoomMemberRepository.existsByIdAndRoomId(accountId, roomId))
-                .filter(bol -> bol)
-                .switchIfEmpty(Mono.error(new AccessDeniedException("Not allow delete chat room, room id = '%s'.".formatted(roomId))))
-                .then();
+                .flatMap(bol -> bol
+                        ? Mono.empty()
+                        : Mono.error(() -> new AccessDeniedException("Not allow delete chat room, room id = '%s'.".formatted(roomId))));
     }
 
     @Data

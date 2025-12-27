@@ -33,20 +33,20 @@ public class RoleController {
     @GetMapping("/{roleId}")
     public Mono<ResponseEntity<RoleRes>> findById(@PathVariable("roleId") String roleId) {
         return roleRepository.findById(roleId)
-                .switchIfEmpty(Mono.error(new TargetNotFoundException("Role not found, id = '%s'.".formatted(roleId))))
+                .switchIfEmpty(Mono.error(() -> new TargetNotFoundException("Role not found, id = '%s'.".formatted(roleId))))
                 .map(RoleMapper::domainToRes)
                 .map(ResponseEntity::ok);
     }
 
     @PostMapping("/")
-    public Mono<ResponseEntity<String>> createRole(@Valid @RequestBody Mono<CreateRoleReq> req) {
+    public Mono<ResponseEntity<String>> createRole(@Valid @RequestBody Mono<CreateRoleReq> reqMono) {
         CreateRoleUseCase.Output output = new CreateRoleUseCase.Output();
-        return req.map(r -> CreateRoleUseCase.Input.builder()
-                        .roleName(r.getRoleName())
-                        .privileges(r.getPrivileges())
-                        .remark(r.getRemark())
+        return reqMono.map(req -> CreateRoleUseCase.Input.builder()
+                        .roleName(req.getRoleName())
+                        .privileges(req.getPrivileges())
+                        .remark(req.getRemark())
                         .build())
                 .flatMap(input -> createRoleUseCase.execute(input, output))
-                .then(Mono.defer(() -> Mono.just(ResponseEntity.ok(output.getRoleId()))));
+                .then(Mono.fromSupplier(() -> ResponseEntity.ok(output.getRoleId())));
     }
 }

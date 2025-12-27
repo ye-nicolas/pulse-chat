@@ -36,19 +36,19 @@ public class ReactiveUserDetailsServiceImpl implements ReactiveUserDetailsServic
     @Override
     public Mono<UserDetails> findByUsername(String username) {
         return accountRepository.findByName(username)
-                .switchIfEmpty(Mono.error(new UsernameNotFoundException("Account not found, name = '%s'".formatted(username))))
+                .switchIfEmpty(Mono.error(() -> new UsernameNotFoundException("Account not found, name = '%s'".formatted(username))))
                 .flatMap(this::process);
     }
 
     public Mono<SecurityAccount> findById(String id) {
         return accountRepository.findById(id)
-                .switchIfEmpty(Mono.error(new TargetNotFoundException("Account not found, id = '%s'".formatted(id))))
+                .switchIfEmpty(Mono.error(() -> new TargetNotFoundException("Account not found, id = '%s'".formatted(id))))
                 .flatMap(this::process);
     }
 
     private Mono<SecurityAccount> process(Account account) {
         return Mono.zip(Mono.just(account), getPrivilege(account.getId()), getRoomId(account.getId()))
-                .map(t -> createSecurityAccount(t.getT1(), t.getT2(), t.getT3()));
+                .map(tuple -> createSecurityAccount(tuple.getT1(), tuple.getT2(), tuple.getT3()));
     }
 
     private Mono<Set<Privilege>> getPrivilege(String accountId) {

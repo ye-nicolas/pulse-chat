@@ -7,6 +7,7 @@ import com.nicolas.pulse.adapter.dto.res.ChatMessageRes;
 import com.nicolas.pulse.service.repository.ChatMessageRepository;
 import com.nicolas.pulse.service.usecase.chat.message.AddChatMessageUseCase;
 import com.nicolas.pulse.service.usecase.chat.message.DeleteChatMessageUseCase;
+import com.nicolas.pulse.service.usecase.chat.message.FindHistoryMessageUseCase;
 import com.nicolas.pulse.service.usecase.chat.message.UpdateChatMessageUseCase;
 import com.nicolas.pulse.service.usecase.chat.message.read.UpdateChatRoomMemberLastReadMessageUseCase;
 import com.nicolas.pulse.service.usecase.sink.ChatRoomManager;
@@ -27,24 +28,23 @@ import java.util.Set;
 @Controller
 public class ChatMessageController {
     private final Validator validator;
-    private final ChatMessageRepository chatMessageRepository;
     private final ChatRoomManager chatRoomManager;
+    private final FindHistoryMessageUseCase findHistoryMessageUseCase;
     private final AddChatMessageUseCase addChatMessageUseCase;
     private final UpdateChatMessageUseCase updateChatMessageUseCase;
     private final DeleteChatMessageUseCase deleteChatMessageUseCase;
     private final UpdateChatRoomMemberLastReadMessageUseCase updateChatRoomMemberLastReadMessageUseCase;
 
-
-    public ChatMessageController(Validator validator, ChatMessageRepository
-                                         chatMessageRepository,
+    public ChatMessageController(Validator validator,
                                  ChatRoomManager chatRoomManager,
+                                 FindHistoryMessageUseCase findHistoryMessageUseCase,
                                  AddChatMessageUseCase addChatMessageUseCase,
                                  UpdateChatMessageUseCase updateChatMessageUseCase,
                                  DeleteChatMessageUseCase deleteChatMessageUseCase,
                                  UpdateChatRoomMemberLastReadMessageUseCase updateChatRoomMemberLastReadMessageUseCase) {
         this.validator = validator;
-        this.chatMessageRepository = chatMessageRepository;
         this.chatRoomManager = chatRoomManager;
+        this.findHistoryMessageUseCase = findHistoryMessageUseCase;
         this.addChatMessageUseCase = addChatMessageUseCase;
         this.updateChatMessageUseCase = updateChatMessageUseCase;
         this.deleteChatMessageUseCase = deleteChatMessageUseCase;
@@ -54,7 +54,7 @@ public class ChatMessageController {
     @MessageMapping("chat.message.add")
     public Mono<Void> addMessage(@Payload Mono<AddChatMessageReq> mono) {
         AddChatMessageUseCase.Output output = new AddChatMessageUseCase.Output();
-        return mono.flatMap(this::validate)
+        return mono.delayUntil(this::validate)
                 .flatMap(req -> addChatMessageUseCase.execute(AddChatMessageUseCase.Input.builder().roomId(req.getRoomId())
                         .chatMessageType(req.getType())
                         .content(req.getContent())
@@ -64,9 +64,9 @@ public class ChatMessageController {
 
     @MessageMapping("chat.message.update.{messageId}")
     public Mono<Void> updateMessage(@DestinationVariable String messageId,
-                                    @Payload Mono<UpdateChatMessageReq> mono) {
+                                    @Payload Mono<UpdateChatMessageReq> reqMono) {
         UpdateChatMessageUseCase.Output output = new UpdateChatMessageUseCase.Output();
-        return mono.flatMap(this::validate)
+        return reqMono.delayUntil(this::validate)
                 .flatMap(req -> updateChatMessageUseCase.execute(UpdateChatMessageUseCase.Input.builder()
                         .messageId(messageId)
                         .newContent(req.getNewContent())
@@ -90,15 +90,15 @@ public class ChatMessageController {
 
     @MessageMapping("chat.history.get.{roomId}")
     public Flux<ChatMessageRes> getHistory(@DestinationVariable String roomId) {
-        return chatMessageRepository.findAllByRoomId(roomId)
-                .map(ChatMessageMapper::domainToRes);
+        FindHistoryMessageUseCase.Output output = new FindHistoryMessageUseCase.Output();
+        return findHistoryMessageUseCase.execute(new FindHistoryMessageUseCase.Input(roomId), output)
+                .thenMany(Flux.defer(() -> output.getMessageFlux().map(ChatMessageMapper::domainToRes)));
     }
 
-    private <T> Mono<T> validate(T body) {
+    private <T> Mono<Void> validate(T body) {
         Set<ConstraintViolation<T>> errors = validator.validate(body);
-        if (!errors.isEmpty()) {
-            return Mono.error(new ConstraintViolationException(errors));
-        }
-        return Mono.just(body);
+        return errors.isEmpty()
+                ? Mono.empty()
+                : Mono.error(() -> new ConstraintViolationException(errors));
     }
 }

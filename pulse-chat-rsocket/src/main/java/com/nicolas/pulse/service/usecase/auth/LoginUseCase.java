@@ -36,7 +36,7 @@ public class LoginUseCase {
     public Mono<Void> execute(Input input, Output output) {
         return userDetailsRepositoryReactiveAuthenticationManager.authenticate(new UsernamePasswordAuthenticationToken(input.getUserName(), input.getPassword()))
                 .map(authentication -> (SecurityAccount) authentication.getPrincipal())
-                .doOnSuccess(securityAccount -> {
+                .doOnNext(securityAccount -> {
                     String accessTokenId = UlidCreator.getMonotonicUlid().toString();
                     String refreshTokenId = UlidCreator.getMonotonicUlid().toString();
                     output.setAccountId(securityAccount.getId());

@@ -10,6 +10,5 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class CreateFriendShipReq {
-    private String requesterAccountId;
     private String recipientAccountId;
 }
