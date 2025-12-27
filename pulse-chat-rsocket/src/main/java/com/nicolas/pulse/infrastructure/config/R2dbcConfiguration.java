@@ -18,7 +18,9 @@ import org.springframework.data.r2dbc.core.R2dbcEntityOperations;
 import org.springframework.data.r2dbc.core.R2dbcEntityTemplate;
 import org.springframework.data.r2dbc.dialect.PostgresDialect;
 import org.springframework.data.r2dbc.repository.config.EnableR2dbcRepositories;
+import org.springframework.r2dbc.connection.R2dbcTransactionManager;
 import org.springframework.r2dbc.core.DatabaseClient;
+import org.springframework.transaction.ReactiveTransactionManager;
 
 import java.time.Duration;
 
@@ -99,6 +101,13 @@ public class R2dbcConfiguration extends AbstractR2dbcConfiguration {
         return new R2dbcEntityTemplate(databaseClient, PostgresDialect.INSTANCE);
     }
 
+    @Primary
+    @Bean
+    public ReactiveTransactionManager transactionManager(@Qualifier("MainConnectionFactory") ConnectionFactory connectionFactory) {
+        return new R2dbcTransactionManager(connectionFactory);
+    }
+
+    @Primary
     @Bean
     public ReactiveAuditorAware<String> getAuditorProvider() {
         return SecurityUtil::getCurrentAccountId;
