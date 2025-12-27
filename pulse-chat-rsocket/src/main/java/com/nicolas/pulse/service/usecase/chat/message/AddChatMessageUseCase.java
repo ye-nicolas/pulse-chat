@@ -37,7 +37,7 @@ public class AddChatMessageUseCase {
         return getChatRoom(input.getRoomId())
                 .flatMap(chatRoom -> getChatMember(chatRoom.getId()))
                 .flatMap(chatRoomMember -> createChatMessage(chatRoomMember, input.getContent(), input.chatMessageType))
-                .doOnSuccess(output::setChatMessage)
+                .doOnNext(output::setChatMessage)
                 .then();
     }
 

@@ -27,7 +27,7 @@ public class UpdateChatMessageUseCase {
                         this.validateIsCreator(chatMessage),
                         this.validateCanUpdate(chatMessage)))
                 .flatMap(chatMessage -> updateMessage(chatMessage, input.getNewContent()))
-                .doOnSuccess(output::setNewChatMessage)
+                .doOnNext(output::setNewChatMessage)
                 .then();
     }
 

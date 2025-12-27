@@ -32,7 +32,7 @@ public class RefreshTokenUseCase {
     public Mono<Void> execute(Input input, Output output) {
         return Mono.fromCallable(() -> JwtUtil.validateRefreshToken(secretKey, input.getRefreshToken()))
                 .flatMap(claims -> reactiveUserDetailsService.findById(claims.getSubject()))
-                .doOnSuccess(securityAccount -> {
+                .doOnNext(securityAccount -> {
                     String accessTokenId = UlidCreator.getMonotonicUlid().toString();
                     String refreshTokenId = UlidCreator.getMonotonicUlid().toString();
                     output.setAccountId(securityAccount.getUsername());

@@ -35,7 +35,7 @@ public class UpdateChatRoomMemberLastReadMessageUseCase {
         return getMessage(input.getMessageId())
                 .flatMap(chatMessage -> getMember(chatMessage.getRoomId()))
                 .flatMap(chatRoomMember -> this.saveChatMessageRead(input.getMessageId(), chatRoomMember))
-                .doOnSuccess(output::setChatMessageLastRead)
+                .doOnNext(output::setChatMessageLastRead)
                 .then();
     }
 

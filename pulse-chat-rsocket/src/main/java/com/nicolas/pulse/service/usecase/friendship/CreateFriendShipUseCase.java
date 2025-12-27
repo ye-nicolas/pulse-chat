@@ -30,7 +30,7 @@ public class CreateFriendShipUseCase {
         return this.validateFriendShipExists(input.getRecipientAccountId())
                 .then(Mono.zip(SecurityUtil.getCurrentAccountId().flatMap(this::findAccount), findAccount(input.getRecipientAccountId())))
                 .flatMap(tuple -> this.createFriendShip(tuple.getT1(), tuple.getT2()))
-                .doOnSuccess(friendShipMono -> output.setFriendShipId(friendShipMono.getId()))
+                .doOnNext(friendShipMono -> output.setFriendShipId(friendShipMono.getId()))
                 .then();
     }
 

@@ -35,7 +35,7 @@ public class CreateChatRoomUseCase {
     public Mono<Void> execute(Input input, Output output) {
         return validateAccountIdSetExists(input.getAccountIdSet())
                 .then(createChatRoom(input))
-                .doOnSuccess(chatRoom -> output.setRoomId(chatRoom.getId()))
+                .doOnNext(chatRoom -> output.setRoomId(chatRoom.getId()))
                 .flatMap(chatRoom -> createChatRoomMember(chatRoom, input.getAccountIdSet()));
     }
 
