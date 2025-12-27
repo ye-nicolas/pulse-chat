@@ -7,20 +7,19 @@ import org.springframework.security.core.context.ReactiveSecurityContextHolder;
 import org.springframework.security.core.context.SecurityContext;
 import reactor.core.publisher.Mono;
 
-import java.util.Set;
-
 public class SecurityUtil {
     public static Mono<String> getCurrentAccountId() {
-        return getSecurityAccount()
+        return getBasicSecurityAccount()
+                .switchIfEmpty(Mono.error(() -> new BadCredentialsException("Unable to retrieve account details.")))
                 .map(SecurityAccount::getId);
     }
 
-    public static Mono<SecurityAccount> getSecurityAccount() {
+    public static Mono<SecurityAccount> getBasicSecurityAccount() {
         return ReactiveSecurityContextHolder.getContext()
                 .map(SecurityContext::getAuthentication)
                 .filter(Authentication::isAuthenticated)
                 .map(Authentication::getPrincipal)
-                .map(auth -> ((SecurityAccount) auth))
-                .switchIfEmpty(Mono.error(() -> new BadCredentialsException("Unable to retrieve account details.")));
+                .map(auth -> ((SecurityAccount) auth));
+
     }
 }
