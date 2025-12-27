@@ -1,4 +1,4 @@
-CREATE SCHEMA IF NOT EXISTS pulse_chat
+CREATE SCHEMA IF NOT EXISTS pulse_chat;
 
 -- account
 CREATE TABLE pulse_chat.account (
