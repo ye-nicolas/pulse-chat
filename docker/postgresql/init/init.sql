@@ -17,39 +17,6 @@ CREATE TABLE pulse_chat.account (
 	CONSTRAINT user_uk UNIQUE ("name")
 );
 
--- role
-CREATE TABLE pulse_chat."role" (
-	id bpchar(26) NOT NULL,
-	"name" varchar NOT NULL,
-	created_by bpchar(26) NOT NULL,
-	updated_by bpchar(26) NOT NULL,
-	created_at timestamptz NOT NULL DEFAULT now(),
-	updated_at timestamptz NOT NULL DEFAULT now(),
-	remark text NULL,
-	CONSTRAINT role_pk PRIMARY KEY (id),
-	CONSTRAINT role_uk UNIQUE (name)
-);
-
--- role_privilege
-CREATE TABLE pulse_chat.role_privilege (
-	role_id bpchar(26) NOT NULL,
-	privilege varchar NOT NULL,
-	created_by bpchar(26) NOT NULL,
-	created_at timestamptz NOT NULL DEFAULT now(),
-	id bpchar(26) NOT NULL
-);
-
--- account_role
-CREATE TABLE pulse_chat.account_role (
-	id bpchar(26) NOT NULL,
-	account_id bpchar(26) NOT NULL,
-	role_id bpchar(26) NOT NULL,
-	created_by bpchar(26) NOT NULL,
-	created_at timestamptz NOT NULL DEFAULT now(),
-	CONSTRAINT account_role_pk PRIMARY KEY (id),
-	CONSTRAINT account_role_uk UNIQUE (account_id, role_id)
-);
-
 -- friend_ship
 CREATE TABLE pulse_chat.friend_ship (
 	id bpchar(26) NOT NULL,
