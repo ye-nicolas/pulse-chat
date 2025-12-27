@@ -5,16 +5,15 @@ import com.nicolas.pulse.adapter.dto.req.CreateChatRoomReq;
 import com.nicolas.pulse.adapter.dto.req.RemoveChatRoomMemberReq;
 import com.nicolas.pulse.entity.domain.chat.ChatRoom;
 import com.nicolas.pulse.entity.domain.chat.ChatRoomMember;
-import com.nicolas.pulse.entity.exception.TargetNotFoundException;
 import com.nicolas.pulse.service.repository.ChatRoomMemberRepository;
-import com.nicolas.pulse.service.repository.ChatRoomRepository;
 import com.nicolas.pulse.service.usecase.chat.member.AddChatRoomMemberUseCase;
+import com.nicolas.pulse.service.usecase.chat.member.RemoveChatRoomMemberByRoomUsecase;
 import com.nicolas.pulse.service.usecase.chat.room.CreateChatRoomUseCase;
 import com.nicolas.pulse.service.usecase.chat.room.DeleteChatRoomUseCase;
-import com.nicolas.pulse.service.usecase.chat.member.RemoveChatRoomMemberByRoomUsecase;
+import com.nicolas.pulse.service.usecase.chat.room.FindChatRoomByIdUseCase;
+import com.nicolas.pulse.util.SecurityUtil;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -25,21 +24,21 @@ import java.util.HashSet;
 @RequestMapping(ChatRoomController.CHAT_ROOM_BASE_URL)
 public class ChatRoomController {
     public static final String CHAT_ROOM_BASE_URL = "/chat-rooms";
-    private final ChatRoomRepository chatRoomRepository;
     private final ChatRoomMemberRepository chatRoomMemberRepository;
+    private final FindChatRoomByIdUseCase findChatRoomByIdUseCase;
     private final CreateChatRoomUseCase createChatRoomUseCase;
     private final AddChatRoomMemberUseCase addChatRoomMemberUseCase;
     private final RemoveChatRoomMemberByRoomUsecase removeChatRoomMemberByRoomUsecase;
     private final DeleteChatRoomUseCase deleteChatRoomUseCase;
 
-    public ChatRoomController(ChatRoomRepository chatRoomRepository,
-                              ChatRoomMemberRepository chatRoomMemberRepository,
+    public ChatRoomController(ChatRoomMemberRepository chatRoomMemberRepository,
+                              FindChatRoomByIdUseCase findChatRoomByIdUseCase,
                               CreateChatRoomUseCase createChatRoomUseCase,
                               AddChatRoomMemberUseCase addChatRoomMemberUseCase,
                               RemoveChatRoomMemberByRoomUsecase removeChatRoomMemberByRoomUsecase,
                               DeleteChatRoomUseCase deleteChatRoomUseCase) {
-        this.chatRoomRepository = chatRoomRepository;
         this.chatRoomMemberRepository = chatRoomMemberRepository;
+        this.findChatRoomByIdUseCase = findChatRoomByIdUseCase;
         this.createChatRoomUseCase = createChatRoomUseCase;
         this.addChatRoomMemberUseCase = addChatRoomMemberUseCase;
         this.removeChatRoomMemberByRoomUsecase = removeChatRoomMemberByRoomUsecase;
@@ -47,18 +46,17 @@ public class ChatRoomController {
     }
 
     @GetMapping("/")
-    public ResponseEntity<Flux<ChatRoom>> findAll(@RequestParam("accountId") String accountId) {
-        if (StringUtils.hasText(accountId)) {
-            return ResponseEntity.ok(chatRoomMemberRepository.findAllByAccountId(accountId).map(ChatRoomMember::getChatRoom));
-        }
-        return ResponseEntity.ok(chatRoomRepository.findAll());
+    public ResponseEntity<Flux<ChatRoom>> findAll() {
+        return ResponseEntity.ok(SecurityUtil.getCurrentAccountId()
+                .flatMapMany(chatRoomMemberRepository::findAllByAccountId)
+                .map(ChatRoomMember::getChatRoom));
     }
 
     @GetMapping("/{roomId}")
     public Mono<ResponseEntity<ChatRoom>> findById(@PathVariable("roomId") String roomId) {
-        return chatRoomRepository.findById(roomId)
-                .switchIfEmpty(Mono.error(new TargetNotFoundException("Chat room not found, id = '%s'.".formatted(roomId))))
-                .map(ResponseEntity::ok);
+        FindChatRoomByIdUseCase.Output output = new FindChatRoomByIdUseCase.Output();
+        return findChatRoomByIdUseCase.execute(new FindChatRoomByIdUseCase.Input(roomId), output)
+                .then(Mono.fromSupplier(() -> ResponseEntity.ok(output.getChatRoom())));
     }
 
     @PostMapping("/")
@@ -69,7 +67,7 @@ public class ChatRoomController {
                         .roomName(req.getRoomName())
                         .build())
                 .flatMap(input -> createChatRoomUseCase.execute(input, output))
-                .then(Mono.defer(() -> Mono.just(ResponseEntity.ok(output.getRoomId()))));
+                .then(Mono.fromSupplier(() -> ResponseEntity.ok(output.getRoomId())));
     }
 
     @PostMapping("/{roomId}/member")
