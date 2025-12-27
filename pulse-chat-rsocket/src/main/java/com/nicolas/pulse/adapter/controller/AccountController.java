@@ -30,7 +30,7 @@ public class AccountController {
     @GetMapping("/{accountId}")
     public Mono<ResponseEntity<AccountRes>> findById(@PathVariable("accountId") String accountId) {
         return accountRepository.findById(accountId)
-                .switchIfEmpty(Mono.error(new TargetNotFoundException("Account not found, id = '%s'.".formatted(accountId))))
+                .switchIfEmpty(Mono.error(() -> new TargetNotFoundException("Account not found, id = '%s'.".formatted(accountId))))
                 .map(AccountMapper::domainToRes)
                 .map(ResponseEntity::ok);
     }

@@ -42,7 +42,7 @@ public class CreateAccountUseCase {
                         this.validateNameNotExists(input.getName()),
                         this.validateAllRolesExist(input.getRoleIdSet()))
                 .then(this.createUser(input))
-                .doOnSuccess(account -> output.setAccountId(account.getId()))
+                .doOnNext(account -> output.setAccountId(account.getId()))
                 .flatMap(account -> this.createAccountRole(account, input.getRoleIdSet()));
     }
 
@@ -60,7 +60,7 @@ public class CreateAccountUseCase {
     private Mono<Void> validateNameNotExists(String name) {
         return accountRepository.existsByName(name)
                 .flatMap(exists -> exists
-                        ? Mono.error(new ConflictException("User name already exists, name = '%s'.".formatted(name)))
+                        ? Mono.error(() -> new ConflictException("User name already exists, name = '%s'.".formatted(name)))
                         : Mono.empty());
     }
 
@@ -70,7 +70,7 @@ public class CreateAccountUseCase {
                 .all(Boolean::booleanValue)
                 .flatMap(exists -> exists
                         ? Mono.empty()
-                        : Mono.error(new TargetNotFoundException("Some roles do not exist.")));
+                        : Mono.error(() -> new TargetNotFoundException("Some roles do not exist.")));
     }
 
     private Mono<Void> createAccountRole(Account account, Set<String> roleIdSet) {

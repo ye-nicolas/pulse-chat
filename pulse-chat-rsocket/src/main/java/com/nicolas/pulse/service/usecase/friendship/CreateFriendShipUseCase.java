@@ -47,14 +47,14 @@ public class CreateFriendShipUseCase {
         return SecurityUtil.getCurrentAccountId().flatMap(currentAccountId ->
                 friendShipRepository.existsByRequesterAccountIdAndRecipientAccountId(currentAccountId, recipientAccountId)
                         .flatMap(exists -> exists
-                                ? Mono.error(new ConflictException("Friend ship already exists, requesterAccountId = '%s' and recipientAccountId = '%s'.".formatted(currentAccountId, recipientAccountId)))
+                                ? Mono.error(() -> new ConflictException("Friend ship already exists, requesterAccountId = '%s' and recipientAccountId = '%s'.".formatted(currentAccountId, recipientAccountId)))
                                 : Mono.empty())
         );
     }
 
     private Mono<Account> findAccount(String accountId) {
         return accountRepository.findById(accountId)
-                .switchIfEmpty(Mono.error(new TargetNotFoundException("Account not found, id = '%s'.".formatted(accountId))));
+                .switchIfEmpty(Mono.error(() -> new TargetNotFoundException("Account not found, id = '%s'.".formatted(accountId))));
     }
 
     @Data

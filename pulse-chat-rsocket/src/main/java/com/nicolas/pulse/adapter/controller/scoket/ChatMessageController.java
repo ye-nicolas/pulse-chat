@@ -54,7 +54,7 @@ public class ChatMessageController {
     @MessageMapping("chat.message.add")
     public Mono<Void> addMessage(@Payload Mono<AddChatMessageReq> mono) {
         AddChatMessageUseCase.Output output = new AddChatMessageUseCase.Output();
-        return mono.flatMap(this::validate)
+        return mono.delayUntil(this::validate)
                 .flatMap(req -> addChatMessageUseCase.execute(AddChatMessageUseCase.Input.builder().roomId(req.getRoomId())
                         .chatMessageType(req.getType())
                         .content(req.getContent())
@@ -64,9 +64,9 @@ public class ChatMessageController {
 
     @MessageMapping("chat.message.update.{messageId}")
     public Mono<Void> updateMessage(@DestinationVariable String messageId,
-                                    @Payload Mono<UpdateChatMessageReq> mono) {
+                                    @Payload Mono<UpdateChatMessageReq> reqMono) {
         UpdateChatMessageUseCase.Output output = new UpdateChatMessageUseCase.Output();
-        return mono.flatMap(this::validate)
+        return reqMono.delayUntil(this::validate)
                 .flatMap(req -> updateChatMessageUseCase.execute(UpdateChatMessageUseCase.Input.builder()
                         .messageId(messageId)
                         .newContent(req.getNewContent())
@@ -94,11 +94,11 @@ public class ChatMessageController {
                 .map(ChatMessageMapper::domainToRes);
     }
 
-    private <T> Mono<T> validate(T body) {
+    private <T> Mono<Void> validate(T body) {
         Set<ConstraintViolation<T>> errors = validator.validate(body);
         if (!errors.isEmpty()) {
-            return Mono.error(new ConstraintViolationException(errors));
+            return Mono.error(() -> new ConstraintViolationException(errors));
         }
-        return Mono.just(body);
+        return Mono.empty();
     }
 }

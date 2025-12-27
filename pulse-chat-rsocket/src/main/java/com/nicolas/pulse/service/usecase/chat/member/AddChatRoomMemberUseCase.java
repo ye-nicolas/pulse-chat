@@ -35,9 +35,8 @@ public class AddChatRoomMemberUseCase {
     public Mono<Void> execute(Input input) {
         return validateAccountExists(input.getAccountIdSet())
                 .then(getChatRoom(input.getRoomId()))
-                .flatMap(chatRoom -> validateAccountExistsInRoom(chatRoom, input.getAccountIdSet())
-                        .thenEmpty(addChatMember(chatRoom, input.getAccountIdSet()))
-                );
+                .delayUntil(chatRoom -> validateAccountExistsInRoom(chatRoom, input.getAccountIdSet()))
+                .flatMap(chatRoom -> addChatMember(chatRoom, input.getAccountIdSet()));
     }
 
     private Mono<Void> addChatMember(ChatRoom chatRoom, Set<String> accountIdSet) {
@@ -57,7 +56,7 @@ public class AddChatRoomMemberUseCase {
         return Flux.fromIterable(accountIdSet)
                 .flatMap(id -> chatRoomMemberRepository.existsByIdAndRoomId(chatRoom.getId(), id)
                         .filter(exists -> !exists)
-                        .switchIfEmpty(Mono.error(new ConflictException("Account is exists in room, account id = '%s'.".formatted(id))))
+                        .switchIfEmpty(Mono.error(() -> new ConflictException("Account is exists in room, account id = '%s'.".formatted(id))))
                         .then())
                 .then();
     }
@@ -66,14 +65,14 @@ public class AddChatRoomMemberUseCase {
         return Flux.fromIterable(accountIdSet)
                 .flatMap(id -> accountRepository.existsById(id)
                         .filter(exists -> exists)
-                        .switchIfEmpty(Mono.error(new TargetNotFoundException("Account not found, account id = '%s'.".formatted(id))))
+                        .switchIfEmpty(Mono.error(() -> new TargetNotFoundException("Account not found, account id = '%s'.".formatted(id))))
                         .then())
                 .then();
     }
 
     private Mono<ChatRoom> getChatRoom(String roomId) {
         return chatRoomRepository.findById(roomId)
-                .switchIfEmpty(Mono.error(new TargetNotFoundException("Chat Room not found, room id = '%s'.".formatted(roomId))));
+                .switchIfEmpty(Mono.error(() -> new TargetNotFoundException("Chat Room not found, room id = '%s'.".formatted(roomId))));
     }
 
     @Data

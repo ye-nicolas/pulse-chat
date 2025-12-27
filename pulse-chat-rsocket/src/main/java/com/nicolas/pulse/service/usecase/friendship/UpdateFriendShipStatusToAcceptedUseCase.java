@@ -22,7 +22,7 @@ public class UpdateFriendShipStatusToAcceptedUseCase {
 
     public Mono<Void> execute(Input input) {
         return friendShipRepository.findById(input.getFriendShipId())
-                .switchIfEmpty(Mono.error(new TargetNotFoundException("Friend ship not found, id = '%s'.".formatted(input.getFriendShipId()))))
+                .switchIfEmpty(Mono.error(() -> new TargetNotFoundException("Friend ship not found, id = '%s'.".formatted(input.getFriendShipId()))))
                 .delayUntil(friendShip -> Mono.when(
                         this.validateStatusIsPending(friendShip),
                         this.validateIsRecipient(friendShip)))
@@ -31,7 +31,7 @@ public class UpdateFriendShipStatusToAcceptedUseCase {
 
     private Mono<Void> validateStatusIsPending(FriendShip friendShip) {
         if (friendShip.getStatus() != FriendShipStatus.PENDING) {
-            return Mono.error(new ConflictException("Friendship status is '%s', cannot be accepted. Only PENDING status can be updated.".formatted(friendShip.getStatus()))
+            return Mono.error(() -> new ConflictException("Friendship status is '%s', cannot be accepted. Only PENDING status can be updated.".formatted(friendShip.getStatus()))
             );
         }
         return Mono.empty();
@@ -40,7 +40,7 @@ public class UpdateFriendShipStatusToAcceptedUseCase {
     private Mono<Void> validateIsRecipient(FriendShip friendShip) {
         return SecurityUtil.getCurrentAccountId()
                 .filter(accountId -> accountId.equals(friendShip.getRecipientAccount().getId()))
-                .switchIfEmpty(Mono.error(new AccessDeniedException("Current user is not the recipient of friendship '%s'.".formatted(friendShip.getId()))))
+                .switchIfEmpty(Mono.error(() -> new AccessDeniedException("Current user is not the recipient of friendship '%s'.".formatted(friendShip.getId()))))
                 .then();
     }
 

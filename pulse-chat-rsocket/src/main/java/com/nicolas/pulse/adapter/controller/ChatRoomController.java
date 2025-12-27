@@ -62,9 +62,9 @@ public class ChatRoomController {
     }
 
     @PostMapping("/")
-    public Mono<ResponseEntity<String>> createChatRoom(@Valid @RequestBody Mono<CreateChatRoomReq> createChatRoomReq) {
+    public Mono<ResponseEntity<String>> createChatRoom(@Valid @RequestBody Mono<CreateChatRoomReq> reqMono) {
         CreateChatRoomUseCase.Output output = new CreateChatRoomUseCase.Output();
-        return createChatRoomReq.map(req -> CreateChatRoomUseCase.Input.builder()
+        return reqMono.map(req -> CreateChatRoomUseCase.Input.builder()
                         .accountIdSet(req.getAccountIdSet())
                         .roomName(req.getRoomName())
                         .build())
@@ -74,8 +74,8 @@ public class ChatRoomController {
 
     @PostMapping("/{roomId}/member")
     public Mono<ResponseEntity<Void>> addRoomMember(@PathVariable("roomId") String roomId,
-                                                    @Valid @RequestBody Mono<AddChatRoomMemberReq> roomMemberReqMono) {
-        return roomMemberReqMono.map(req -> AddChatRoomMemberUseCase.Input.builder()
+                                                    @Valid @RequestBody Mono<AddChatRoomMemberReq> reqMono) {
+        return reqMono.map(req -> AddChatRoomMemberUseCase.Input.builder()
                         .roomId(roomId)
                         .accountIdSet(new HashSet<>(req.getAccountIdList()))
                         .build())
@@ -85,8 +85,8 @@ public class ChatRoomController {
 
     @DeleteMapping("/{roomId}/member")
     public Mono<ResponseEntity<Void>> removeRoomMember(@PathVariable("roomId") String roomId,
-                                                       @Valid @RequestBody Mono<RemoveChatRoomMemberReq> roomMemberReqMono) {
-        return roomMemberReqMono.map(req -> RemoveChatRoomMemberByRoomUsecase.Input.builder()
+                                                       @Valid @RequestBody Mono<RemoveChatRoomMemberReq> reqMono) {
+        return reqMono.map(req -> RemoveChatRoomMemberByRoomUsecase.Input.builder()
                         .roomId(roomId)
                         .deleteMemberIdList(new HashSet<>(req.getMemberId()))
                         .build())

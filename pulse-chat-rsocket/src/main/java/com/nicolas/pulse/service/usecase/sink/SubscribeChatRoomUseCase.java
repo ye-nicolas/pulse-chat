@@ -39,7 +39,7 @@ public class SubscribeChatRoomUseCase {
     private Mono<Void> validateChatRoomExists(String roomId) {
         return this.chatRoomRepository.existsById(roomId)
                 .filter(b -> b)
-                .switchIfEmpty(Mono.error(new TargetNotFoundException("Chat room not found, room id = '%s'.".formatted(roomId))))
+                .switchIfEmpty(Mono.error(() -> new TargetNotFoundException("Chat room not found, room id = '%s'.".formatted(roomId))))
                 .then();
     }
 
@@ -47,7 +47,7 @@ public class SubscribeChatRoomUseCase {
         return SecurityUtil.getSecurityAccount()
                 .map(SecurityAccount::getRoomIdSet)
                 .filter(set -> set.contains(roomId))
-                .switchIfEmpty(Mono.error(new AccessDeniedException("Account is not a member of chat room, room id = '%s'".formatted(roomId))))
+                .switchIfEmpty(Mono.error(() -> new AccessDeniedException("Account is not a member of chat room, room id = '%s'".formatted(roomId))))
                 .then();
     }
 

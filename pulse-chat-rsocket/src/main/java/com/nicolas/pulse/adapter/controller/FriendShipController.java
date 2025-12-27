@@ -35,9 +35,9 @@ public class FriendShipController {
     }
 
     @PostMapping("/")
-    public Mono<ResponseEntity<String>> createFriendShip(@Valid @RequestBody Mono<CreateFriendShipReq> dto) {
+    public Mono<ResponseEntity<String>> createFriendShip(@Valid @RequestBody Mono<CreateFriendShipReq> reqMono) {
         CreateFriendShipUseCase.Output output = new CreateFriendShipUseCase.Output();
-        return dto.map(req -> new CreateFriendShipUseCase.Input(req.getRecipientAccountId()))
+        return reqMono.map(req -> new CreateFriendShipUseCase.Input(req.getRecipientAccountId()))
                 .flatMap(input -> createFriendShipUseCase.execute(input, output))
                 .then(Mono.defer(() -> Mono.just(ResponseEntity.ok(output.getFriendShipId()))));
     }

@@ -37,7 +37,7 @@ public class CreateRoleUseCase {
     private Mono<Void> validateNameNotExists(String name) {
         return roleRepository.existsByName(name)
                 .flatMap(exists -> exists
-                        ? Mono.error(new ConflictException("Role name already exists, name = '%s'.".formatted(name)))
+                        ? Mono.error(() -> new ConflictException("Role name already exists, name = '%s'.".formatted(name)))
                         : Mono.empty());
     }
 
