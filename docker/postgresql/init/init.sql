@@ -7,7 +7,6 @@ CREATE TABLE pulse_chat.account (
 	show_name varchar NOT NULL,
 	"password" varchar NOT NULL,
 	is_active bool NOT NULL,
-	last_login_at timestamptz NULL,
 	created_by bpchar(26) NOT NULL,
 	updated_by bpchar(26) NOT NULL,
 	created_at timestamptz NOT NULL DEFAULT now(),

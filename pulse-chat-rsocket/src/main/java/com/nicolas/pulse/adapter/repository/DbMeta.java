@@ -14,7 +14,6 @@ public class DbMeta {
         public static final String COL_SHOW_NAME = "show_name";
         public static final String COL_PASSWORD = "password";
         public static final String COL_IS_ACTIVE = "is_active";
-        public static final String COL_LAST_LOGIN_AT = "last_login_at";
         public static final String COL_CREATED_BY = "created_by";
         public static final String COL_UPDATED_BY = "updated_by";
         public static final String COL_CREATED_AT = "created_at";
@@ -25,7 +24,6 @@ public class DbMeta {
         public static final String COLUMN_SHOW_NAME = COLUMN_PREFIX + COL_SHOW_NAME;
         public static final String COLUMN_PASSWORD = COLUMN_PREFIX + COL_PASSWORD;
         public static final String COLUMN_IS_ACTIVE = COLUMN_PREFIX + COL_IS_ACTIVE;
-        public static final String COLUMN_LAST_LOGIN_AT = COLUMN_PREFIX + COL_LAST_LOGIN_AT;
         public static final String COLUMN_CREATED_BY = COLUMN_PREFIX + COL_CREATED_BY;
         public static final String COLUMN_UPDATED_BY = COLUMN_PREFIX + COL_UPDATED_BY;
         public static final String COLUMN_CREATED_AT = COLUMN_PREFIX + COL_CREATED_AT;
@@ -36,7 +34,6 @@ public class DbMeta {
         public static final String ALIAS_SHOW_NAME = ALIAS_PREFIX + COL_SHOW_NAME;
         public static final String ALIAS_PASSWORD = ALIAS_PREFIX + COL_PASSWORD;
         public static final String ALIAS_IS_ACTIVE = ALIAS_PREFIX + COL_IS_ACTIVE;
-        public static final String ALIAS_LAST_LOGIN_AT = ALIAS_PREFIX + COL_LAST_LOGIN_AT;
         public static final String ALIAS_CREATED_BY = ALIAS_PREFIX + COL_CREATED_BY;
         public static final String ALIAS_UPDATED_BY = ALIAS_PREFIX + COL_UPDATED_BY;
         public static final String ALIAS_CREATED_AT = ALIAS_PREFIX + COL_CREATED_AT;

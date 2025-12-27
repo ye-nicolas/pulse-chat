@@ -17,7 +17,6 @@ public class Account {
     private String showName;
     private String password;
     private boolean isActive;
-    private Instant lastLoginAt;
     private String createdBy;
     private String updatedBy;
     private Instant createdAt;

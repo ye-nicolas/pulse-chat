@@ -13,7 +13,6 @@ public class AccountMapper {
                 .name(domain.getName())
                 .showName(domain.getShowName())
                 .isActive(domain.isActive())
-                .lastLoginAt(domain.getLastLoginAt())
                 .createdBy(domain.getCreatedBy())
                 .updatedBy(domain.getUpdatedBy())
                 .createdAt(domain.getCreatedAt())
