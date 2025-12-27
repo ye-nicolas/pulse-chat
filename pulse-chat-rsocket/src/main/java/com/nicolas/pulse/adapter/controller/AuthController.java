@@ -78,7 +78,6 @@ public class AuthController {
                         .name(req.getName())
                         .showName(req.getShowName())
                         .password(req.getPassword())
-                        .roleIdSet(req.getRoleIdSet())
                         .remark(req.getRemark())
                         .build())
                 .flatMap(input -> createAccountUseCase.execute(input, output))

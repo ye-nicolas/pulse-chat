@@ -1,14 +1,13 @@
 package com.nicolas.pulse.service.usecase.sink;
 
-import com.nicolas.pulse.entity.domain.SecurityAccount;
 import com.nicolas.pulse.entity.domain.chat.ChatMessage;
 import com.nicolas.pulse.entity.exception.TargetNotFoundException;
+import com.nicolas.pulse.service.repository.ChatRoomMemberRepository;
 import com.nicolas.pulse.service.repository.ChatRoomRepository;
 import com.nicolas.pulse.util.SecurityUtil;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.aspectj.bridge.Message;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
@@ -18,11 +17,14 @@ import reactor.core.publisher.Mono;
 public class SubscribeChatRoomUseCase {
     private final ChatRoomManager chatRoomManager;
     private final ChatRoomRepository chatRoomRepository;
+    private final ChatRoomMemberRepository chatRoomMemberRepository;
 
     public SubscribeChatRoomUseCase(ChatRoomManager chatRoomManager,
-                                    ChatRoomRepository chatRoomRepository) {
+                                    ChatRoomRepository chatRoomRepository,
+                                    ChatRoomMemberRepository chatRoomMemberRepository) {
         this.chatRoomManager = chatRoomManager;
         this.chatRoomRepository = chatRoomRepository;
+        this.chatRoomMemberRepository = chatRoomMemberRepository;
     }
 
     public Mono<Void> execute(Input input, Output output) {
@@ -44,8 +46,9 @@ public class SubscribeChatRoomUseCase {
     }
 
     private Mono<Void> validateCanSubscribe(String roomId) {
-        return SecurityUtil.getCurrentRoomIdSet()
-                .filter(set -> set.contains(roomId))
+        return SecurityUtil.getCurrentAccountId()
+                .flatMap(accountId -> chatRoomMemberRepository.existsByAccountIdAndRoomId(accountId, roomId))
+                .filter(Boolean::booleanValue)
                 .switchIfEmpty(Mono.error(() -> new AccessDeniedException("Account is not a member of chat room, room id = '%s'".formatted(roomId))))
                 .then();
     }
