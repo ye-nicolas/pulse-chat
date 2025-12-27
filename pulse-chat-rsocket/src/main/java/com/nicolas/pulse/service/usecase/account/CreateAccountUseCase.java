@@ -15,6 +15,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -37,6 +38,7 @@ public class CreateAccountUseCase {
         this.accountRoleRepository = accountRoleRepository;
     }
 
+    @Transactional
     public Mono<Void> execute(Input input, Output output) {
         return Mono.when(
                         this.validateNameNotExists(input.getName()),

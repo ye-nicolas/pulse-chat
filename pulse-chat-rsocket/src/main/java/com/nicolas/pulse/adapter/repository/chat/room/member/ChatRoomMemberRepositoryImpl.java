@@ -7,6 +7,7 @@ import com.nicolas.pulse.service.repository.ChatRoomMemberRepository;
 import com.nicolas.pulse.util.TypeUtil;
 import org.springframework.data.r2dbc.core.R2dbcEntityOperations;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -108,28 +109,33 @@ public class ChatRoomMemberRepositoryImpl implements ChatRoomMemberRepository {
                 .map(ChatRoomMemberDataMapper::dataToDomain);
     }
 
+    @Transactional
     @Override
     public Mono<ChatRoomMember> save(ChatRoomMember chatRoomMember) {
         ChatRoomMemberData chatRoomMemberData = ChatRoomMemberDataMapper.domainToData(chatRoomMember);
         return peer.save(chatRoomMemberData).map(ChatRoomMemberDataMapper::dataToDomain);
     }
 
+    @Transactional
     @Override
     public Flux<ChatRoomMember> saveAll(List<ChatRoomMember> chatRoomMemberList) {
         return peer.saveAll(Flux.fromIterable(chatRoomMemberList).map(ChatRoomMemberDataMapper::domainToData))
                 .map(ChatRoomMemberDataMapper::dataToDomain);
     }
 
+    @Transactional
     @Override
     public Mono<Void> deleteById(String id) {
         return peer.deleteById(id);
     }
 
+    @Transactional
     @Override
     public Mono<Void> deleteByRoomId(String roomId) {
         return peer.deleteByRoomId(roomId);
     }
 
+    @Transactional
     @Override
     public Mono<Void> deleteByAccountId(String accountId) {
         return peer.deleteByAccountId(accountId);

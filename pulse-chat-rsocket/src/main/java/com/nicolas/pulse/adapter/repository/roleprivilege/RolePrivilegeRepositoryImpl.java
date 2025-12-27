@@ -4,6 +4,7 @@ import com.nicolas.pulse.entity.domain.RolePrivilege;
 import com.nicolas.pulse.entity.enumerate.Privilege;
 import com.nicolas.pulse.service.repository.RolePrivilegeRepository;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -22,12 +23,14 @@ public class RolePrivilegeRepositoryImpl implements RolePrivilegeRepository {
         return peer.findByRoleIdAndPrivilege(roleId, privilege).map(RolePrivilegeDataMapper::dataToDomain);
     }
 
+    @Transactional
     @Override
     public Flux<RolePrivilege> saveAll(List<RolePrivilege> rolePrivilegeFlux) {
         return peer.saveAll(rolePrivilegeFlux.stream().map(RolePrivilegeDataMapper::domainToData).toList())
                 .map(RolePrivilegeDataMapper::dataToDomain);
     }
 
+    @Transactional
     @Override
     public Mono<Void> deleteByRoleId(String roleId) {
         return peer.deleteByRoleId(roleId);

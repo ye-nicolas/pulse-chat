@@ -9,6 +9,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Mono;
 
 @Service
@@ -19,6 +20,7 @@ public class DeleteChatMessageUseCase {
         this.chatMessageRepository = chatMessageRepository;
     }
 
+    @Transactional
     public Mono<Void> execute(Input input, Output output) {
         return chatMessageRepository.findById(input.getMessageId())
                 .switchIfEmpty(Mono.error(() -> new TargetNotFoundException("Message not found, message id = '%s'.".formatted(input.getMessageId()))))

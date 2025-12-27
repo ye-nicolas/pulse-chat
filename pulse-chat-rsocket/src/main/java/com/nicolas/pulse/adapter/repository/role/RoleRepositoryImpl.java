@@ -7,6 +7,7 @@ import com.nicolas.pulse.service.repository.RoleRepository;
 import com.nicolas.pulse.util.TypeUtil;
 import org.springframework.data.r2dbc.core.R2dbcEntityOperations;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -115,12 +116,14 @@ public class RoleRepositoryImpl implements RoleRepository {
         return peer.existsByName(name);
     }
 
+    @Transactional
     @Override
     public Mono<Role> save(Role role) {
         RoleData roleData = RoleDataMapper.domainToData(role);
         return peer.save(roleData).map(RoleDataMapper::dataToDomain);
     }
 
+    @Transactional
     @Override
     public Mono<Void> deleteById(String id) {
         return peer.deleteById(id);

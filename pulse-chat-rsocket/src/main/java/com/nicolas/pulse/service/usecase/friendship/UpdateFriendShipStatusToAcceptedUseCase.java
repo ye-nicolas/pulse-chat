@@ -10,6 +10,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Mono;
 
 @Service
@@ -20,6 +21,7 @@ public class UpdateFriendShipStatusToAcceptedUseCase {
         this.friendShipRepository = friendShipRepository;
     }
 
+    @Transactional
     public Mono<Void> execute(Input input) {
         return friendShipRepository.findById(input.getFriendShipId())
                 .switchIfEmpty(Mono.error(() -> new TargetNotFoundException("Friend ship not found, id = '%s'.".formatted(input.getFriendShipId()))))

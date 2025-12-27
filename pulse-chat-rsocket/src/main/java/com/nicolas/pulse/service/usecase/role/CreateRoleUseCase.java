@@ -12,6 +12,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Mono;
 
 import java.util.Set;
@@ -27,6 +28,7 @@ public class CreateRoleUseCase {
         this.rolePrivilegeRepository = rolePrivilegeRepository;
     }
 
+    @Transactional
     public Mono<Void> execute(Input input, Output output) {
         return validateNameNotExists(input.getRoleName())
                 .then(this.createRole(input))

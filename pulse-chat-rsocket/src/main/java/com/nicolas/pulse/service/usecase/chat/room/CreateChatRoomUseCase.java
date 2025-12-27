@@ -12,6 +12,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -32,6 +33,7 @@ public class CreateChatRoomUseCase {
         this.accountRepository = accountRepository;
     }
 
+    @Transactional
     public Mono<Void> execute(Input input, Output output) {
         return validateAccountIdSetExists(input.getAccountIdSet())
                 .then(createChatRoom(input))

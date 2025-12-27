@@ -15,6 +15,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Mono;
 
 @Service
@@ -31,10 +32,11 @@ public class UpdateChatRoomMemberLastReadMessageUseCase {
         this.chatMessageReadLastRepository = chatMessageReadLastRepository;
     }
 
+    @Transactional
     public Mono<Void> execute(Input input, Output output) {
         return getMessage(input.getMessageId())
                 .flatMap(chatMessage -> getMember(chatMessage.getRoomId()))
-                .flatMap(chatRoomMember -> this.saveChatMessageRead(input.getMessageId(), chatRoomMember))
+                .flatMap(chatRoomMember -> saveChatMessageRead(input.getMessageId(), chatRoomMember))
                 .doOnNext(output::setChatMessageLastRead)
                 .then();
     }

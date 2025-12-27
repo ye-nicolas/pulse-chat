@@ -3,6 +3,7 @@ package com.nicolas.pulse.adapter.repository.chat.room;
 import com.nicolas.pulse.entity.domain.chat.ChatRoom;
 import com.nicolas.pulse.service.repository.ChatRoomRepository;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -24,6 +25,7 @@ public class ChatRoomRepositoryImpl implements ChatRoomRepository {
         return peer.findById(id).map(ChatRoomDataMapper::dataToDomain);
     }
 
+    @Transactional
     @Override
     public Mono<ChatRoom> save(ChatRoom account) {
         ChatRoomData accountData = ChatRoomDataMapper.domainToData(account);
@@ -35,6 +37,7 @@ public class ChatRoomRepositoryImpl implements ChatRoomRepository {
         return peer.existsById(id);
     }
 
+    @Transactional
     @Override
     public Mono<Void> deleteById(String id) {
         return peer.deleteById(id);

@@ -8,6 +8,7 @@ import com.nicolas.pulse.service.repository.FriendShipRepository;
 import com.nicolas.pulse.util.TypeUtil;
 import org.springframework.data.r2dbc.core.R2dbcEntityOperations;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -168,12 +169,14 @@ public class FriendShipRepositoryImpl implements FriendShipRepository {
                 .build();
     }
 
+    @Transactional
     @Override
     public Mono<FriendShip> save(FriendShip friendShip) {
         FriendShipData friendShipData = FriendShipDataMapper.domainToData(friendShip);
         return peer.save(friendShipData).map(FriendShipDataMapper::dataToDomain);
     }
 
+    @Transactional
     @Override
     public Mono<Void> deleteById(String id) {
         return peer.deleteById(id);

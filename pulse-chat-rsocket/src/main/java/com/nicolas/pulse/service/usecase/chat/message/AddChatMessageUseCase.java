@@ -16,6 +16,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Mono;
 
 
@@ -33,6 +34,7 @@ public class AddChatMessageUseCase {
         this.chatMessageRepository = chatMessageRepository;
     }
 
+    @Transactional
     public Mono<Void> execute(Input input, Output output) {
         return getChatRoom(input.getRoomId())
                 .flatMap(chatRoom -> getChatMember(chatRoom.getId()))

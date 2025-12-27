@@ -7,6 +7,7 @@ import com.nicolas.pulse.entity.domain.AccountRole;
 import com.nicolas.pulse.service.repository.AccountRoleRepository;
 import org.springframework.data.r2dbc.core.R2dbcEntityOperations;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -98,6 +99,7 @@ public class AccountRoleRepositoryImpl implements AccountRoleRepository {
                 .build();
     }
 
+    @Transactional
     @Override
     public Flux<AccountRole> saveAll(List<AccountRole> accountRoleList) {
         return peer.saveAll(accountRoleList.stream().map(AccountRoleDataMapper::domainToData).toList())
@@ -109,16 +111,19 @@ public class AccountRoleRepositoryImpl implements AccountRoleRepository {
         return peer.existsByAccountIdAndRoleId(accountId, roleId);
     }
 
+    @Transactional
     @Override
     public Mono<Void> deleteById(String id) {
         return peer.deleteById(id);
     }
 
+    @Transactional
     @Override
     public Mono<Void> deleteByAccountId(String accountId) {
         return peer.deleteByAccountId(accountId);
     }
 
+    @Transactional
     @Override
     public Mono<Void> deleteByRoleId(String roleId) {
         return peer.deleteByRoleId(roleId);

@@ -13,6 +13,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Mono;
 
 @Service
@@ -26,6 +27,7 @@ public class CreateFriendShipUseCase {
         this.friendShipRepository = friendShipRepository;
     }
 
+    @Transactional
     public Mono<Void> execute(Input input, Output output) {
         return this.validateFriendShipExists(input.getRecipientAccountId())
                 .then(Mono.zip(SecurityUtil.getCurrentAccountId().flatMap(this::findAccount), findAccount(input.getRecipientAccountId())))
@@ -34,6 +36,7 @@ public class CreateFriendShipUseCase {
                 .then();
     }
 
+    @Transactional
     private Mono<FriendShip> createFriendShip(Account requesterAccount, Account recipientAccount) {
         return friendShipRepository.save(FriendShip.builder()
                 .id(UlidCreator.getMonotonicUlid().toString())

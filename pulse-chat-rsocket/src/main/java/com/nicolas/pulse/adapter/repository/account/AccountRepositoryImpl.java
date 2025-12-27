@@ -3,6 +3,7 @@ package com.nicolas.pulse.adapter.repository.account;
 import com.nicolas.pulse.entity.domain.Account;
 import com.nicolas.pulse.service.repository.AccountRepository;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -29,12 +30,14 @@ public class AccountRepositoryImpl implements AccountRepository {
         return peer.findByName(name).map(AccountDataMapper::dataToDomain);
     }
 
+    @Transactional
     @Override
     public Mono<Account> save(Account account) {
         AccountData accountData = AccountDataMapper.domainToData(account);
         return peer.save(accountData).map(AccountDataMapper::dataToDomain);
     }
 
+    @Transactional
     @Override
     public Mono<Void> deleteById(String id) {
         return peer.deleteById(id);
