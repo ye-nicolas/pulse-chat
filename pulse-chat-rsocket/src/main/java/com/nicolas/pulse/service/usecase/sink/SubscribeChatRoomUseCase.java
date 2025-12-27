@@ -29,7 +29,7 @@ public class SubscribeChatRoomUseCase {
         return validateChatRoomExists(input.getRoomId())
                 .then(this.validateCanSubscribe(input.getRoomId()))
                 .then(SecurityUtil.getCurrentAccountId())
-                .doOnSuccess(accountId -> {
+                .doOnNext(accountId -> {
                     output.setAccountId(accountId);
                     output.setChatMessageFlux(chatRoomManager.subscribe(accountId, input.getRoomId()).asFlux());
                 })
@@ -37,15 +37,14 @@ public class SubscribeChatRoomUseCase {
     }
 
     private Mono<Void> validateChatRoomExists(String roomId) {
-        return this.chatRoomRepository.existsById(roomId)
-                .filter(b -> b)
-                .switchIfEmpty(Mono.error(() -> new TargetNotFoundException("Chat room not found, room id = '%s'.".formatted(roomId))))
-                .then();
+        return chatRoomRepository.existsById(roomId)
+                .flatMap(bol -> bol
+                        ? Mono.empty()
+                        : Mono.error(() -> new TargetNotFoundException("Chat room not found, room id = '%s'.".formatted(roomId))));
     }
 
     private Mono<Void> validateCanSubscribe(String roomId) {
-        return SecurityUtil.getSecurityAccount()
-                .map(SecurityAccount::getRoomIdSet)
+        return SecurityUtil.getCurrentRoomIdSet()
                 .filter(set -> set.contains(roomId))
                 .switchIfEmpty(Mono.error(() -> new AccessDeniedException("Account is not a member of chat room, room id = '%s'".formatted(roomId))))
                 .then();

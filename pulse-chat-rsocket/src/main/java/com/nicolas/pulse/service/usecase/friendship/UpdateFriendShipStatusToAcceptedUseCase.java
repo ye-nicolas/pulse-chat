@@ -30,11 +30,9 @@ public class UpdateFriendShipStatusToAcceptedUseCase {
     }
 
     private Mono<Void> validateStatusIsPending(FriendShip friendShip) {
-        if (friendShip.getStatus() != FriendShipStatus.PENDING) {
-            return Mono.error(() -> new ConflictException("Friendship status is '%s', cannot be accepted. Only PENDING status can be updated.".formatted(friendShip.getStatus()))
-            );
-        }
-        return Mono.empty();
+        return friendShip.getStatus() != FriendShipStatus.PENDING
+                ? Mono.error(() -> new ConflictException("Friendship status is '%s', cannot be accepted. Only PENDING status can be updated.".formatted(friendShip.getStatus())))
+                : Mono.empty();
     }
 
     private Mono<Void> validateIsRecipient(FriendShip friendShip) {

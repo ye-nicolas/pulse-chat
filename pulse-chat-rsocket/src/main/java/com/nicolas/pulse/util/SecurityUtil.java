@@ -21,7 +21,7 @@ public class SecurityUtil {
                 .filter(Authentication::isAuthenticated)
                 .map(Authentication::getPrincipal)
                 .map(auth -> ((SecurityAccount) auth))
-                .switchIfEmpty(Mono.error(new BadCredentialsException("Unable to retrieve account details.")));
+                .switchIfEmpty(Mono.error(() -> new BadCredentialsException("Unable to retrieve account details.")));
     }
 
     public static Mono<Set<String>> getCurrentRoomIdSet() {
