@@ -22,9 +22,10 @@ public class UpdateChatMessageUseCase {
 
     public Mono<Void> execute(Input input, Output output) {
         return chatMessageRepository.findById(input.getMessageId())
-                .switchIfEmpty(Mono.error(new TargetNotFoundException("Message not found, message id = '%s'.".formatted(input.getMessageId()))))
-                .flatMap(this::validateCanUpdateByAccount)
-                .flatMap(this::validateCanUpdate)
+                .switchIfEmpty(Mono.error(() -> new TargetNotFoundException("Message not found, message id = '%s'.".formatted(input.getMessageId()))))
+                .delayUntil(chatMessage -> Mono.when(
+                        this.validateIsCreator(chatMessage),
+                        this.validateCanUpdate(chatMessage)))
                 .flatMap(chatMessage -> updateMessage(chatMessage, input.getNewContent()))
                 .doOnSuccess(output::setNewChatMessage)
                 .then();
@@ -35,21 +36,15 @@ public class UpdateChatMessageUseCase {
         return chatMessageRepository.save(chatMessage);
     }
 
-    private Mono<ChatMessage> validateCanUpdateByAccount(ChatMessage chatMessage) {
+    private Mono<Void> validateIsCreator(ChatMessage chatMessage) {
         return SecurityUtil.getCurrentAccountId()
-                .flatMap(accountId -> {
-                    if (accountId.equals(chatMessage.getCreatedBy())) {
-                        return Mono.just(chatMessage);
-                    }
-                    return Mono.error(new AccessDeniedException("Can't update message by permission denied, accountId = '%s'".formatted(accountId)));
-                });
+                .flatMap(accountId -> accountId.equals(chatMessage.getCreatedBy())
+                        ? Mono.empty()
+                        : Mono.error(() -> new AccessDeniedException("Can't update message by permission denied, account id = '%s'.".formatted(accountId))));
     }
 
-    private Mono<ChatMessage> validateCanUpdate(ChatMessage chatMessage) {
-        if (chatMessage.isDelete()) {
-            return Mono.error(new IllegalStateException("Message is already deleted, cannot update."));
-        }
-        return Mono.just(chatMessage);
+    private Mono<Void> validateCanUpdate(ChatMessage chatMessage) {
+        return chatMessage.isDelete() ? Mono.error(() -> new IllegalStateException("Message is already deleted, cannot update.")) : Mono.empty();
     }
 
     @Data
