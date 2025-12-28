@@ -49,7 +49,8 @@ public class ChatRoomController {
     public ResponseEntity<Flux<ChatRoom>> findAll() {
         return ResponseEntity.ok(SecurityUtil.getCurrentAccountId()
                 .flatMapMany(chatRoomMemberRepository::findAllByAccountId)
-                .map(ChatRoomMember::getChatRoom));
+                .map(ChatRoomMember::getChatRoom)
+                .distinct());
     }
 
     @GetMapping("/{roomId}")
