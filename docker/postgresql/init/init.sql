@@ -47,11 +47,11 @@ CREATE TABLE pulse_chat.chat_room_member (
 	id bpchar(26) NOT NULL,
 	account_id bpchar(26) NOT NULL,
 	room_id bpchar(26) NOT NULL,
+	is_muted bool NOT NULL DEFAULT false,
+	is_pinned bool NOT NULL DEFAULT false,
 	created_by bpchar(26) NOT NULL,
 	updated_by bpchar(26) NOT NULL,
 	created_at timestamptz NOT NULL DEFAULT now(),
-	is_muted bool NOT NULL DEFAULT false,
-	is_pinned bool NOT NULL DEFAULT false,
 	updated_at timestamptz NOT NULL DEFAULT now(),
 	CONSTRAINT chat_room_member_pk PRIMARY KEY (id),
 	CONSTRAINT chat_room_member_uk UNIQUE (account_id, room_id)
@@ -66,10 +66,8 @@ CREATE TABLE pulse_chat.chat_message (
 	"content" text NOT NULL,
 	is_delete bool NOT NULL DEFAULT false,
 	created_by bpchar(26) NOT NULL,
-	updated_by bpchar(26) NOT NULL,
 	created_at timestamptz NOT NULL DEFAULT now(),
-	is_muted bool NOT NULL DEFAULT false,
-	is_pinned bool NOT NULL DEFAULT false,
+	updated_at timestamptz NOT NULL DEFAULT now(),
 	CONSTRAINT chat_message_pk PRIMARY KEY (id)
 );
 
