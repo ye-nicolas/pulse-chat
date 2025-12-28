@@ -19,7 +19,6 @@ public class ChatMessageRes {
     private ChatMessageType type;
     private String content;
     private String createBy;
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ssXXX")
     private Instant createAt;
     private boolean isDelete;
 }

@@ -1,26 +1,20 @@
 package com.nicolas.pulse.entity.domain;
 
-import com.nicolas.pulse.entity.enumerate.Privilege;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.util.CollectionUtils;
 
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @Data
 @Builder
 @AllArgsConstructor
 public class SecurityAccount implements UserDetails {
     public static final String USER_NAME = "userName";
-    public static final String PRIVILEGE = "privilege";
-    public static final String ROOM = "room";
     @Builder.Default
     private Set<GrantedAuthority> grantedAuthoritySet = Set.of();
     private String id;
