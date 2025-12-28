@@ -7,7 +7,7 @@ import reactor.core.publisher.Mono;
 import java.util.List;
 
 public interface ChatMessageReadLastRepository {
-    Mono<ChatMessageLastRead> findByLastMessageIdAndRoomIdAndMemberId(String messageId, String roomId, String memberId);
+    Mono<ChatMessageLastRead> findByRoomIdAndMemberId(String roomId, String memberId);
 
     Mono<ChatMessageLastRead> save(ChatMessageLastRead messageRead);
 

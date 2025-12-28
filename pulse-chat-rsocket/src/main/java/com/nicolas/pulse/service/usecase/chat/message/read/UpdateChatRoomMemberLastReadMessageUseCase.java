@@ -42,14 +42,14 @@ public class UpdateChatRoomMemberLastReadMessageUseCase {
     }
 
     private Mono<ChatMessageLastRead> saveChatMessageRead(String messageId, ChatRoomMember chatRoomMember) {
-        return chatMessageReadLastRepository.findByLastMessageIdAndRoomIdAndMemberId(messageId, chatRoomMember.getChatRoom().getId(), chatRoomMember.getId())
+        return chatMessageReadLastRepository.findByRoomIdAndMemberId(chatRoomMember.getChatRoom().getId(), chatRoomMember.getId())
                 .switchIfEmpty(Mono.fromSupplier(() -> ChatMessageLastRead.builder()
                         .id(UlidCreator.getMonotonicUlid().toString())
                         .roomId(chatRoomMember.getChatRoom().getId())
                         .lastMessageId(messageId)
                         .memberId(chatRoomMember.getId())
                         .build()))
-                .filter(chatMessageLastRead -> messageId.compareTo(chatMessageLastRead.getLastMessageId()) > 0)
+                .filter(chatMessageLastRead -> messageId.compareTo(chatMessageLastRead.getLastMessageId()) >= 0)
                 .doOnNext(chatMessageLastRead -> chatMessageLastRead.setLastMessageId(messageId))
                 .flatMap(chatMessageReadLastRepository::save);
     }
