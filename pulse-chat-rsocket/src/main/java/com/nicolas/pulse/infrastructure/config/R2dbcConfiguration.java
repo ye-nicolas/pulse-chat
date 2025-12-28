@@ -25,7 +25,6 @@ import org.springframework.transaction.ReactiveTransactionManager;
 import reactor.core.publisher.Mono;
 
 import java.time.Duration;
-import java.util.Map;
 
 @EnableR2dbcAuditing
 @EnableR2dbcRepositories(basePackages = "com.nicolas.pulse.adapter.repository", entityOperationsRef = "MainR2dbcEntityOperations")

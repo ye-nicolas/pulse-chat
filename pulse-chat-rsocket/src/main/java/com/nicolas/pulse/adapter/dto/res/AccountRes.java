@@ -19,9 +19,7 @@ public class AccountRes {
     private boolean isActive;
     private String createdBy;
     private String updatedBy;
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ssXXX")
     private Instant createdAt;
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ssXXX")
     private Instant updatedAt;
     private String remark;
 }
