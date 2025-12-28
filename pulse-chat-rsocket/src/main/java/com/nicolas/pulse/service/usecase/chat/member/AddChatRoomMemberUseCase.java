@@ -54,7 +54,7 @@ public class AddChatRoomMemberUseCase {
 
     private Mono<Void> validateAccountExistsInRoom(ChatRoom chatRoom, Set<String> accountIdSet) {
         return Flux.fromIterable(accountIdSet)
-                .flatMap(id -> chatRoomMemberRepository.existsByIdAndRoomId(chatRoom.getId(), id)
+                .flatMap(id -> chatRoomMemberRepository.existsByAccountIdAndRoomId(chatRoom.getId(), id)
                         .filter(exists -> !exists)
                         .switchIfEmpty(Mono.error(() -> new ConflictException("Account is exists in room, account id = '%s'.".formatted(id))))
                         .then())

@@ -37,7 +37,7 @@ public class FindChatRoomByIdUseCase {
 
     private Mono<Void> validateGetAllow(String roomId) {
         return SecurityUtil.getCurrentAccountId()
-                .flatMap(accountId -> chatRoomMemberRepository.existsByIdAndRoomId(accountId, roomId))
+                .flatMap(accountId -> chatRoomMemberRepository.existsByAccountIdAndRoomId(accountId, roomId))
                 .flatMap(bol -> bol
                         ? Mono.empty()
                         : Mono.error(() -> new AccessDeniedException("Not allow get chat room, room id = '%s'.".formatted(roomId))));
