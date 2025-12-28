@@ -33,8 +33,8 @@ public class DeleteChatRoomUseCase {
         return validateRoomIsExists(input.roomId)
                 .then(validateDeleteAllow(input.getRoomId()))
                 .then(Mono.when(chatMessageReadLastRepository.deleteByRoomId(input.getRoomId()),
-                        chatRoomMemberRepository.deleteByRoomId(input.getRoomId()),
                         chatMessageRepository.deleteByRoomId(input.getRoomId()),
+                        chatRoomMemberRepository.deleteByRoomId(input.getRoomId()),
                         chatRoomRepository.deleteById(input.getRoomId())));
     }
 

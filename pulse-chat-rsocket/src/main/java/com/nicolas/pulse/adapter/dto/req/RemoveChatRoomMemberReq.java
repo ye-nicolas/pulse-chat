@@ -16,5 +16,5 @@ import java.util.List;
 @NoArgsConstructor
 public class RemoveChatRoomMemberReq {
     @NotEmpty
-    private List<@Valid @NotBlank String> memberId;
+    private List<@Valid @NotBlank String> memberIdList;
 }

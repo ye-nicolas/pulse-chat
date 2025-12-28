@@ -37,7 +37,7 @@ public class RemoveChatRoomMemberByRoomUsecase {
     public Mono<Void> execute(Input input) {
         return getChatRoom(input.getRoomId())
                 .flatMap(room -> Mono.when(
-                        this.validateCurrentAccountInRoom(room),
+                        this.validateDeleteMemberAllow(room),
                         this.validateMemberIsExists(room, input.getDeleteMemberIdList())))
                 .then(this.deleteChatRoomMember(input.getDeleteMemberIdList()))
                 .then(Mono.fromRunnable(() -> kickOutChatRoomMembers(input.getDeleteMemberIdList(), input.getRoomId())))
@@ -63,12 +63,13 @@ public class RemoveChatRoomMemberByRoomUsecase {
     private Mono<Void> validateMemberIsExists(ChatRoom room, Set<String> deleteMemberIdList) {
         return Flux.fromIterable(deleteMemberIdList)
                 .flatMap(memberId -> chatRoomMemberRepository.existsByIdAndRoomId(memberId, room.getId())
+                        .filter(Boolean::booleanValue)
                         .switchIfEmpty(Mono.error(() -> new TargetNotFoundException("Member not found by '%s', member id = '%s'.".formatted(room.getName(), memberId))))
                         .then())
                 .then();
     }
 
-    private Mono<Void> validateCurrentAccountInRoom(ChatRoom room) {
+    private Mono<Void> validateDeleteMemberAllow(ChatRoom room) {
         return SecurityUtil.getCurrentAccountId()
                 .flatMap(accountId -> chatRoomMemberRepository.existsByAccountIdAndRoomId(accountId, room.getId())
                         .filter(Boolean::booleanValue)
