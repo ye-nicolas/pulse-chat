@@ -1,5 +1,6 @@
 package com.nicolas.pulse.infrastructure.config;
 
+import com.nicolas.pulse.entity.domain.SecurityAccount;
 import com.nicolas.pulse.util.SecurityUtil;
 import io.r2dbc.pool.ConnectionPool;
 import io.r2dbc.pool.ConnectionPoolConfiguration;
@@ -21,6 +22,7 @@ import org.springframework.data.r2dbc.repository.config.EnableR2dbcRepositories;
 import org.springframework.r2dbc.connection.R2dbcTransactionManager;
 import org.springframework.r2dbc.core.DatabaseClient;
 import org.springframework.transaction.ReactiveTransactionManager;
+import reactor.core.publisher.Mono;
 
 import java.time.Duration;
 
@@ -110,6 +112,8 @@ public class R2dbcConfiguration extends AbstractR2dbcConfiguration {
     @Primary
     @Bean
     public ReactiveAuditorAware<String> getAuditorProvider() {
-        return SecurityUtil::getCurrentAccountId;
+        return () -> SecurityUtil.getBasicSecurityAccount()
+                .map(SecurityAccount::getId)
+                .switchIfEmpty(Mono.just("01KDFWP8CSRTWJ04A6WS7CDNWM"));
     }
 }

@@ -18,9 +18,8 @@ public class ChatMessageReadLastRepositoryImp implements ChatMessageReadLastRepo
         this.peer = peer;
     }
 
-    @Override
-    public Mono<ChatMessageLastRead> findByLastMessageIdAndRoomIdAndMemberId(String messageId, String roomId, String memberId) {
-        return peer.findByLastMessageIdAndRoomIdAndMemberId(messageId, roomId, memberId).map(ChatMessageReadDataMapper::dataToDomain);
+    public Mono<ChatMessageLastRead> findByRoomIdAndMemberId(String roomId, String memberId) {
+        return peer.findByRoomIdAndMemberId(roomId, memberId).map(ChatMessageReadDataMapper::dataToDomain);
     }
 
     @Transactional

@@ -36,7 +36,7 @@ public class AccountController {
                 .delayUntil(account -> SecurityUtil.getCurrentAccountId()
                         .flatMap(currentAccountId -> currentAccountId.equals(account.getId())
                                 ? Mono.empty()
-                                : Mono.error(() -> new AccessDeniedException("Cant get other account"))))
+                                : Mono.error(() -> new AccessDeniedException("Cant get other account."))))
                 .map(AccountMapper::domainToRes)
                 .map(ResponseEntity::ok);
     }

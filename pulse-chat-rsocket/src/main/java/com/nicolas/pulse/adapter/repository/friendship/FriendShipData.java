@@ -14,7 +14,7 @@ import org.springframework.data.relational.core.mapping.Table;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
-import java.time.OffsetDateTime;
+import java.time.Instant;
 
 @Table(DbMeta.FriendShipData.TABLE_NAME)
 @Data
@@ -45,11 +45,11 @@ public class FriendShipData implements Persistable<String> {
 
     @CreatedDate
     @Column(DbMeta.FriendShipData.COL_CREATED_AT)
-    private OffsetDateTime createdAt;
+    private Instant createdAt;
 
     @LastModifiedDate
     @Column(DbMeta.FriendShipData.COL_UPDATED_AT)
-    private OffsetDateTime updatedAt;
+    private Instant updatedAt;
 
     @Transient
     private AccountData requesterAccount;

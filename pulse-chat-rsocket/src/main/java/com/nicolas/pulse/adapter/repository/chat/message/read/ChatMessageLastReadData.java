@@ -48,7 +48,6 @@ public class ChatMessageLastReadData implements Persistable<String> {
     public boolean isNew() {
         return !StringUtils.hasText(createdBy)
                 && ObjectUtils.isEmpty(createdAt)
-                && StringUtils.hasText(createdBy)
                 && ObjectUtils.isEmpty(createdAt);
     }
 }

@@ -33,8 +33,8 @@ public class DeleteChatRoomUseCase {
         return validateRoomIsExists(input.roomId)
                 .then(validateDeleteAllow(input.getRoomId()))
                 .then(Mono.when(chatMessageReadLastRepository.deleteByRoomId(input.getRoomId()),
-                        chatRoomMemberRepository.deleteByRoomId(input.getRoomId()),
                         chatMessageRepository.deleteByRoomId(input.getRoomId()),
+                        chatRoomMemberRepository.deleteByRoomId(input.getRoomId()),
                         chatRoomRepository.deleteById(input.getRoomId())));
     }
 
@@ -47,7 +47,7 @@ public class DeleteChatRoomUseCase {
 
     private Mono<Void> validateDeleteAllow(String roomId) {
         return SecurityUtil.getCurrentAccountId()
-                .flatMap(accountId -> chatRoomMemberRepository.existsByIdAndRoomId(accountId, roomId))
+                .flatMap(accountId -> chatRoomMemberRepository.existsByAccountIdAndRoomId(accountId, roomId))
                 .flatMap(bol -> bol
                         ? Mono.empty()
                         : Mono.error(() -> new AccessDeniedException("Not allow delete chat room, room id = '%s'.".formatted(roomId))));

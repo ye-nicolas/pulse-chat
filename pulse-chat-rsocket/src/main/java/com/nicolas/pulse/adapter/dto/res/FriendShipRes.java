@@ -1,23 +1,23 @@
-package com.nicolas.pulse.entity.domain;
+package com.nicolas.pulse.adapter.dto.res;
 
-import com.nicolas.pulse.entity.enumerate.Privilege;
+import com.nicolas.pulse.entity.domain.Account;
+import com.nicolas.pulse.entity.enumerate.FriendShipStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.Instant;
-import java.util.Set;
 
 @Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class Role {
+public class FriendShipRes {
     private String id;
-    private String name;
-    private Set<Privilege> privilegeSet;
-    private String remark;
+    private AccountRes requesterAccount;
+    private AccountRes recipientAccount;
+    private FriendShipStatus status;
     private String createdBy;
     private String updatedBy;
     private Instant createdAt;

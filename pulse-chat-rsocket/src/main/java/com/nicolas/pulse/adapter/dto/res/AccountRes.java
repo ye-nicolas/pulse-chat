@@ -1,6 +1,5 @@
 package com.nicolas.pulse.adapter.dto.res;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -19,9 +18,7 @@ public class AccountRes {
     private boolean isActive;
     private String createdBy;
     private String updatedBy;
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ssXXX")
     private Instant createdAt;
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ssXXX")
     private Instant updatedAt;
     private String remark;
 }

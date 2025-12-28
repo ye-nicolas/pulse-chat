@@ -7,6 +7,7 @@ import com.nicolas.pulse.entity.domain.chat.ChatRoom;
 import com.nicolas.pulse.entity.domain.chat.ChatRoomMember;
 import com.nicolas.pulse.service.repository.ChatRoomMemberRepository;
 import com.nicolas.pulse.service.usecase.chat.member.AddChatRoomMemberUseCase;
+import com.nicolas.pulse.service.usecase.chat.member.FindChatRoomMemberUseCase;
 import com.nicolas.pulse.service.usecase.chat.member.RemoveChatRoomMemberByRoomUsecase;
 import com.nicolas.pulse.service.usecase.chat.room.CreateChatRoomUseCase;
 import com.nicolas.pulse.service.usecase.chat.room.DeleteChatRoomUseCase;
@@ -27,6 +28,7 @@ public class ChatRoomController {
     private final ChatRoomMemberRepository chatRoomMemberRepository;
     private final FindChatRoomByIdUseCase findChatRoomByIdUseCase;
     private final CreateChatRoomUseCase createChatRoomUseCase;
+    private final FindChatRoomMemberUseCase findChatRoomMemberUseCase;
     private final AddChatRoomMemberUseCase addChatRoomMemberUseCase;
     private final RemoveChatRoomMemberByRoomUsecase removeChatRoomMemberByRoomUsecase;
     private final DeleteChatRoomUseCase deleteChatRoomUseCase;
@@ -34,12 +36,14 @@ public class ChatRoomController {
     public ChatRoomController(ChatRoomMemberRepository chatRoomMemberRepository,
                               FindChatRoomByIdUseCase findChatRoomByIdUseCase,
                               CreateChatRoomUseCase createChatRoomUseCase,
+                              FindChatRoomMemberUseCase findChatRoomMemberUseCase,
                               AddChatRoomMemberUseCase addChatRoomMemberUseCase,
                               RemoveChatRoomMemberByRoomUsecase removeChatRoomMemberByRoomUsecase,
                               DeleteChatRoomUseCase deleteChatRoomUseCase) {
         this.chatRoomMemberRepository = chatRoomMemberRepository;
         this.findChatRoomByIdUseCase = findChatRoomByIdUseCase;
         this.createChatRoomUseCase = createChatRoomUseCase;
+        this.findChatRoomMemberUseCase = findChatRoomMemberUseCase;
         this.addChatRoomMemberUseCase = addChatRoomMemberUseCase;
         this.removeChatRoomMemberByRoomUsecase = removeChatRoomMemberByRoomUsecase;
         this.deleteChatRoomUseCase = deleteChatRoomUseCase;
@@ -49,7 +53,8 @@ public class ChatRoomController {
     public ResponseEntity<Flux<ChatRoom>> findAll() {
         return ResponseEntity.ok(SecurityUtil.getCurrentAccountId()
                 .flatMapMany(chatRoomMemberRepository::findAllByAccountId)
-                .map(ChatRoomMember::getChatRoom));
+                .map(ChatRoomMember::getChatRoom)
+                .distinct());
     }
 
     @GetMapping("/{roomId}")
@@ -70,6 +75,13 @@ public class ChatRoomController {
                 .then(Mono.fromSupplier(() -> ResponseEntity.ok(output.getRoomId())));
     }
 
+    @GetMapping("/{roomId}/member")
+    public ResponseEntity<Flux<ChatRoomMember>> findRoomMember(@PathVariable("roomId") String roomId) {
+        FindChatRoomMemberUseCase.Output output = new FindChatRoomMemberUseCase.Output();
+        return ResponseEntity.ok(findChatRoomMemberUseCase.execute(new FindChatRoomMemberUseCase.Input(roomId), output)
+                .thenMany(Flux.defer(output::getChatRoomMemberFlux)));
+    }
+
     @PostMapping("/{roomId}/member")
     public Mono<ResponseEntity<Void>> addRoomMember(@PathVariable("roomId") String roomId,
                                                     @Valid @RequestBody Mono<AddChatRoomMemberReq> reqMono) {
@@ -86,7 +98,7 @@ public class ChatRoomController {
                                                        @Valid @RequestBody Mono<RemoveChatRoomMemberReq> reqMono) {
         return reqMono.map(req -> RemoveChatRoomMemberByRoomUsecase.Input.builder()
                         .roomId(roomId)
-                        .deleteMemberIdList(new HashSet<>(req.getMemberId()))
+                        .deleteMemberIdList(new HashSet<>(req.getMemberIdList()))
                         .build())
                 .flatMap(removeChatRoomMemberByRoomUsecase::execute)
                 .map(ResponseEntity::ok);

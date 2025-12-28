@@ -37,16 +37,16 @@ public class ChatRoomManager {
     }
 
     public Sinks.Many<ChatMessage> subscribe(String accountId, String roomId) {
-        RoomContext context = roomContexts.computeIfAbsent(roomId, k -> new RoomContext());
-        context.increment(accountId);
+        RoomContext roomContext = roomContexts.computeIfAbsent(roomId, k -> new RoomContext());
+        roomContext.increment(accountId);
         log.info("Subscribed room '{}', account id= '{}'.", roomId, accountId);
-        return context.getAccountSkins().get(roomId);
+        return roomContext.getAccountSkins().get(accountId);
     }
 
     public void unSubscribe(String accountId, String roomId) {
-        RoomContext context = roomContexts.get(roomId);
-        if (context != null) {
-            context.decrement(accountId);
+        RoomContext roomContext = roomContexts.get(roomId);
+        if (roomContext != null) {
+            roomContext.decrement(accountId);
             log.info("Un Subscribed room '{}', account id= '{}'.", roomId, accountId);
             removeRoom(roomId);
         }
