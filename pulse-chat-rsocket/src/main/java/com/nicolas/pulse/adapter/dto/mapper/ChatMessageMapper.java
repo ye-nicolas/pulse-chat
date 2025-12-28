@@ -13,8 +13,9 @@ public class ChatMessageMapper {
                 .roomId(domain.getRoomId())
                 .type(domain.getType())
                 .content(domain.getContent())
-                .createBy(domain.getCreatedBy())
-                .createAt(domain.getCreatedAt())
+                .createdBy(domain.getCreatedBy())
+                .createdAt(domain.getCreatedAt())
+                .updatedAt(domain.getUpdatedAt())
                 .isDelete(domain.isDelete())
                 .build();
     }

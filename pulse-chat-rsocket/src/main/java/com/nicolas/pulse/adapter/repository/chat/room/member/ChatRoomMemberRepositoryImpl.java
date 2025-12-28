@@ -11,7 +11,6 @@ import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
@@ -60,7 +59,7 @@ public class ChatRoomMemberRepositoryImpl implements ChatRoomMemberRepository {
     private static final String FIND_BY_ID_SQL = BASIC_SQL + "where %s = $1".formatted(DbMeta.ChatRoomMemberData.COLUMN_ID);
     private static final String FIND_BY_ACCOUNT_ID_SQL = BASIC_SQL + "where %s = $1".formatted(DbMeta.ChatRoomMemberData.COLUMN_ACCOUNT_ID);
     private static final String FIND_BY_ROOM_ID_SQL = BASIC_SQL + "where %s = $1".formatted(DbMeta.ChatRoomMemberData.COLUMN_ROOM_ID);
-    private static final String FIND_BY_ACCOUNT_ID_AND_ROOM_ID_SQL = BASIC_SQL + "where %s = $1 and %s = $1".formatted(DbMeta.ChatRoomMemberData.COLUMN_ACCOUNT_ID, DbMeta.ChatRoomMemberData.COLUMN_ROOM_ID);
+    private static final String FIND_BY_ACCOUNT_ID_AND_ROOM_ID_SQL = BASIC_SQL + "where %s = $1 and %s = $2".formatted(DbMeta.ChatRoomMemberData.COLUMN_ACCOUNT_ID, DbMeta.ChatRoomMemberData.COLUMN_ROOM_ID);
 
     public ChatRoomMemberRepositoryImpl(ChatRoomMemberDataRepositoryPeer peer,
                                         R2dbcEntityOperations r2dbcEntityOperations) {

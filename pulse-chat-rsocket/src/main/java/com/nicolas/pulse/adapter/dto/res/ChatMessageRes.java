@@ -1,6 +1,5 @@
 package com.nicolas.pulse.adapter.dto.res;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import com.nicolas.pulse.entity.enumerate.ChatMessageType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -18,7 +17,8 @@ public class ChatMessageRes {
     private String roomId;
     private ChatMessageType type;
     private String content;
-    private String createBy;
-    private Instant createAt;
+    private String createdBy;
+    private Instant createdAt;
+    private Instant updatedAt;
     private boolean isDelete;
 }
