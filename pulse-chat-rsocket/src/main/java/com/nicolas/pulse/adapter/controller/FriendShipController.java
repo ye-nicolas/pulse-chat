@@ -1,6 +1,8 @@
 package com.nicolas.pulse.adapter.controller;
 
+import com.nicolas.pulse.adapter.dto.mapper.FriendShipMapper;
 import com.nicolas.pulse.adapter.dto.req.CreateFriendShipReq;
+import com.nicolas.pulse.adapter.dto.res.FriendShipRes;
 import com.nicolas.pulse.entity.domain.FriendShip;
 import com.nicolas.pulse.service.repository.FriendShipRepository;
 import com.nicolas.pulse.service.usecase.friendship.CreateFriendShipUseCase;
@@ -29,9 +31,10 @@ public class FriendShipController {
     }
 
     @GetMapping("/")
-    public ResponseEntity<Flux<FriendShip>> findAllByAccount() {
+    public ResponseEntity<Flux<FriendShipRes>> findAllByAccount() {
         return ResponseEntity.ok(SecurityUtil.getCurrentAccountId()
-                .flatMapMany(friendShipRepository::findAllByAccountId));
+                .flatMapMany(friendShipRepository::findAllByAccountId)
+                .map(FriendShipMapper::domainToRes));
     }
 
     @PostMapping("/")

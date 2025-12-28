@@ -1,5 +1,7 @@
 package com.nicolas.pulse.adapter.dto.res;
 
+import com.nicolas.pulse.entity.domain.Account;
+import com.nicolas.pulse.entity.enumerate.FriendShipStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -11,14 +13,13 @@ import java.time.Instant;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class AccountRes {
+public class FriendShipRes {
     private String id;
-    private String name;
-    private String showName;
-    private boolean isActive;
+    private AccountRes requesterAccount;
+    private AccountRes recipientAccount;
+    private FriendShipStatus status;
     private String createdBy;
     private String updatedBy;
     private Instant createdAt;
     private Instant updatedAt;
-    private String remark;
 }
