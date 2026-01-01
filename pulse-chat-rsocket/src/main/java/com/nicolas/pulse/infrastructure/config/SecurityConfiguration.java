@@ -6,6 +6,7 @@ import com.nicolas.pulse.infrastructure.security.CustomerJwtReactiveAuthenticati
 import com.nicolas.pulse.infrastructure.security.SecurityExceptionHandler;
 import com.nicolas.pulse.service.usecase.account.ReactiveUserDetailsServiceImpl;
 import com.nicolas.pulse.util.JwtUtil;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -16,6 +17,7 @@ import org.springframework.security.config.annotation.rsocket.RSocketSecurity;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.SecurityWebFiltersOrder;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
+import org.springframework.security.core.userdetails.ReactiveUserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.rsocket.core.PayloadSocketAcceptorInterceptor;
@@ -83,7 +85,7 @@ public class SecurityConfiguration {
     }
 
     @Bean("UserDetailsRepositoryReactiveAuthenticationManager")
-    public UserDetailsRepositoryReactiveAuthenticationManager getUserDetailsRepositoryReactiveAuthenticationManager(ReactiveUserDetailsServiceImpl reactiveUserDetailsService) {
+    public UserDetailsRepositoryReactiveAuthenticationManager getUserDetailsRepositoryReactiveAuthenticationManager(@Qualifier(ReactiveUserDetailsServiceImpl.BEAN_NAME) ReactiveUserDetailsService reactiveUserDetailsService) {
         UserDetailsRepositoryReactiveAuthenticationManager reactiveAuthenticationManager = new UserDetailsRepositoryReactiveAuthenticationManager(reactiveUserDetailsService);
         reactiveAuthenticationManager.setPasswordEncoder(passwordEncoder());
         return reactiveAuthenticationManager;

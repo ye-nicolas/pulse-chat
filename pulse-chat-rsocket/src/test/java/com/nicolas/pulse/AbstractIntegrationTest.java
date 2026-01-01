@@ -1,13 +1,15 @@
 package com.nicolas.pulse;
 
 import com.nicolas.pulse.adapter.repository.DbMeta;
-import com.nicolas.pulse.adapter.repository.account.AccountData;
+import com.nicolas.pulse.entity.domain.Account;
+import com.nicolas.pulse.entity.domain.SecurityAccount;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.r2dbc.core.DatabaseClient;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.reactive.server.WebTestClient;
@@ -47,7 +49,7 @@ public abstract class AbstractIntegrationTest {
 
     private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS Z");
     private static final String creator = "01KDFWP8CSRTWJ04A6WS7CDNWM";
-    protected static final AccountData ACCOUNT_DATA_1 = AccountData.builder()
+    protected static final Account ACCOUNT_DATA_1 = Account.builder()
             .id("01KDFX186KHJ0EC3TBED58Z5S4")
             .name("root1")
             .showName("TEst1")
@@ -58,7 +60,7 @@ public abstract class AbstractIntegrationTest {
             .createdAt(OffsetDateTime.parse("2025-12-27 20:37:46.961 +0800", formatter).toInstant())
             .updatedAt(OffsetDateTime.parse("2025-12-27 20:37:46.961 +0800", formatter).toInstant())
             .build();
-    protected static AccountData ACCOUNT_DATA_2 = AccountData.builder()
+    protected static Account ACCOUNT_DATA_2 = Account.builder()
             .id("01KDFX1JMD3FTC7E5NCP1AEV41")
             .name("root2")
             .showName("TEst2")
@@ -69,7 +71,7 @@ public abstract class AbstractIntegrationTest {
             .createdAt(OffsetDateTime.parse("2025-12-27 20:37:57.607 +0800", formatter).toInstant())
             .updatedAt(OffsetDateTime.parse("2025-12-27 20:37:57.607 +0800", formatter).toInstant())
             .build();
-    protected static AccountData ACCOUNT_DATA_3 = AccountData.builder()
+    protected static Account ACCOUNT_DATA_3 = Account.builder()
             .id("01KDFX1SB2RRW9R0KC9YQPMS73")
             .name("root3")
             .showName("TEst3")
@@ -79,6 +81,12 @@ public abstract class AbstractIntegrationTest {
             .updatedBy(creator)
             .createdAt(OffsetDateTime.parse("2025-12-27 20:38:04.481 +0800", formatter).toInstant())
             .updatedAt(OffsetDateTime.parse("2025-12-27 20:38:04.481 +0800", formatter).toInstant())
+            .build();
+    protected static final UserDetails USER_DETAILS = SecurityAccount.builder()
+            .id(ACCOUNT_DATA_1.getId())
+            .username(ACCOUNT_DATA_1.getName())
+            .password(ACCOUNT_DATA_1.getPassword())
+            .state(ACCOUNT_DATA_1.isActive())
             .build();
     private static final String ACCOUNT_SQL = """
             INSERT INTO %s (%s,%s,%s,%s,%s,%s,%s,%s,%s)
