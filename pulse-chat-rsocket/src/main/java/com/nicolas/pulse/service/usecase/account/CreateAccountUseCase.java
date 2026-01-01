@@ -28,7 +28,7 @@ public class CreateAccountUseCase {
     public Mono<Void> execute(Input input, Output output) {
         return this.validateNameNotExists(input.getName())
                 .then(this.createUser(input))
-                .doOnNext(account -> output.setAccountId(account.getId()))
+                .doOnNext(output::setAccount)
                 .then();
     }
 
@@ -63,6 +63,6 @@ public class CreateAccountUseCase {
     @Data
     @NoArgsConstructor
     public static class Output {
-        private String accountId;
+        private Account account;
     }
 }

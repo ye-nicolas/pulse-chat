@@ -46,7 +46,7 @@ public class SecurityConfiguration {
                 .formLogin(ServerHttpSecurity.FormLoginSpec::disable)
                 .securityContextRepository(NoOpServerSecurityContextRepository.getInstance())
                 .authorizeExchange(exchanges -> {
-                    exchanges.pathMatchers(AuthController.AUTH_BASE_URL + "/**").permitAll();
+                    exchanges.pathMatchers(AuthController.BASE_URL + "/**").permitAll();
                     exchanges.anyExchange().authenticated();
                 })
                 .oauth2ResourceServer(oauth2 -> oauth2
