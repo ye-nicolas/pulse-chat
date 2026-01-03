@@ -52,12 +52,12 @@ public class AuthController {
                         .password(req.getPassword())
                         .build())
                 .flatMap(input -> loginUseCase.execute(input, output))
-                .then(Mono.defer(() -> Mono.just(ResponseEntity.ok()
+                .then(Mono.fromSupplier(() -> ResponseEntity.ok()
                         .header(HttpHeaders.SET_COOKIE, getCookie(output.getRefreshToken()).toString())
                         .body(AuthRes.builder()
                                 .accessToken(output.getAccessToken())
                                 .accountId(output.getAccountId())
-                                .build()))));
+                                .build())));
     }
 
     @PostMapping(REFRESH_URL)
@@ -94,6 +94,7 @@ public class AuthController {
                 .secure(cookieSecure)
                 .path(refreshTokenPath)// refresh的路徑
                 .maxAge(refreshExpiresSeconds)
+                .sameSite("Lax")
                 .build();
     }
 }

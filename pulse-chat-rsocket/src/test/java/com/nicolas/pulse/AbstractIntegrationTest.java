@@ -82,7 +82,7 @@ public abstract class AbstractIntegrationTest {
             .createdAt(OffsetDateTime.parse("2025-12-27 20:38:04.481 +0800", formatter).toInstant())
             .updatedAt(OffsetDateTime.parse("2025-12-27 20:38:04.481 +0800", formatter).toInstant())
             .build();
-    protected static final UserDetails USER_DETAILS = SecurityAccount.builder()
+    protected static final UserDetails USER_DETAILS_ACCOUNT_1 = SecurityAccount.builder()
             .id(ACCOUNT_DATA_1.getId())
             .username(ACCOUNT_DATA_1.getName())
             .password(ACCOUNT_DATA_1.getPassword())

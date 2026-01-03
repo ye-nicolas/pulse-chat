@@ -15,7 +15,6 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class AccountControllerTest extends AbstractIntegrationTest {
-
     @Test
     void findAccountById_success() {
         // Arrange
@@ -23,7 +22,7 @@ public class AccountControllerTest extends AbstractIntegrationTest {
 
         // Act
         WebTestClient.ResponseSpec response = webTestClient
-                .mutateWith(SecurityMockServerConfigurers.mockUser(USER_DETAILS))
+                .mutateWith(SecurityMockServerConfigurers.mockUser(USER_DETAILS_ACCOUNT_1))
                 .get()
                 .uri(AccountController.BASE_URL + "/%s".formatted(exceptRes.getId()))
                 .exchange();
@@ -46,7 +45,7 @@ public class AccountControllerTest extends AbstractIntegrationTest {
 
         // Act
         WebTestClient.ResponseSpec response = webTestClient
-                .mutateWith(SecurityMockServerConfigurers.mockUser(USER_DETAILS))
+                .mutateWith(SecurityMockServerConfigurers.mockUser(USER_DETAILS_ACCOUNT_1))
                 .get()
                 .uri(AccountController.BASE_URL + "/%s".formatted(id))
                 .exchange();
@@ -70,7 +69,7 @@ public class AccountControllerTest extends AbstractIntegrationTest {
 
         // Act
         WebTestClient.ResponseSpec response = webTestClient
-                .mutateWith(SecurityMockServerConfigurers.mockUser(USER_DETAILS))
+                .mutateWith(SecurityMockServerConfigurers.mockUser(USER_DETAILS_ACCOUNT_1))
                 .get()
                 .uri(AccountController.BASE_URL + "/%s".formatted(id))
                 .exchange();
