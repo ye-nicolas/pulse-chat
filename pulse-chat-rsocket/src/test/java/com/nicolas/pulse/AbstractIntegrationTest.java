@@ -1,5 +1,6 @@
 package com.nicolas.pulse;
 
+import com.github.f4b6a3.ulid.UlidCreator;
 import com.nicolas.pulse.adapter.repository.DbMeta;
 import com.nicolas.pulse.entity.domain.Account;
 import com.nicolas.pulse.entity.domain.SecurityAccount;
@@ -15,6 +16,7 @@ import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.testcontainers.containers.PostgreSQLContainer;
 
+import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.stream.Collectors;
@@ -47,7 +49,7 @@ public abstract class AbstractIntegrationTest {
     @Autowired
     protected DatabaseClient databaseClient;
 
-    private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS Z");
+    protected static final Instant instant = Instant.now();
     private static final String creator = "01KDFWP8CSRTWJ04A6WS7CDNWM";
     protected static final Account ACCOUNT_DATA_1 = Account.builder()
             .id("01KDFX186KHJ0EC3TBED58Z5S4")
@@ -57,8 +59,8 @@ public abstract class AbstractIntegrationTest {
             .isActive(true)
             .createdBy(creator)
             .updatedBy(creator)
-            .createdAt(OffsetDateTime.parse("2025-12-27 20:37:46.961 +0800", formatter).toInstant())
-            .updatedAt(OffsetDateTime.parse("2025-12-27 20:37:46.961 +0800", formatter).toInstant())
+            .createdAt(instant)
+            .updatedAt(instant)
             .build();
     protected static Account ACCOUNT_DATA_2 = Account.builder()
             .id("01KDFX1JMD3FTC7E5NCP1AEV41")
@@ -68,8 +70,8 @@ public abstract class AbstractIntegrationTest {
             .isActive(true)
             .createdBy(creator)
             .updatedBy(creator)
-            .createdAt(OffsetDateTime.parse("2025-12-27 20:37:57.607 +0800", formatter).toInstant())
-            .updatedAt(OffsetDateTime.parse("2025-12-27 20:37:57.607 +0800", formatter).toInstant())
+            .createdAt(instant)
+            .updatedAt(instant)
             .build();
     protected static Account ACCOUNT_DATA_3 = Account.builder()
             .id("01KDFX1SB2RRW9R0KC9YQPMS73")
@@ -79,14 +81,31 @@ public abstract class AbstractIntegrationTest {
             .isActive(true)
             .createdBy(creator)
             .updatedBy(creator)
-            .createdAt(OffsetDateTime.parse("2025-12-27 20:38:04.481 +0800", formatter).toInstant())
-            .updatedAt(OffsetDateTime.parse("2025-12-27 20:38:04.481 +0800", formatter).toInstant())
+            .createdAt(instant)
+            .updatedAt(instant)
             .build();
-    protected static final UserDetails USER_DETAILS_ACCOUNT_1 = SecurityAccount.builder()
+    protected static Account ACCOUNT_DATA_4 = Account.builder()
+            .id("01KDFX1SB2RRW9R0KC9YQPMS75")
+            .name("root4")
+            .showName("TEst4")
+            .password("$2a$10$w/.QFRqxn1oYpM3OjhaB7u0F.MQ.RNRVqzfkJDHDAUUT1hpPls8Dq")
+            .isActive(true)
+            .createdBy(creator)
+            .updatedBy(creator)
+            .createdAt(instant)
+            .updatedAt(instant)
+            .build();
+    protected static final SecurityAccount USER_DETAILS_ACCOUNT_1 = SecurityAccount.builder()
             .id(ACCOUNT_DATA_1.getId())
             .username(ACCOUNT_DATA_1.getName())
             .password(ACCOUNT_DATA_1.getPassword())
             .state(ACCOUNT_DATA_1.isActive())
+            .build();
+    protected static final SecurityAccount USER_DETAILS_ACCOUNT_2 = SecurityAccount.builder()
+            .id(ACCOUNT_DATA_2.getId())
+            .username(ACCOUNT_DATA_2.getName())
+            .password(ACCOUNT_DATA_2.getPassword())
+            .state(ACCOUNT_DATA_2.isActive())
             .build();
     private static final String ACCOUNT_SQL = """
             INSERT INTO %s (%s,%s,%s,%s,%s,%s,%s,%s,%s)
@@ -94,7 +113,7 @@ public abstract class AbstractIntegrationTest {
             """.formatted(DbMeta.AccountData.TABLE_NAME,
             DbMeta.AccountData.COL_ID, DbMeta.AccountData.COL_NAME, DbMeta.AccountData.COL_SHOW_NAME, DbMeta.AccountData.COL_PASSWORD, DbMeta.AccountData.COL_IS_ACTIVE,
             DbMeta.AccountData.COL_CREATED_BY, DbMeta.AccountData.COL_UPDATED_BY, DbMeta.AccountData.COL_CREATED_AT, DbMeta.AccountData.COL_UPDATED_AT,
-            Stream.of(ACCOUNT_DATA_1, ACCOUNT_DATA_2, ACCOUNT_DATA_3)
+            Stream.of(ACCOUNT_DATA_1, ACCOUNT_DATA_2, ACCOUNT_DATA_3, ACCOUNT_DATA_4)
                     .map(accountData -> "('%s','%s','%s','%s',%s,'%s','%s','%s','%s')".formatted(
                             accountData.getId(), accountData.getName(), accountData.getShowName(), accountData.getPassword(), accountData.isActive(),
                             accountData.getCreatedBy(), accountData.getUpdatedBy(), accountData.getCreatedAt(), accountData.getUpdatedAt()
