@@ -43,9 +43,9 @@ public class CreateChatRoomUseCase {
 
     private Mono<Void> validateAccountIdSetExists(Set<String> accountIdSet) {
         return Flux.fromIterable(accountIdSet)
-                .flatMap(id -> accountRepository.existsById(id)
+                .flatMap(accountId -> accountRepository.existsById(accountId)
                         .filter(Boolean::booleanValue)
-                        .switchIfEmpty(Mono.error(() -> new TargetNotFoundException("Account not found, account id = '%s'.".formatted(id))))
+                        .switchIfEmpty(Mono.error(() -> new TargetNotFoundException("Account not found, account id = '%s'.".formatted(accountId))))
                         .then())
                 .then();
     }

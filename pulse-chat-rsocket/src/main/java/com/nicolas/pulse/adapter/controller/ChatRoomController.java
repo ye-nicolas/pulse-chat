@@ -79,7 +79,7 @@ public class ChatRoomController {
                         .roomName(req.getRoomName())
                         .build())
                 .flatMap(input -> createChatRoomUseCase.execute(input, output))
-                .then(Mono.fromSupplier(() -> ResponseEntity.ok(output.getRoomId())));
+                .then(Mono.fromSupplier(() -> ResponseEntity.status(HttpStatus.CREATED).body(output.getRoomId())));
     }
 
     @GetMapping("/{roomId}/member")
@@ -97,7 +97,7 @@ public class ChatRoomController {
                         .accountIdSet(new HashSet<>(req.getAccountIdList()))
                         .build())
                 .flatMap(addChatRoomMemberUseCase::execute)
-                .map(ResponseEntity::ok);
+                .thenReturn(ResponseEntity.status(HttpStatus.CREATED).build());
     }
 
     @DeleteMapping("/{roomId}/member")
