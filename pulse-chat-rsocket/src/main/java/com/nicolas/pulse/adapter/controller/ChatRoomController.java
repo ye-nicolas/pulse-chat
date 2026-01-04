@@ -12,19 +12,25 @@ import com.nicolas.pulse.service.usecase.chat.member.RemoveChatRoomMemberByRoomU
 import com.nicolas.pulse.service.usecase.chat.room.CreateChatRoomUseCase;
 import com.nicolas.pulse.service.usecase.chat.room.DeleteChatRoomUseCase;
 import com.nicolas.pulse.service.usecase.chat.room.FindChatRoomByIdUseCase;
+import com.nicolas.pulse.service.usecase.sink.ChatRoomManager;
 import com.nicolas.pulse.util.SecurityUtil;
 import jakarta.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
 import java.util.HashSet;
 
+@Slf4j
 @RestController
 @RequestMapping(ChatRoomController.CHAT_ROOM_BASE_URL)
 public class ChatRoomController {
     public static final String CHAT_ROOM_BASE_URL = "/chat-rooms";
+    private final ChatRoomManager chatRoomManager;
     private final ChatRoomMemberRepository chatRoomMemberRepository;
     private final FindChatRoomByIdUseCase findChatRoomByIdUseCase;
     private final CreateChatRoomUseCase createChatRoomUseCase;
@@ -33,13 +39,14 @@ public class ChatRoomController {
     private final RemoveChatRoomMemberByRoomUsecase removeChatRoomMemberByRoomUsecase;
     private final DeleteChatRoomUseCase deleteChatRoomUseCase;
 
-    public ChatRoomController(ChatRoomMemberRepository chatRoomMemberRepository,
+    public ChatRoomController(ChatRoomManager chatRoomManager, ChatRoomMemberRepository chatRoomMemberRepository,
                               FindChatRoomByIdUseCase findChatRoomByIdUseCase,
                               CreateChatRoomUseCase createChatRoomUseCase,
                               FindChatRoomMemberUseCase findChatRoomMemberUseCase,
                               AddChatRoomMemberUseCase addChatRoomMemberUseCase,
                               RemoveChatRoomMemberByRoomUsecase removeChatRoomMemberByRoomUsecase,
                               DeleteChatRoomUseCase deleteChatRoomUseCase) {
+        this.chatRoomManager = chatRoomManager;
         this.chatRoomMemberRepository = chatRoomMemberRepository;
         this.findChatRoomByIdUseCase = findChatRoomByIdUseCase;
         this.createChatRoomUseCase = createChatRoomUseCase;
@@ -100,8 +107,12 @@ public class ChatRoomController {
                         .roomId(roomId)
                         .deleteMemberIdSet(new HashSet<>(req.getMemberIdList()))
                         .build())
-                .flatMap(removeChatRoomMemberByRoomUsecase::execute)
-                .map(ResponseEntity::ok);
+                .flatMap(input -> removeChatRoomMemberByRoomUsecase.execute(input).thenReturn(input))
+                .doOnNext(input -> Mono.fromRunnable(() -> input.getDeleteMemberIdList().forEach(accountId -> chatRoomManager.kickOutAccount(roomId, accountId)))
+                        .doOnError(e -> log.error("Kick out failed", e))
+                        .subscribeOn(Schedulers.boundedElastic())
+                        .subscribe())
+                .thenReturn(ResponseEntity.ok().build());
     }
 
     @DeleteMapping("/{roomId}")

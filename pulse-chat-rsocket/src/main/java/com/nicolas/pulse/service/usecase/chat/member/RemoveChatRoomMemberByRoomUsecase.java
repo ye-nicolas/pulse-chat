@@ -7,7 +7,6 @@ import com.nicolas.pulse.entity.exception.TargetNotFoundException;
 import com.nicolas.pulse.service.repository.ChatMessageReadLastRepository;
 import com.nicolas.pulse.service.repository.ChatRoomMemberRepository;
 import com.nicolas.pulse.service.repository.ChatRoomRepository;
-import com.nicolas.pulse.service.usecase.sink.ChatRoomManager;
 import com.nicolas.pulse.util.SecurityUtil;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -24,14 +23,12 @@ import java.util.Set;
 
 @Service
 public class RemoveChatRoomMemberByRoomUsecase {
-    private final ChatRoomManager chatRoomManager;
     private final ChatRoomRepository chatRoomRepository;
     private final ChatRoomMemberRepository chatRoomMemberRepository;
     private final ChatMessageReadLastRepository chatMessageReadLastRepository;
     private final ApplicationEventPublisher applicationEventPublisher;
 
-    public RemoveChatRoomMemberByRoomUsecase(ChatRoomManager chatRoomManager,
-                                             ChatRoomRepository chatRoomRepository,
+    public RemoveChatRoomMemberByRoomUsecase(ChatRoomRepository chatRoomRepository,
                                              ChatRoomMemberRepository chatRoomMemberRepository,
                                              ChatMessageReadLastRepository chatMessageReadLastRepository,
                                              ApplicationEventPublisher applicationEventPublisher) {
