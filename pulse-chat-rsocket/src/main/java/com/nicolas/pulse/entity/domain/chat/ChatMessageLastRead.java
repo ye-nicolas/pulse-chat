@@ -18,4 +18,5 @@ public class ChatMessageLastRead {
     private String memberId;
     private String createdBy;
     private Instant createdAt;
+    private Instant updateAt;
 }

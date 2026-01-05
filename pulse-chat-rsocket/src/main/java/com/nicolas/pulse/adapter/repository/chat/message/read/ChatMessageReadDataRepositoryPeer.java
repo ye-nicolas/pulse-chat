@@ -1,9 +1,12 @@
 package com.nicolas.pulse.adapter.repository.chat.message.read;
 
 import org.springframework.data.r2dbc.repository.R2dbcRepository;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 public interface ChatMessageReadDataRepositoryPeer extends R2dbcRepository<ChatMessageLastReadData, String> {
+    Flux<ChatMessageLastReadData> findAllByRoomId(String roomId);
+
     Mono<ChatMessageLastReadData> findByRoomIdAndMemberId(String roomId, String memberId);
 
     Mono<Boolean> existsByLastMessageIdAndRoomIdAndMemberId(String lastMessageId, String roomId, String memberId);

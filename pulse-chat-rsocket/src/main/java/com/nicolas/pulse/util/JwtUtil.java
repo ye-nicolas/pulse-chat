@@ -13,7 +13,7 @@ import java.util.Date;
 import java.util.Map;
 
 public class JwtUtil {
-    private static final String TYP = "typ";
+    private static final String TOKEN_TYPE = "token_type";
     private static final String REFRESH = "REFRESH";
     private static final String ACCESS = "ACCESS";
 
@@ -40,7 +40,7 @@ public class JwtUtil {
                 .issuer("pulse-chat")
                 .expiration(new Date(now.getTime() + expirationTimeMills))
                 .signWith(secretKey, Jwts.SIG.HS256)
-                .claims(Map.of(TYP, type))
+                .claims(Map.of(TOKEN_TYPE, type))
                 .claims(map)
                 .compact();
     }
@@ -63,7 +63,7 @@ public class JwtUtil {
 
     private static Claims validateToken(SecretKey secretKey, String token, String type) {
         Claims payload = Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload();
-        if (!payload.get(TYP, String.class).equals(type)) {
+        if (!payload.get(TOKEN_TYPE, String.class).equals(type)) {
             throw new BadCredentialsException("Token type '%S' is not allowed here.".formatted(type));
         }
         return payload;

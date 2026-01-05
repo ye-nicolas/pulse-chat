@@ -74,7 +74,7 @@ public class RemoveChatRoomMemberByRoomUsecase {
         return SecurityUtil.getCurrentAccountId()
                 .flatMap(accountId -> chatRoomMemberRepository.existsByAccountIdAndRoomId(accountId, room.getId())
                         .filter(Boolean::booleanValue)
-                        .switchIfEmpty(Mono.error(() -> new AccessDeniedException("Account '%s' is not a member of ChatRoom '%s'.".formatted(accountId, room.getId()))))
+                        .switchIfEmpty(Mono.error(() -> new AccessDeniedException("Not allow delete chat room member, room id = '%s'.".formatted(room.getId()))))
                         .then());
     }
 

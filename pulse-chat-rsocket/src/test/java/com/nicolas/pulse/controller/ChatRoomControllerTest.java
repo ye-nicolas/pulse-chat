@@ -5,28 +5,44 @@ import com.nicolas.pulse.AbstractIntegrationTest;
 import com.nicolas.pulse.adapter.controller.ChatRoomController;
 import com.nicolas.pulse.adapter.dto.req.AddChatRoomMemberReq;
 import com.nicolas.pulse.adapter.dto.req.CreateChatRoomReq;
+import com.nicolas.pulse.adapter.dto.req.RemoveChatRoomMemberReq;
 import com.nicolas.pulse.adapter.repository.DbMeta;
+import com.nicolas.pulse.entity.domain.SecurityAccount;
+import com.nicolas.pulse.entity.domain.chat.ChatMessage;
+import com.nicolas.pulse.entity.domain.chat.ChatMessageLastRead;
 import com.nicolas.pulse.entity.domain.chat.ChatRoom;
 import com.nicolas.pulse.entity.domain.chat.ChatRoomMember;
+import com.nicolas.pulse.entity.enumerate.ChatMessageType;
+import com.nicolas.pulse.service.repository.ChatMessageReadLastRepository;
+import com.nicolas.pulse.service.repository.ChatMessageRepository;
 import com.nicolas.pulse.util.ExceptionHandlerUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.test.web.reactive.server.SecurityMockServerConfigurers;
 import org.springframework.test.web.reactive.server.WebTestClient;
+import reactor.test.StepVerifier;
 
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ChatRoomControllerTest extends AbstractIntegrationTest {
+    @Autowired
+    ChatMessageRepository chatMessageRepository;
+    @Autowired
+    ChatMessageReadLastRepository chatMessageReadLastRepository;
 
     private static final ChatRoom ROOM_1 = ChatRoom.builder()
             .id(UlidCreator.getMonotonicUlid().toString())
@@ -151,8 +167,35 @@ public class ChatRoomControllerTest extends AbstractIntegrationTest {
                     .createdAt(instant)
                     .updatedAt(instant)
                     .build()
-
     );
+
+    private static final List<ChatMessage> ROOM_3_CHAT_MESSAGE_LIST = ROOM_3_MEMBER.stream()
+            .flatMap(member -> IntStream.range(0, ThreadLocalRandom.current().nextInt(ROOM_3_MEMBER.size(), 11))
+                    .mapToObj(i -> ChatMessage.builder()
+                            .id(UlidCreator.getMonotonicUlid().toString())
+                            .roomId(member.getChatRoom().getId())
+                            .memberId(member.getId())
+                            .type(ChatMessageType.TEXT)
+                            .content(UlidCreator.getMonotonicUlid().toString())
+                            .isDelete(false)
+                            .createdBy(member.getAccountId())
+                            .createdAt(Instant.now())
+                            .updatedAt(Instant.now())
+                            .build()))
+            .toList();
+
+    private static final List<ChatMessageLastRead> ROOM_3_CHAT_MESSAGE_LAST_READ_LIST = ROOM_3_MEMBER.stream().map(m -> {
+        ChatMessage chatMessage = ROOM_3_CHAT_MESSAGE_LIST.get(ThreadLocalRandom.current().nextInt(ROOM_3_MEMBER.size(), ROOM_3_CHAT_MESSAGE_LIST.size()));
+        return ChatMessageLastRead.builder()
+                .id(UlidCreator.getMonotonicUlid().toString())
+                .memberId(m.getId())
+                .lastMessageId(chatMessage.getId())
+                .roomId(chatMessage.getRoomId())
+                .createdBy(m.getAccountId())
+                .createdAt(Instant.now())
+                .updateAt(Instant.now())
+                .build();
+    }).toList();
 
 
     private static final String CHAT_ROOM_SQL = """
@@ -179,6 +222,28 @@ public class ChatRoomControllerTest extends AbstractIntegrationTest {
                                     chatRoomMember.getCreatedBy(), chatRoomMember.getUpdatedBy(), chatRoomMember.getCreatedAt(), chatRoomMember.getUpdatedAt()))
                     .collect(Collectors.joining(",\n")));
 
+    private static final String CHAT_ROOM_MESSAGE_SQL = """
+            INSERT INTO %s (%s,%s,%s,%s,%s,%s,%s,%s,%s)
+            VALUES %s;
+            """.formatted(DbMeta.ChatMessageData.TABLE_NAME,
+            DbMeta.ChatMessageData.COL_ID, DbMeta.ChatMessageData.COL_ROOM_ID, DbMeta.ChatMessageData.COL_MEMBER_ID, DbMeta.ChatMessageData.COL_TYPE, DbMeta.ChatMessageData.COL_CONTENT, DbMeta.ChatMessageData.COL_IS_DELETE,
+            DbMeta.ChatMessageData.COL_CREATED_BY, DbMeta.ChatMessageData.COL_CREATED_AT, DbMeta.ChatMessageData.COL_UPDATED_AT,
+            ROOM_3_CHAT_MESSAGE_LIST.stream().map(chatMessage -> "('%s','%s','%s','%s','%s',%s,'%s','%s','%s')"
+                            .formatted(chatMessage.getId(), chatMessage.getRoomId(), chatMessage.getMemberId(), chatMessage.getType(), chatMessage.getContent(), chatMessage.isDelete(),
+                                    chatMessage.getCreatedBy(), chatMessage.getCreatedAt(), chatMessage.getUpdatedAt()))
+                    .collect(Collectors.joining(",\n")));
+
+    private static final String CHAT_MESSAGE_LAST_READ_SQL = """
+            INSERT INTO %s (%s,%s,%s,%s,%s,%s,%s)
+            VALUES %s;
+            """.formatted(DbMeta.ChatMessageLastReadData.TABLE_NAME,
+            DbMeta.ChatMessageLastReadData.COL_ID, DbMeta.ChatMessageLastReadData.COL_LAST_MESSAGE_ID, DbMeta.ChatMessageLastReadData.COL_ROOM_ID, DbMeta.ChatMessageLastReadData.COL_MEMBER_ID,
+            DbMeta.ChatMessageLastReadData.COL_CREATED_BY, DbMeta.ChatMessageLastReadData.COL_CREATED_AT, DbMeta.ChatMessageLastReadData.COL_UPDATED_AT,
+            ROOM_3_CHAT_MESSAGE_LAST_READ_LIST.stream().map(chatMessageLastRead -> "('%s','%s','%s','%s','%s','%s','%s')"
+                            .formatted(chatMessageLastRead.getId(), chatMessageLastRead.getLastMessageId(), chatMessageLastRead.getRoomId(), chatMessageLastRead.getMemberId(),
+                                    chatMessageLastRead.getCreatedBy(), chatMessageLastRead.getCreatedAt(), chatMessageLastRead.getUpdateAt()))
+                    .collect(Collectors.joining(",\n")));
+
     @BeforeEach
     void setUp() {
         databaseClient.sql(CHAT_ROOM_SQL)
@@ -186,6 +251,14 @@ public class ChatRoomControllerTest extends AbstractIntegrationTest {
                 .rowsUpdated()
                 .block();
         databaseClient.sql(CHAT_ROOM_MEMBER_SQL)
+                .fetch()
+                .rowsUpdated()
+                .block();
+        databaseClient.sql(CHAT_ROOM_MESSAGE_SQL)
+                .fetch()
+                .rowsUpdated()
+                .block();
+        databaseClient.sql(CHAT_MESSAGE_LAST_READ_SQL)
                 .fetch()
                 .rowsUpdated()
                 .block();
@@ -532,7 +605,7 @@ public class ChatRoomControllerTest extends AbstractIntegrationTest {
                 .build();
         // Act
         WebTestClient.ResponseSpec exchange = addChatMember(roomId, req, USER_DETAILS_ACCOUNT_1);
-        
+
         // Assert
         exchange.expectStatus().isNotFound()
                 .expectBody(ProblemDetail.class)
@@ -619,6 +692,136 @@ public class ChatRoomControllerTest extends AbstractIntegrationTest {
                 .post()
                 .uri(ChatRoomController.CHAT_ROOM_BASE_URL + "/%s".formatted(roomId) + "/member")
                 .bodyValue(req)
+                .exchange();
+    }
+
+    @Test
+    void removeRoomMember_success() {
+        // Arrange
+        String roomId = ROOM_1.getId();
+        ChatRoomMember removeMember = ROOM_1_MEMBER.getLast();
+        List<ChatRoomMember> except = ROOM_1_MEMBER.stream().filter(chatRoomMember -> !chatRoomMember.equals(removeMember)).toList();
+        RemoveChatRoomMemberReq req = RemoveChatRoomMemberReq.builder()
+                .memberIdList(List.of(removeMember.getId()))
+                .build();
+        // Act
+        WebTestClient.ResponseSpec exchange = removeChatMember(roomId, req, USER_DETAILS_ACCOUNT_1);
+
+        // Assert
+        exchange.expectStatus().isOk();
+        findRoomMemberByRoomId(roomId, USER_DETAILS_ACCOUNT_1)
+                .expectStatus().isOk()
+                .expectBodyList(ChatRoomMember.class)
+                .hasSize(except.size())
+                .consumeWith(result -> {
+                    List<ChatRoomMember> responseBody = result.getResponseBody();
+                    assertThat(responseBody).isNotEmpty();
+                    assertThat(responseBody)
+                            .usingRecursiveComparison()
+                            .ignoringCollectionOrder()
+                            .ignoringFieldsOfTypes(Instant.class)
+                            .isEqualTo(except);
+                });
+    }
+
+    @Test
+    void removeRoomMember_roomNotFound_shouldReturn404() {
+        String roomId = UlidCreator.getMonotonicUlid().toString();
+        ChatRoomMember removeMember = ROOM_1_MEMBER.getFirst();
+        RemoveChatRoomMemberReq req = RemoveChatRoomMemberReq.builder()
+                .memberIdList(List.of(removeMember.getId()))
+                .build();
+        // Act
+        WebTestClient.ResponseSpec exchange = removeChatMember(roomId, req, USER_DETAILS_ACCOUNT_1);
+
+        // Assert
+        exchange.expectStatus().isNotFound()
+                .expectBody(ProblemDetail.class)
+                .consumeWith(result -> {
+                    ProblemDetail responseBody = result.getResponseBody();
+                    assertThat(responseBody).isNotNull();
+                    assertThat(responseBody.getTitle()).isEqualTo(ExceptionHandlerUtils.TARGET_NOT_FOUND);
+                    assertThat(responseBody.getDetail()).isEqualTo("Chat Room not found, room id = '%s'.".formatted(roomId));
+                });
+    }
+
+    @Test
+    void removeRoomMember_memberNotFound_shouldReturn404() {
+        String roomId = ROOM_1.getId();
+        String memberId = UlidCreator.getMonotonicUlid().toString();
+        RemoveChatRoomMemberReq req = RemoveChatRoomMemberReq.builder()
+                .memberIdList(List.of(memberId))
+                .build();
+        // Act
+        WebTestClient.ResponseSpec exchange = removeChatMember(roomId, req, USER_DETAILS_ACCOUNT_1);
+
+        // Assert
+        exchange.expectStatus().isNotFound()
+                .expectBody(ProblemDetail.class)
+                .consumeWith(result -> {
+                    ProblemDetail responseBody = result.getResponseBody();
+                    assertThat(responseBody).isNotNull();
+                    assertThat(responseBody.getTitle()).isEqualTo(ExceptionHandlerUtils.TARGET_NOT_FOUND);
+                    assertThat(responseBody.getDetail()).isEqualTo("Member not found by '%s', member id = '%s'.".formatted(ROOM_1.getName(), memberId));
+                });
+    }
+
+    @Test
+    void removeRoomMember_notAllow_shouldReturn403() {
+        String roomId = ADD_MEMBER_ROOM_2.getId();
+        ChatRoomMember removeMember = ROOM_2_MEMBER.getFirst();
+        RemoveChatRoomMemberReq req = RemoveChatRoomMemberReq.builder()
+                .memberIdList(List.of(removeMember.getId()))
+                .build();
+        // Act
+        WebTestClient.ResponseSpec exchange = removeChatMember(roomId, req, USER_DETAILS_ACCOUNT_2);
+
+        // Assert
+        exchange.expectStatus().isForbidden()
+                .expectBody(ProblemDetail.class)
+                .consumeWith(result -> {
+                    ProblemDetail responseBody = result.getResponseBody();
+                    assertThat(responseBody).isNotNull();
+                    assertThat(responseBody.getTitle()).isEqualTo(ExceptionHandlerUtils.FORBIDDEN);
+                    assertThat(responseBody.getDetail()).isEqualTo("Not allow delete chat room member, room id = '%s'.".formatted(roomId));
+                });
+    }
+
+    private WebTestClient.ResponseSpec removeChatMember(String roomId, RemoveChatRoomMemberReq req, UserDetails userDetails) {
+        return webTestClient
+                .mutateWith(SecurityMockServerConfigurers.mockUser(userDetails))
+                .method(HttpMethod.DELETE) //
+                .uri(ChatRoomController.CHAT_ROOM_BASE_URL + "/%s".formatted(roomId) + "/member")
+                .bodyValue(req)
+                .exchange();
+    }
+
+    @Test
+    void deleteRoom_success() {
+        // Arrange
+        String roomId = ROOM_3.getId();
+        SecurityAccount securityAccount = USER_DETAILS_ACCOUNT_2;
+
+        // Act
+        WebTestClient.ResponseSpec responseSpec = deleteChatRoom(roomId, securityAccount);
+
+        // Assert
+        responseSpec.expectStatus().isOk();
+        getRoom(roomId, securityAccount).expectStatus().isNotFound();
+        findRoomMemberByRoomId(roomId, securityAccount).expectStatus().isNotFound();
+        StepVerifier.create(chatMessageRepository.findAllByRoomId(roomId))
+                .expectNextCount(0)
+                .verifyComplete();
+        StepVerifier.create(chatMessageReadLastRepository.findAllByRoomId(roomId))
+                .expectNextCount(0)
+                .verifyComplete();
+    }
+
+    private WebTestClient.ResponseSpec deleteChatRoom(String roomId, UserDetails userDetails) {
+        return webTestClient
+                .mutateWith(SecurityMockServerConfigurers.mockUser(userDetails))
+                .method(HttpMethod.DELETE)
+                .uri(ChatRoomController.CHAT_ROOM_BASE_URL + "/%s".formatted(roomId))
                 .exchange();
     }
 }
