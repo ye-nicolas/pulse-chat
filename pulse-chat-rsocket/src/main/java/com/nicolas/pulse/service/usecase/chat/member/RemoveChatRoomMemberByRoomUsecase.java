@@ -32,7 +32,6 @@ public class RemoveChatRoomMemberByRoomUsecase {
                                              ChatRoomMemberRepository chatRoomMemberRepository,
                                              ChatMessageReadLastRepository chatMessageReadLastRepository,
                                              ApplicationEventPublisher applicationEventPublisher) {
-        this.chatRoomManager = chatRoomManager;
         this.chatRoomRepository = chatRoomRepository;
         this.chatRoomMemberRepository = chatRoomMemberRepository;
         this.chatMessageReadLastRepository = chatMessageReadLastRepository;
@@ -61,7 +60,7 @@ public class RemoveChatRoomMemberByRoomUsecase {
 
     private Mono<ChatRoom> getChatRoom(String roomId) {
         return chatRoomRepository.findById(roomId)
-                .switchIfEmpty(Mono.error(() -> new TargetNotFoundException("Chat Room not found, room id = '%s'.".formatted(roomId))));
+                .switchIfEmpty(Mono.error(() -> new TargetNotFoundException("Chat room not found, room id = '%s'.".formatted(roomId))));
     }
 
     private Flux<ChatRoomMember> getChatRoomMemberAccountId(ChatRoom room, Set<String> memberIdSet) {

@@ -108,10 +108,6 @@ public class ChatRoomController {
                         .deleteMemberIdSet(new HashSet<>(req.getMemberIdList()))
                         .build())
                 .flatMap(input -> removeChatRoomMemberByRoomUsecase.execute(input).thenReturn(input))
-                .doOnNext(input -> Mono.fromRunnable(() -> input.getDeleteMemberIdList().forEach(accountId -> chatRoomManager.kickOutAccount(roomId, accountId)))
-                        .doOnError(e -> log.error("Kick out failed", e))
-                        .subscribeOn(Schedulers.boundedElastic())
-                        .subscribe())
                 .thenReturn(ResponseEntity.ok().build());
     }
 

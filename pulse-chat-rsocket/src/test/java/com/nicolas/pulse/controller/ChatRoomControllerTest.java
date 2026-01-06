@@ -613,7 +613,7 @@ public class ChatRoomControllerTest extends AbstractIntegrationTest {
                     ProblemDetail responseBody = result.getResponseBody();
                     assertThat(responseBody).isNotNull();
                     assertThat(responseBody.getTitle()).isEqualTo(ExceptionHandlerUtils.TARGET_NOT_FOUND);
-                    assertThat(responseBody.getDetail()).isEqualTo("Chat Room not found, room id = '%s'.".formatted(roomId));
+                    assertThat(responseBody.getDetail()).isEqualTo("Chat room not found, room id = '%s'.".formatted(roomId));
                 });
     }
 
@@ -741,7 +741,7 @@ public class ChatRoomControllerTest extends AbstractIntegrationTest {
                     ProblemDetail responseBody = result.getResponseBody();
                     assertThat(responseBody).isNotNull();
                     assertThat(responseBody.getTitle()).isEqualTo(ExceptionHandlerUtils.TARGET_NOT_FOUND);
-                    assertThat(responseBody.getDetail()).isEqualTo("Chat Room not found, room id = '%s'.".formatted(roomId));
+                    assertThat(responseBody.getDetail()).isEqualTo("Chat room not found, room id = '%s'.".formatted(roomId));
                 });
     }
 
@@ -815,6 +815,45 @@ public class ChatRoomControllerTest extends AbstractIntegrationTest {
         StepVerifier.create(chatMessageReadLastRepository.findAllByRoomId(roomId))
                 .expectNextCount(0)
                 .verifyComplete();
+    }
+
+    @Test
+    void deleteRoom_notAllow_shouldReturn403() {
+        // Arrange
+        String roomId = ROOM_3.getId();
+
+        // Act
+        WebTestClient.ResponseSpec exchange = deleteChatRoom(roomId, USER_DETAILS_ACCOUNT_1);
+
+
+        // Assert
+        exchange.expectStatus().isForbidden()
+                .expectBody(ProblemDetail.class)
+                .consumeWith(result -> {
+                    ProblemDetail responseBody = result.getResponseBody();
+                    assertThat(responseBody).isNotNull();
+                    assertThat(responseBody.getTitle()).isEqualTo(ExceptionHandlerUtils.FORBIDDEN);
+                    assertThat(responseBody.getDetail()).isEqualTo("Not allow delete chat room, room id = '%s'.".formatted(roomId));
+                });
+    }
+
+    @Test
+    void deleteRoom_roomNotFound_shouldReturn404() {
+        // Arrange
+        String roomId = UlidCreator.getMonotonicUlid().toString();
+
+        // Act
+        WebTestClient.ResponseSpec exchange = deleteChatRoom(roomId, USER_DETAILS_ACCOUNT_1);
+
+        // Assert
+        exchange.expectStatus().isNotFound()
+                .expectBody(ProblemDetail.class)
+                .consumeWith(result -> {
+                    ProblemDetail responseBody = result.getResponseBody();
+                    assertThat(responseBody).isNotNull();
+                    assertThat(responseBody.getTitle()).isEqualTo(ExceptionHandlerUtils.TARGET_NOT_FOUND);
+                    assertThat(responseBody.getDetail()).isEqualTo("Chat room not found, room id = '%s'.".formatted(roomId));
+                });
     }
 
     private WebTestClient.ResponseSpec deleteChatRoom(String roomId, UserDetails userDetails) {
