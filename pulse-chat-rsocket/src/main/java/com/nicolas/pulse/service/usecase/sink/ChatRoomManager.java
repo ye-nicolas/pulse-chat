@@ -66,6 +66,15 @@ public class ChatRoomManager {
         }
     }
 
+    public void kickOutRoom(String roomId) {
+        RoomContext context = roomContexts.get(roomId);
+        if (context == null) {
+            return;
+        }
+        context.getAccountSkins().keySet().forEach(context::decrement);
+        removeRoom(roomId);
+    }
+
     public void broadcastMessage(ChatMessage message) {
         RoomContext context = roomContexts.get(message.getRoomId());
         if (context != null) {
