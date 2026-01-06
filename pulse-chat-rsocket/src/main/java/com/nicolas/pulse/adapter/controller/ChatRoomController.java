@@ -98,7 +98,7 @@ public class ChatRoomController {
                                                        @Valid @RequestBody Mono<RemoveChatRoomMemberReq> reqMono) {
         return reqMono.map(req -> RemoveChatRoomMemberByRoomUsecase.Input.builder()
                         .roomId(roomId)
-                        .deleteMemberIdList(new HashSet<>(req.getMemberIdList()))
+                        .deleteMemberIdSet(new HashSet<>(req.getMemberIdList()))
                         .build())
                 .flatMap(removeChatRoomMemberByRoomUsecase::execute)
                 .map(ResponseEntity::ok);
