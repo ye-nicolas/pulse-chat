@@ -69,11 +69,11 @@ public class ChatRoomManager {
     }
 
     public void kickOutRoom(String roomId) {
-        RoomContext context = roomContexts.remove(roomId);
-        if (context != null) {
-            context.getAccountSinks().forEach((id, sink) -> sink.tryEmitComplete());
+        roomContexts.computeIfPresent(roomId, (id, context) -> {
+            // 在鎖的保護下關閉所有 Sink
+            context.getAccountSinks().forEach((accId, sink) -> sink.tryEmitComplete());
             context.getAccountSinks().clear();
-            log.info("Room '{}' has been kicked and cleared.", roomId);
-        }
+            return null;
+        });
     }
 }
