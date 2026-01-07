@@ -29,6 +29,6 @@ public class ChatRoomEventListener {
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleDeleteRoom(DeleteMemberEvent event) {
         event.accountIdSet()
-                .forEach(accountId -> chatRoomManager.kickOutAccount(event.roomId(), accountId));
+                .forEach(accountId -> chatRoomManager.unSubscribe(event.roomId(), accountId));
     }
 }

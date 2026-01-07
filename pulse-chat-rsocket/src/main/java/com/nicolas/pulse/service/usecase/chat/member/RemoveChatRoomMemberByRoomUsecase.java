@@ -62,10 +62,6 @@ public class RemoveChatRoomMemberByRoomUsecase {
                 .then();
     }
 
-    private void kickOutChatRoomMembers(Set<String> deleteMemberIdList, String roomId) {
-        deleteMemberIdList.forEach(accountId -> chatRoomManager.kickOutAccount(roomId, accountId));
-    }
-
     private Mono<ChatRoom> getChatRoom(String roomId) {
         return chatRoomRepository.findById(roomId)
                 .switchIfEmpty(Mono.error(() -> new TargetNotFoundException("Chat Room not found, room id = '%s'.".formatted(roomId))));

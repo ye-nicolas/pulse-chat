@@ -3,13 +3,11 @@ package com.nicolas.pulse.service.usecase.sink;
 import com.nicolas.pulse.entity.domain.chat.ChatMessage;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Sinks;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.LinkedBlockingDeque;
 
 @Slf4j
 @Service
@@ -18,80 +16,64 @@ public class ChatRoomManager {
 
     @Getter
     private static class RoomContext {
-        final ConcurrentMap<String, Sinks.Many<ChatMessage>> accountSkins = new ConcurrentHashMap<>();
+        final ConcurrentMap<String, Sinks.Many<ChatMessage>> accountSinks = new ConcurrentHashMap<>();
 
-        public void increment(String accountId) {
-            accountSkins.computeIfAbsent(accountId, k -> Sinks.many().unicast().onBackpressureBuffer(new LinkedBlockingDeque<>(10)));
+        public Sinks.Many<ChatMessage> getOrCreateSink(String accountId) {
+            return accountSinks.computeIfAbsent(accountId, k -> Sinks.many().multicast().onBackpressureBuffer(10));
         }
 
-        public void decrement(String accountId) {
-            Sinks.Many<ChatMessage> removedSink = accountSkins.remove(accountId);
-            if (removedSink != null) {
-                removedSink.tryEmitComplete();
+        public void removeSink(String accountId) {
+            Sinks.Many<ChatMessage> sink = accountSinks.remove(accountId);
+            if (sink != null) {
+                sink.tryEmitComplete();
             }
         }
 
-        public int getTotalSubscriber() {
-            return accountSkins.size();
+        public boolean isEmpty() {
+            return accountSinks.isEmpty();
         }
     }
 
     public Sinks.Many<ChatMessage> subscribe(String accountId, String roomId) {
-        RoomContext roomContext = roomContexts.computeIfAbsent(roomId, k -> new RoomContext());
-        roomContext.increment(accountId);
-        log.info("Subscribed room '{}', account id= '{}'.", roomId, accountId);
-        return roomContext.getAccountSkins().get(accountId);
+        RoomContext room = roomContexts.computeIfAbsent(roomId, k -> new RoomContext());
+        Sinks.Many<ChatMessage> sink = room.getOrCreateSink(accountId);
+        log.info("Account '{}' subscribed to room '{}'. Current subscribers: {}", accountId, roomId, room.getAccountSinks().size());
+        return sink;
     }
 
     public void unSubscribe(String accountId, String roomId) {
-        RoomContext roomContext = roomContexts.get(roomId);
-        if (roomContext != null) {
-            roomContext.decrement(accountId);
-            log.info("Un Subscribed room '{}', account id= '{}'.", roomId, accountId);
-            removeRoom(roomId);
-        }
-    }
-
-    public void kickOutAccount(String roomId, String accountId) {
-        RoomContext context = roomContexts.get(roomId);
-        if (context == null) {
-            return;
-        }
-
-        Sinks.Many<ChatMessage> sink = context.getAccountSkins().remove(accountId);
-        if (sink != null) {
-            log.warn("Kick out account, account id = '{}', room id = '{}'.", accountId, roomId);
-            // Send error to stop sinks
-            sink.tryEmitError(new AccessDeniedException("Account is not a member of chat room, room id = '%s'.".formatted(roomId)));
-        }
-    }
-
-    public void kickOutRoom(String roomId) {
-        RoomContext context = roomContexts.get(roomId);
-        if (context == null) {
-            return;
-        }
-        context.getAccountSkins().keySet().forEach(context::decrement);
-        removeRoom(roomId);
+        roomContexts.computeIfPresent(roomId, (rid, context) -> {
+            context.removeSink(accountId);
+            if (context.isEmpty()) {
+                log.info("Room '{}' is empty, removing context.", rid);
+                return null;
+            }
+            return context;
+        });
+        log.info("Unsubscribed: Account '{}' from Room '{}'", accountId, roomId);
     }
 
     public void broadcastMessage(ChatMessage message) {
         RoomContext context = roomContexts.get(message.getRoomId());
         if (context != null) {
-            context.getAccountSkins().forEach((accountId, sink) -> {
+            context.getAccountSinks().forEach((accountId, sink) -> {
                 Sinks.EmitResult result = sink.tryEmitNext(message);
                 if (result.isFailure()) {
-                    log.warn("Failed to emit message to AccountId: {} in RoomId: {}. Result: {}", accountId, message.getRoomId(), result);
+                    log.error("Failed to push message to {} in room {}: {}", accountId, message.getRoomId(), result);
+                    if (result == Sinks.EmitResult.FAIL_TERMINATED) {
+                        context.removeSink(accountId);
+                    }
                 }
             });
         }
     }
 
-    private void removeRoom(String roomId) {
-        RoomContext roomContext = roomContexts.get(roomId);
-        if (roomContext.getTotalSubscriber() < 1) {
-            roomContexts.remove(roomId);
-            log.info("Room no account Subscribe close.");
+    public void kickOutRoom(String roomId) {
+        RoomContext context = roomContexts.remove(roomId);
+        if (context != null) {
+            context.getAccountSinks().forEach((id, sink) -> sink.tryEmitComplete());
+            context.getAccountSinks().clear();
+            log.info("Room '{}' has been kicked and cleared.", roomId);
         }
     }
 }
