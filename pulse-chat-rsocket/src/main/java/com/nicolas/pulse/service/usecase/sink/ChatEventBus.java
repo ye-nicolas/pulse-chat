@@ -14,13 +14,15 @@ public class ChatEventBus {
     public void publishRoomDelete(DeleteRoomEvent event) {
         roomDeleteSink.tryEmitNext(event);
     }
-    public void publishRoomDelete(DeleteMemberEvent event) {
+
+    public void publishMemberDelete(DeleteMemberEvent event) {
         memberDeleteSink.tryEmitNext(event);
     }
 
     public Flux<DeleteRoomEvent> onRoomDelete() {
         return roomDeleteSink.asFlux();
     }
+
     public Flux<DeleteMemberEvent> onMemberDelete() {
         return memberDeleteSink.asFlux();
     }

@@ -13,8 +13,11 @@ import com.nicolas.pulse.entity.domain.chat.ChatMessageLastRead;
 import com.nicolas.pulse.entity.domain.chat.ChatRoom;
 import com.nicolas.pulse.entity.domain.chat.ChatRoomMember;
 import com.nicolas.pulse.entity.enumerate.ChatMessageType;
+import com.nicolas.pulse.entity.event.DeleteMemberEvent;
+import com.nicolas.pulse.entity.event.DeleteRoomEvent;
 import com.nicolas.pulse.service.repository.ChatMessageReadLastRepository;
 import com.nicolas.pulse.service.repository.ChatMessageRepository;
+import com.nicolas.pulse.service.usecase.sink.ChatEventBus;
 import com.nicolas.pulse.util.ExceptionHandlerUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -24,6 +27,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.test.web.reactive.server.SecurityMockServerConfigurers;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import reactor.test.StepVerifier;
 
@@ -37,12 +41,16 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.timeout;
+import static org.mockito.Mockito.verify;
 
 public class ChatRoomControllerTest extends AbstractIntegrationTest {
     @Autowired
     ChatMessageRepository chatMessageRepository;
     @Autowired
     ChatMessageReadLastRepository chatMessageReadLastRepository;
+    @MockitoSpyBean
+    ChatEventBus chatEventBus;
 
     private static final ChatRoom ROOM_1 = ChatRoom.builder()
             .id(UlidCreator.getMonotonicUlid().toString())
@@ -722,6 +730,7 @@ public class ChatRoomControllerTest extends AbstractIntegrationTest {
                             .ignoringFieldsOfTypes(Instant.class)
                             .isEqualTo(except);
                 });
+        verify(chatEventBus, timeout(2000)).publishMemberDelete(new DeleteMemberEvent(roomId, Set.of(removeMember.getAccountId())));
     }
 
     @Test
@@ -815,6 +824,7 @@ public class ChatRoomControllerTest extends AbstractIntegrationTest {
         StepVerifier.create(chatMessageReadLastRepository.findAllByRoomId(roomId))
                 .expectNextCount(0)
                 .verifyComplete();
+        verify(chatEventBus, timeout(2000)).publishRoomDelete(new DeleteRoomEvent(roomId));
     }
 
     @Test
