@@ -16,6 +16,7 @@ import org.springframework.util.StringUtils;
 import org.testcontainers.containers.PostgreSQLContainer;
 import reactor.core.publisher.Mono;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -127,7 +128,8 @@ public abstract class AbstractIntegrationTest {
 
     @BeforeEach
     void setUp() {
-        databaseClient.sql(ACCOUNT_SQL).then()
+        databaseClient.sql(ACCOUNT_SQL)
+                .then()
                 .then(Mono.defer(() -> {
                     String specificSql = provideSpecificSql();
                     return StringUtils.hasText(specificSql)
@@ -139,17 +141,14 @@ public abstract class AbstractIntegrationTest {
 
     @AfterEach
     void cleanup() {
-        String collect = Stream.of(DbMeta.AccountData.TABLE_NAME,
-                        DbMeta.ChatRoomData.TABLE_NAME,
-                        DbMeta.ChatRoomMemberData.TABLE_NAME,
-                        DbMeta.ChatMessageData.TABLE_NAME,
-                        DbMeta.ChatMessageLastReadData.TABLE_NAME,
-                        DbMeta.FriendShipData.TABLE_NAME)
-                .map("TRUNCATE TABLE \"%s\";"::formatted)
-                .collect(Collectors.joining("\n"));
-        databaseClient.sql(collect)
-                .fetch()
-                .rowsUpdated()
-                .block();
+        String sql = "TRUNCATE TABLE %s;".formatted(
+                List.of(DbMeta.AccountData.TABLE_NAME,
+                                DbMeta.ChatRoomData.TABLE_NAME,
+                                DbMeta.ChatRoomMemberData.TABLE_NAME,
+                                DbMeta.ChatMessageData.TABLE_NAME,
+                                DbMeta.ChatMessageLastReadData.TABLE_NAME,
+                                DbMeta.FriendShipData.TABLE_NAME).stream().map("\"%s\""::formatted)
+                        .collect(Collectors.joining(",")));
+        Mono.delay(Duration.ofMillis(100)).then(databaseClient.sql(sql).then()).block();
     }
 }
