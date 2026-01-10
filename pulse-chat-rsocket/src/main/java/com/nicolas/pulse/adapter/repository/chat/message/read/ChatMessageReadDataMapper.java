@@ -19,6 +19,7 @@ public class ChatMessageReadDataMapper {
                 .memberId(data.getMemberId())
                 .createdBy(data.getCreatedBy())
                 .createdAt(data.getCreatedAt())
+                .updateAt(data.getUpdateAt())
                 .build();
     }
 
@@ -33,6 +34,7 @@ public class ChatMessageReadDataMapper {
                 .memberId(domain.getMemberId())
                 .createdBy(domain.getCreatedBy())
                 .createdAt(domain.getCreatedAt())
+                .updateAt(domain.getUpdateAt())
                 .build();
     }
 }

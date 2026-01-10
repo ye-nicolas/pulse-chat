@@ -12,24 +12,21 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import static com.nicolas.pulse.adapter.controller.AccountController.BASE_URL;
+
 @RestController
-@RequestMapping("/accounts")
+@RequestMapping(BASE_URL)
 public class AccountController {
+    public static final String BASE_URL = "/accounts";
     private final AccountRepository accountRepository;
 
     public AccountController(AccountRepository accountRepository) {
         this.accountRepository = accountRepository;
     }
 
-    @GetMapping(value = "/", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Flux<AccountRes>> findAll() {
-        return ResponseEntity.ok(accountRepository.findAll().map(AccountMapper::domainToRes));
-    }
-
-    @GetMapping("/{accountId}")
+    @GetMapping(path = "/{accountId}", produces = MediaType.APPLICATION_JSON_VALUE)
     public Mono<ResponseEntity<AccountRes>> findById(@PathVariable("accountId") String accountId) {
         return accountRepository.findById(accountId)
                 .switchIfEmpty(Mono.error(() -> new TargetNotFoundException("Account not found, id = '%s'.".formatted(accountId))))

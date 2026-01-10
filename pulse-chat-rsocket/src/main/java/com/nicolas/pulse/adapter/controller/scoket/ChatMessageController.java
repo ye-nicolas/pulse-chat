@@ -4,7 +4,6 @@ import com.nicolas.pulse.adapter.dto.mapper.ChatMessageMapper;
 import com.nicolas.pulse.adapter.dto.req.AddChatMessageReq;
 import com.nicolas.pulse.adapter.dto.req.UpdateChatMessageReq;
 import com.nicolas.pulse.adapter.dto.res.ChatMessageRes;
-import com.nicolas.pulse.service.repository.ChatMessageRepository;
 import com.nicolas.pulse.service.usecase.chat.message.AddChatMessageUseCase;
 import com.nicolas.pulse.service.usecase.chat.message.DeleteChatMessageUseCase;
 import com.nicolas.pulse.service.usecase.chat.message.FindHistoryMessageUseCase;

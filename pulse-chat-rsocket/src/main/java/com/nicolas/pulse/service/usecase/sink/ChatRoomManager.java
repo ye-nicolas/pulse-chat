@@ -5,7 +5,9 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Sinks;
+import reactor.core.scheduler.Schedulers;
 
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -13,6 +15,19 @@ import java.util.concurrent.ConcurrentMap;
 @Service
 public class ChatRoomManager {
     private final ConcurrentMap<String, RoomContext> roomContexts = new ConcurrentHashMap<>();
+
+    public ChatRoomManager(ChatEventBus eventBus) {
+        eventBus.onRoomDelete()
+                .publishOn(Schedulers.boundedElastic())
+                .doOnNext(event -> this.kickOutRoom(event.roomId()))
+                .onErrorContinue((throwable, obj) -> log.error("Process Delete Room Error. Error: {}, Object: {}.", throwable.getMessage(), obj))
+                .subscribe();
+        eventBus.onMemberDelete()
+                .publishOn(Schedulers.boundedElastic())
+                .doOnNext(deleteMemberEvent -> this.unSubscribeMembers(deleteMemberEvent.roomId(), deleteMemberEvent.accountIdSet()))
+                .onErrorContinue((throwable, obj) -> log.error("Process Delete Member Error. Error: {}, Object: {}.", throwable.getMessage(), obj))
+                .subscribe();
+    }
 
     @Getter
     private static class RoomContext {
@@ -51,6 +66,13 @@ public class ChatRoomManager {
             return context;
         });
         log.info("Unsubscribed: Account '{}' from Room '{}'", accountId, roomId);
+    }
+
+    public void unSubscribeMembers(String roomId, Set<String> accountIdSet) {
+        roomContexts.computeIfPresent(roomId, (rid, context) -> {
+            accountIdSet.forEach(context::removeSink);
+            return context.isEmpty() ? null : context;
+        });
     }
 
     public void broadcastMessage(ChatMessage message) {

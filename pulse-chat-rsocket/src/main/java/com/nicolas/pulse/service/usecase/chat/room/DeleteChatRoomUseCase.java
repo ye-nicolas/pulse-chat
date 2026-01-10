@@ -6,6 +6,7 @@ import com.nicolas.pulse.service.repository.ChatMessageReadLastRepository;
 import com.nicolas.pulse.service.repository.ChatMessageRepository;
 import com.nicolas.pulse.service.repository.ChatRoomMemberRepository;
 import com.nicolas.pulse.service.repository.ChatRoomRepository;
+import com.nicolas.pulse.service.usecase.sink.ChatEventBus;
 import com.nicolas.pulse.util.SecurityUtil;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -21,18 +22,15 @@ public class DeleteChatRoomUseCase {
     private final ChatRoomMemberRepository chatRoomMemberRepository;
     private final ChatMessageRepository chatMessageRepository;
     private final ChatMessageReadLastRepository chatMessageReadLastRepository;
-    private final ApplicationEventPublisher applicationEventPublisher;
 
     public DeleteChatRoomUseCase(ChatRoomRepository chatRoomRepository,
                                  ChatRoomMemberRepository chatRoomMemberRepository,
                                  ChatMessageRepository chatMessageRepository,
-                                 ChatMessageReadLastRepository chatMessageReadLastRepository,
-                                 ApplicationEventPublisher applicationEventPublisher) {
+                                 ChatMessageReadLastRepository chatMessageReadLastRepository) {
         this.chatRoomRepository = chatRoomRepository;
         this.chatRoomMemberRepository = chatRoomMemberRepository;
         this.chatMessageRepository = chatMessageRepository;
         this.chatMessageReadLastRepository = chatMessageReadLastRepository;
-        this.applicationEventPublisher = applicationEventPublisher;
     }
 
     @Transactional
@@ -42,8 +40,7 @@ public class DeleteChatRoomUseCase {
                 .then(Mono.when(chatMessageReadLastRepository.deleteByRoomId(input.getRoomId()),
                         chatMessageRepository.deleteByRoomId(input.getRoomId()),
                         chatRoomMemberRepository.deleteByRoomId(input.getRoomId()),
-                        chatRoomRepository.deleteById(input.getRoomId())))
-                .doOnSuccess(v -> applicationEventPublisher.publishEvent(new DeleteRoomEvent(input.getRoomId())));
+                        chatRoomRepository.deleteById(input.getRoomId())));
     }
 
     private Mono<Void> validateRoomIsExists(String roomId) {

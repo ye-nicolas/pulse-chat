@@ -1,0 +1,155 @@
+package com.nicolas.pulse;
+
+import com.nicolas.pulse.adapter.repository.DbMeta;
+import com.nicolas.pulse.entity.domain.Account;
+import com.nicolas.pulse.entity.domain.SecurityAccount;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.r2dbc.core.DatabaseClient;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.test.web.reactive.server.WebTestClient;
+import org.springframework.util.StringUtils;
+import org.testcontainers.containers.PostgreSQLContainer;
+import reactor.core.publisher.Mono;
+
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import static org.testcontainers.containers.PostgreSQLContainer.POSTGRESQL_PORT;
+
+
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, properties = {
+        "spring.rsocket.server.port=0"
+})
+@AutoConfigureWebTestClient
+public abstract class AbstractIntegrationTest {
+    private static final PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:16.10-alpine");
+
+    static {
+        postgres.withDatabaseName("pulse_chat");
+        postgres.withInitScript("data/schema.sql");//不需要添加 classpath:，底層使用 URL的getResource()方法
+        postgres.start();
+    }
+
+    @DynamicPropertySource
+    static void configureProperties(DynamicPropertyRegistry registry) {
+        registry.add("pulse-chat.db.host", postgres::getHost);
+        registry.add("pulse-chat.db.port", () -> String.valueOf(postgres.getMappedPort(POSTGRESQL_PORT)));
+        registry.add("pulse-chat.db.username", postgres::getUsername);
+        registry.add("pulse-chat.db.password", postgres::getPassword);
+    }
+
+    @Autowired
+    protected WebTestClient webTestClient;
+    @Autowired
+    protected DatabaseClient databaseClient;
+
+
+    protected static final Instant instant = Instant.now();
+    private static final String creator = "01KDFWP8CSRTWJ04A6WS7CDNWM";
+    protected static final Account ACCOUNT_DATA_1 = Account.builder()
+            .id("01KDFX186KHJ0EC3TBED58Z5S4")
+            .name("root1")
+            .showName("TEst1")
+            .password("$2a$10$yjj8bwj1RPn146if3K9SeerD8o/NReFTBokcpWVRbYNzkYZDr7GOm")
+            .isActive(true)
+            .createdBy(creator)
+            .updatedBy(creator)
+            .createdAt(instant)
+            .updatedAt(instant)
+            .build();
+    protected static Account ACCOUNT_DATA_2 = Account.builder()
+            .id("01KDFX1JMD3FTC7E5NCP1AEV41")
+            .name("root2")
+            .showName("TEst2")
+            .password("$2a$10$9yErubhpEXx5xwDM8qEAcOks0phFInZ/f7JdSgN2AJM4soar69lCW")
+            .isActive(true)
+            .createdBy(creator)
+            .updatedBy(creator)
+            .createdAt(instant)
+            .updatedAt(instant)
+            .build();
+    protected static Account ACCOUNT_DATA_3 = Account.builder()
+            .id("01KDFX1SB2RRW9R0KC9YQPMS73")
+            .name("root3")
+            .showName("TEst3")
+            .password("$2a$10$w/.QFRqxn1oYpM3OjhaB7u0F.MQ.RNRVqzfkJDHDAUUT1hpPls8Dq")
+            .isActive(true)
+            .createdBy(creator)
+            .updatedBy(creator)
+            .createdAt(instant)
+            .updatedAt(instant)
+            .build();
+    protected static Account ACCOUNT_DATA_4 = Account.builder()
+            .id("01KDFX1SB2RRW9R0KC9YQPMS75")
+            .name("root4")
+            .showName("TEst4")
+            .password("$2a$10$w/.QFRqxn1oYpM3OjhaB7u0F.MQ.RNRVqzfkJDHDAUUT1hpPls8Dq")
+            .isActive(true)
+            .createdBy(creator)
+            .updatedBy(creator)
+            .createdAt(instant)
+            .updatedAt(instant)
+            .build();
+    protected static final SecurityAccount USER_DETAILS_ACCOUNT_1 = SecurityAccount.builder()
+            .id(ACCOUNT_DATA_1.getId())
+            .username(ACCOUNT_DATA_1.getName())
+            .password(ACCOUNT_DATA_1.getPassword())
+            .state(ACCOUNT_DATA_1.isActive())
+            .build();
+    protected static final SecurityAccount USER_DETAILS_ACCOUNT_2 = SecurityAccount.builder()
+            .id(ACCOUNT_DATA_2.getId())
+            .username(ACCOUNT_DATA_2.getName())
+            .password(ACCOUNT_DATA_2.getPassword())
+            .state(ACCOUNT_DATA_2.isActive())
+            .build();
+    protected static final String ACCOUNT_SQL = """
+            INSERT INTO %s (%s,%s,%s,%s,%s,%s,%s,%s,%s)
+            VALUES %s;
+            """.formatted(DbMeta.AccountData.TABLE_NAME,
+            DbMeta.AccountData.COL_ID, DbMeta.AccountData.COL_NAME, DbMeta.AccountData.COL_SHOW_NAME, DbMeta.AccountData.COL_PASSWORD, DbMeta.AccountData.COL_IS_ACTIVE,
+            DbMeta.AccountData.COL_CREATED_BY, DbMeta.AccountData.COL_UPDATED_BY, DbMeta.AccountData.COL_CREATED_AT, DbMeta.AccountData.COL_UPDATED_AT,
+            Stream.of(ACCOUNT_DATA_1, ACCOUNT_DATA_2, ACCOUNT_DATA_3, ACCOUNT_DATA_4)
+                    .map(accountData -> "('%s','%s','%s','%s',%s,'%s','%s','%s','%s')".formatted(
+                            accountData.getId(), accountData.getName(), accountData.getShowName(), accountData.getPassword(), accountData.isActive(),
+                            accountData.getCreatedBy(), accountData.getUpdatedBy(), accountData.getCreatedAt(), accountData.getUpdatedAt()
+                    )).collect(Collectors.joining(",\n")));
+
+    protected abstract String provideSpecificSql();
+
+    @BeforeEach
+    void setUp() {
+        databaseClient.sql(ACCOUNT_SQL).then()
+                .then(Mono.defer(() -> {
+                    String specificSql = provideSpecificSql();
+                    return StringUtils.hasText(specificSql)
+                            ? databaseClient.sql(specificSql).then()
+                            : Mono.empty();
+                }))
+                .block();
+    }
+
+    @AfterEach
+    void cleanup() {
+        String collect = Stream.of(DbMeta.AccountData.TABLE_NAME,
+                        DbMeta.ChatRoomData.TABLE_NAME,
+                        DbMeta.ChatRoomMemberData.TABLE_NAME,
+                        DbMeta.ChatMessageData.TABLE_NAME,
+                        DbMeta.ChatMessageLastReadData.TABLE_NAME,
+                        DbMeta.FriendShipData.TABLE_NAME)
+                .map("TRUNCATE TABLE \"%s\";"::formatted)
+                .collect(Collectors.joining("\n"));
+        databaseClient.sql(collect)
+                .fetch()
+                .rowsUpdated()
+                .block();
+    }
+}

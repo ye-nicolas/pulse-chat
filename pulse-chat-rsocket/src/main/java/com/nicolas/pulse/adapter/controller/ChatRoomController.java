@@ -5,6 +5,8 @@ import com.nicolas.pulse.adapter.dto.req.CreateChatRoomReq;
 import com.nicolas.pulse.adapter.dto.req.RemoveChatRoomMemberReq;
 import com.nicolas.pulse.entity.domain.chat.ChatRoom;
 import com.nicolas.pulse.entity.domain.chat.ChatRoomMember;
+import com.nicolas.pulse.entity.event.DeleteMemberEvent;
+import com.nicolas.pulse.entity.event.DeleteRoomEvent;
 import com.nicolas.pulse.service.repository.ChatRoomMemberRepository;
 import com.nicolas.pulse.service.usecase.chat.member.AddChatRoomMemberUseCase;
 import com.nicolas.pulse.service.usecase.chat.member.FindChatRoomMemberUseCase;
@@ -12,8 +14,12 @@ import com.nicolas.pulse.service.usecase.chat.member.RemoveChatRoomMemberByRoomU
 import com.nicolas.pulse.service.usecase.chat.room.CreateChatRoomUseCase;
 import com.nicolas.pulse.service.usecase.chat.room.DeleteChatRoomUseCase;
 import com.nicolas.pulse.service.usecase.chat.room.FindChatRoomByIdUseCase;
+import com.nicolas.pulse.service.usecase.sink.ChatEventBus;
+import com.nicolas.pulse.service.usecase.sink.ChatRoomManager;
 import com.nicolas.pulse.util.SecurityUtil;
 import jakarta.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
@@ -21,6 +27,7 @@ import reactor.core.publisher.Mono;
 
 import java.util.HashSet;
 
+@Slf4j
 @RestController
 @RequestMapping(ChatRoomController.CHAT_ROOM_BASE_URL)
 public class ChatRoomController {
@@ -32,6 +39,7 @@ public class ChatRoomController {
     private final AddChatRoomMemberUseCase addChatRoomMemberUseCase;
     private final RemoveChatRoomMemberByRoomUsecase removeChatRoomMemberByRoomUsecase;
     private final DeleteChatRoomUseCase deleteChatRoomUseCase;
+    private final ChatEventBus chatEventBus;
 
     public ChatRoomController(ChatRoomMemberRepository chatRoomMemberRepository,
                               FindChatRoomByIdUseCase findChatRoomByIdUseCase,
@@ -39,7 +47,8 @@ public class ChatRoomController {
                               FindChatRoomMemberUseCase findChatRoomMemberUseCase,
                               AddChatRoomMemberUseCase addChatRoomMemberUseCase,
                               RemoveChatRoomMemberByRoomUsecase removeChatRoomMemberByRoomUsecase,
-                              DeleteChatRoomUseCase deleteChatRoomUseCase) {
+                              DeleteChatRoomUseCase deleteChatRoomUseCase,
+                              ChatEventBus chatEventBus) {
         this.chatRoomMemberRepository = chatRoomMemberRepository;
         this.findChatRoomByIdUseCase = findChatRoomByIdUseCase;
         this.createChatRoomUseCase = createChatRoomUseCase;
@@ -47,6 +56,7 @@ public class ChatRoomController {
         this.addChatRoomMemberUseCase = addChatRoomMemberUseCase;
         this.removeChatRoomMemberByRoomUsecase = removeChatRoomMemberByRoomUsecase;
         this.deleteChatRoomUseCase = deleteChatRoomUseCase;
+        this.chatEventBus = chatEventBus;
     }
 
     @GetMapping("/")
@@ -72,7 +82,7 @@ public class ChatRoomController {
                         .roomName(req.getRoomName())
                         .build())
                 .flatMap(input -> createChatRoomUseCase.execute(input, output))
-                .then(Mono.fromSupplier(() -> ResponseEntity.ok(output.getRoomId())));
+                .then(Mono.fromSupplier(() -> ResponseEntity.status(HttpStatus.CREATED).body(output.getRoomId())));
     }
 
     @GetMapping("/{roomId}/member")
@@ -90,23 +100,26 @@ public class ChatRoomController {
                         .accountIdSet(new HashSet<>(req.getAccountIdList()))
                         .build())
                 .flatMap(addChatRoomMemberUseCase::execute)
-                .map(ResponseEntity::ok);
+                .thenReturn(ResponseEntity.status(HttpStatus.CREATED).build());
     }
 
     @DeleteMapping("/{roomId}/member")
     public Mono<ResponseEntity<Void>> removeRoomMember(@PathVariable("roomId") String roomId,
                                                        @Valid @RequestBody Mono<RemoveChatRoomMemberReq> reqMono) {
+        RemoveChatRoomMemberByRoomUsecase.Output output = new RemoveChatRoomMemberByRoomUsecase.Output();
         return reqMono.map(req -> RemoveChatRoomMemberByRoomUsecase.Input.builder()
                         .roomId(roomId)
                         .deleteMemberIdSet(new HashSet<>(req.getMemberIdList()))
                         .build())
-                .flatMap(removeChatRoomMemberByRoomUsecase::execute)
-                .map(ResponseEntity::ok);
+                .flatMap(input -> removeChatRoomMemberByRoomUsecase.execute(input, output))
+                .then(Mono.fromRunnable(() -> chatEventBus.publishMemberDelete(new DeleteMemberEvent(roomId, new HashSet<>(output.getDeleteAccountIdList())))))
+                .thenReturn(ResponseEntity.ok().build());
     }
 
     @DeleteMapping("/{roomId}")
     public Mono<ResponseEntity<Void>> deleteRoom(@PathVariable("roomId") String roomId) {
         return deleteChatRoomUseCase.execute(new DeleteChatRoomUseCase.Input(roomId))
-                .map(ResponseEntity::ok);
+                .then(Mono.fromRunnable(() -> chatEventBus.publishRoomDelete(new DeleteRoomEvent(roomId))))
+                .thenReturn(ResponseEntity.ok().build());
     }
 }

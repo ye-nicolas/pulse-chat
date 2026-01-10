@@ -32,7 +32,7 @@ public class FindChatRoomByIdUseCase {
 
     private Mono<ChatRoom> getChatRoom(String roomId) {
         return chatRoomRepository.findById(roomId)
-                .switchIfEmpty(Mono.error(new TargetNotFoundException("Chat room not found, id = '%s'.".formatted(roomId))));
+                .switchIfEmpty(Mono.error(new TargetNotFoundException("Chat room not found, room id = '%s'.".formatted(roomId))));
     }
 
     private Mono<Void> validateGetAllow(String roomId) {

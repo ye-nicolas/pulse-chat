@@ -35,7 +35,7 @@ public class RefreshTokenUseCase {
                 .doOnNext(securityAccount -> {
                     String accessTokenId = UlidCreator.getMonotonicUlid().toString();
                     String refreshTokenId = UlidCreator.getMonotonicUlid().toString();
-                    output.setAccountId(securityAccount.getUsername());
+                    output.setAccountId(securityAccount.getId());
                     output.setAccessTokenId(accessTokenId);
                     output.setRefreshTokenId(refreshTokenId);
                     output.setAccessToken(JwtUtil.generateAccessToken(secretKey, accessTokenId, securityAccount.getId(), accessExpiresMills, securityAccount.toMap()));

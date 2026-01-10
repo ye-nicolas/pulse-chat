@@ -10,8 +10,11 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
-@Service
+import static com.nicolas.pulse.service.usecase.account.ReactiveUserDetailsServiceImpl.BEAN_NAME;
+
+@Service(BEAN_NAME)
 public class ReactiveUserDetailsServiceImpl implements ReactiveUserDetailsService {
+    public static final String BEAN_NAME = "ReactiveUserDetailsServiceImpl";
     private final AccountRepository accountRepository;
 
     public ReactiveUserDetailsServiceImpl(AccountRepository accountRepository) {

@@ -138,7 +138,6 @@ public class DbMeta {
         public static final String COL_TYPE = "type";
         public static final String COL_CONTENT = "content";
         public static final String COL_IS_DELETE = "is_delete";
-        public static final String COL_DELETED_AT = "delete_at";
         public static final String COL_CREATED_BY = "created_by";
         public static final String COL_CREATED_AT = "created_at";
         public static final String COL_UPDATED_AT = "updated_at";
@@ -148,7 +147,6 @@ public class DbMeta {
         public static final String COLUMN_TYPE = COLUMN_PREFIX + COL_TYPE;
         public static final String COLUMN_CONTENT = COLUMN_PREFIX + COL_CONTENT;
         public static final String COLUMN_IS_DELETE = COLUMN_PREFIX + COL_IS_DELETE;
-        public static final String COLUMN_DELETED_AT = COLUMN_PREFIX + COL_DELETED_AT;
         public static final String COLUMN_CREATED_BY = COLUMN_PREFIX + COL_CREATED_BY;
         public static final String COLUMN_CREATED_AT = COLUMN_PREFIX + COL_CREATED_AT;
         public static final String COLUMN_UPDATED_AT = COLUMN_PREFIX + COL_UPDATED_AT;
@@ -158,7 +156,6 @@ public class DbMeta {
         public static final String ALIAS_TYPE = ALIAS_PREFIX + COL_TYPE;
         public static final String ALIAS_CONTENT = ALIAS_PREFIX + COL_CONTENT;
         public static final String ALIAS_IS_DELETE = ALIAS_PREFIX + COL_IS_DELETE;
-        public static final String ALIAS_DELETED_AT = ALIAS_PREFIX + COL_DELETED_AT;
         public static final String ALIAS_CREATED_BY = ALIAS_PREFIX + COL_CREATED_BY;
         public static final String ALIAS_CREATED_AT = ALIAS_PREFIX + COL_CREATED_AT;
         public static final String ALIAS_UPDATED_AT = ALIAS_PREFIX + COL_UPDATED_AT;

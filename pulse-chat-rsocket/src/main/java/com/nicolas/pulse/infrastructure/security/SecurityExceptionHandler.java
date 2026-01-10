@@ -44,7 +44,7 @@ public class SecurityExceptionHandler implements ServerAuthenticationEntryPoint,
 
     private Mono<Void> renderErrorResponse(ServerWebExchange exchange, Exception ex) {
         return Mono.defer(() -> {
-            ProblemDetail problemDetail = ExceptionHandlerUtils.createProblemDetail(ex, exchange);
+            ProblemDetail problemDetail = ExceptionHandlerUtils.createProblemDetail(ex, exchange.getRequest().getId());
             exchange.getResponse().setStatusCode(HttpStatus.resolve(problemDetail.getStatus()));
             exchange.getResponse().getHeaders().setContentType(MediaType.APPLICATION_JSON);
             DataBuffer buffer = exchange.getResponse().bufferFactory().wrap(simplifyProblemDetailToJson(problemDetail));

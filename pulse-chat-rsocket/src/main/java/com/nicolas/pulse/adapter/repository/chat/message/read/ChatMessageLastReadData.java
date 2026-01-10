@@ -25,10 +25,13 @@ public class ChatMessageLastReadData implements Persistable<String> {
     @Id
     @Column(COL_ID)
     private String id;
+
     @Column(COL_LAST_MESSAGE_ID)
     private String lastMessageId;
+
     @Column(COL_ROOM_ID)
     private String roomId;
+
     @Column(COL_MEMBER_ID)
     private String memberId;
 
@@ -48,6 +51,6 @@ public class ChatMessageLastReadData implements Persistable<String> {
     public boolean isNew() {
         return !StringUtils.hasText(createdBy)
                 && ObjectUtils.isEmpty(createdAt)
-                && ObjectUtils.isEmpty(createdAt);
+                && ObjectUtils.isEmpty(updateAt);
     }
 }
