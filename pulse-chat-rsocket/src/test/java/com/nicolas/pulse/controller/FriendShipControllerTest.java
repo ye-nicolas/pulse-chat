@@ -11,7 +11,6 @@ import com.nicolas.pulse.adapter.repository.DbMeta;
 import com.nicolas.pulse.entity.domain.FriendShip;
 import com.nicolas.pulse.entity.enumerate.FriendShipStatus;
 import com.nicolas.pulse.util.ExceptionHandlerUtils;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
@@ -58,12 +57,9 @@ public class FriendShipControllerTest extends AbstractIntegrationTest {
                             friendShip.getCreatedBy(), friendShip.getUpdatedBy(), friendShip.getCreatedAt(), friendShip.getUpdatedAt()))
                     .collect(Collectors.joining(",\n")));
 
-    @BeforeEach
-    void setUp() {
-        databaseClient.sql(FRIEND_SHIP_SQL)
-                .fetch()
-                .rowsUpdated()
-                .block();
+    @Override
+    protected String provideSpecificSql() {
+        return FRIEND_SHIP_SQL;
     }
 
     @Test

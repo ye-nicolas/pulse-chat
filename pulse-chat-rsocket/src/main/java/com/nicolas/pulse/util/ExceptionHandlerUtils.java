@@ -28,7 +28,7 @@ public class ExceptionHandlerUtils {
     public static final String UNHANDLED_EXCEPTION = "UNHANDLED_EXCEPTION";
     public static final String BAD_REQUEST = "BAD_REQUEST";
 
-    public static ProblemDetail createProblemDetail(Throwable ex, ServerWebExchange exchange) {
+    public static ProblemDetail createProblemDetail(Throwable ex, String requestId) {
         ProblemDetail body;
         if (ex instanceof AuthenticationException authEx) {
             body = ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, authEx.getMessage());
@@ -71,7 +71,7 @@ public class ExceptionHandlerUtils {
             body.setProperty("errorClassName", ex.getClass().getSimpleName());
         }
 
-        body.setProperty("requestId", exchange.getRequest().getId());
+        body.setProperty("requestId", requestId);
         return body;
     }
 }

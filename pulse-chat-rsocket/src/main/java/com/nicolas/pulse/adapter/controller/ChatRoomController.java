@@ -32,7 +32,6 @@ import java.util.HashSet;
 @RequestMapping(ChatRoomController.CHAT_ROOM_BASE_URL)
 public class ChatRoomController {
     public static final String CHAT_ROOM_BASE_URL = "/chat-rooms";
-    private final ChatRoomManager chatRoomManager;
     private final ChatRoomMemberRepository chatRoomMemberRepository;
     private final FindChatRoomByIdUseCase findChatRoomByIdUseCase;
     private final CreateChatRoomUseCase createChatRoomUseCase;
@@ -42,7 +41,7 @@ public class ChatRoomController {
     private final DeleteChatRoomUseCase deleteChatRoomUseCase;
     private final ChatEventBus chatEventBus;
 
-    public ChatRoomController(ChatRoomManager chatRoomManager, ChatRoomMemberRepository chatRoomMemberRepository,
+    public ChatRoomController(ChatRoomMemberRepository chatRoomMemberRepository,
                               FindChatRoomByIdUseCase findChatRoomByIdUseCase,
                               CreateChatRoomUseCase createChatRoomUseCase,
                               FindChatRoomMemberUseCase findChatRoomMemberUseCase,
@@ -50,7 +49,6 @@ public class ChatRoomController {
                               RemoveChatRoomMemberByRoomUsecase removeChatRoomMemberByRoomUsecase,
                               DeleteChatRoomUseCase deleteChatRoomUseCase,
                               ChatEventBus chatEventBus) {
-        this.chatRoomManager = chatRoomManager;
         this.chatRoomMemberRepository = chatRoomMemberRepository;
         this.findChatRoomByIdUseCase = findChatRoomByIdUseCase;
         this.createChatRoomUseCase = createChatRoomUseCase;

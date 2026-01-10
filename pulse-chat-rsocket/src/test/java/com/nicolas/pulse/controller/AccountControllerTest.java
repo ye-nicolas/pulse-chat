@@ -85,4 +85,9 @@ public class AccountControllerTest extends AbstractIntegrationTest {
                     assertThat(responseBody.getDetail()).isEqualTo("Cant get other account.");
                 });
     }
+
+    @Override
+    protected String provideSpecificSql() {
+        return "";
+    }
 }

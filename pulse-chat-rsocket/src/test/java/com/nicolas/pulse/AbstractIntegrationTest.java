@@ -1,6 +1,5 @@
 package com.nicolas.pulse;
 
-import com.github.f4b6a3.ulid.UlidCreator;
 import com.nicolas.pulse.adapter.repository.DbMeta;
 import com.nicolas.pulse.entity.domain.Account;
 import com.nicolas.pulse.entity.domain.SecurityAccount;
@@ -10,22 +9,26 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.r2dbc.core.DatabaseClient;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.reactive.server.WebTestClient;
+import org.springframework.util.StringUtils;
 import org.testcontainers.containers.PostgreSQLContainer;
+import reactor.core.publisher.Mono;
 
 import java.time.Instant;
-import java.time.OffsetDateTime;
-import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.testcontainers.containers.PostgreSQLContainer.POSTGRESQL_PORT;
 
 
-@SpringBootTest
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, properties = {
+        "spring.rsocket.server.port=0"
+})
 @AutoConfigureWebTestClient
 public abstract class AbstractIntegrationTest {
     private static final PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:16.10-alpine");
@@ -48,6 +51,7 @@ public abstract class AbstractIntegrationTest {
     protected WebTestClient webTestClient;
     @Autowired
     protected DatabaseClient databaseClient;
+
 
     protected static final Instant instant = Instant.now();
     private static final String creator = "01KDFWP8CSRTWJ04A6WS7CDNWM";
@@ -107,7 +111,7 @@ public abstract class AbstractIntegrationTest {
             .password(ACCOUNT_DATA_2.getPassword())
             .state(ACCOUNT_DATA_2.isActive())
             .build();
-    private static final String ACCOUNT_SQL = """
+    protected static final String ACCOUNT_SQL = """
             INSERT INTO %s (%s,%s,%s,%s,%s,%s,%s,%s,%s)
             VALUES %s;
             """.formatted(DbMeta.AccountData.TABLE_NAME,
@@ -119,11 +123,17 @@ public abstract class AbstractIntegrationTest {
                             accountData.getCreatedBy(), accountData.getUpdatedBy(), accountData.getCreatedAt(), accountData.getUpdatedAt()
                     )).collect(Collectors.joining(",\n")));
 
+    protected abstract String provideSpecificSql();
+
     @BeforeEach
     void setUp() {
-        databaseClient.sql(ACCOUNT_SQL)
-                .fetch()
-                .rowsUpdated()
+        databaseClient.sql(ACCOUNT_SQL).then()
+                .then(Mono.defer(() -> {
+                    String specificSql = provideSpecificSql();
+                    return StringUtils.hasText(specificSql)
+                            ? databaseClient.sql(specificSql).then()
+                            : Mono.empty();
+                }))
                 .block();
     }
 

@@ -2,9 +2,6 @@ package com.nicolas.pulse.infrastructure;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.nicolas.pulse.entity.exception.ConflictException;
-import com.nicolas.pulse.entity.exception.CustomerException;
-import com.nicolas.pulse.entity.exception.TargetNotFoundException;
 import com.nicolas.pulse.util.ExceptionHandlerUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.web.reactive.error.ErrorWebExceptionHandler;
@@ -13,15 +10,9 @@ import org.springframework.core.io.buffer.DataBufferFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ProblemDetail;
-import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.core.AuthenticationException;
 import org.springframework.stereotype.Component;
-import org.springframework.web.bind.support.WebExchangeBindException;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
-
-import java.util.Map;
-import java.util.Objects;
 
 @Slf4j
 @Component
@@ -38,7 +29,7 @@ public class GlobalErrorWebExceptionHandler implements ErrorWebExceptionHandler 
         log.error(ex.getMessage(), ex);
 
         // 1. 根據例外類型獲取 ProblemDetail
-        ProblemDetail problemDetail = ExceptionHandlerUtils.createProblemDetail(ex, exchange);
+        ProblemDetail problemDetail = ExceptionHandlerUtils.createProblemDetail(ex, exchange.getRequest().getId());
 
         // 2. 設置 HTTP 狀態碼和 Content-Type
         exchange.getResponse().setStatusCode(HttpStatus.resolve(problemDetail.getStatus()));

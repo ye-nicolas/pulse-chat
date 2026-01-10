@@ -19,7 +19,6 @@ import com.nicolas.pulse.service.repository.ChatMessageReadLastRepository;
 import com.nicolas.pulse.service.repository.ChatMessageRepository;
 import com.nicolas.pulse.service.usecase.sink.ChatEventBus;
 import com.nicolas.pulse.util.ExceptionHandlerUtils;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpMethod;
@@ -52,7 +51,7 @@ public class ChatRoomControllerTest extends AbstractIntegrationTest {
     @MockitoSpyBean
     ChatEventBus chatEventBus;
 
-    private static final ChatRoom ROOM_1 = ChatRoom.builder()
+    public static final ChatRoom ROOM_1 = ChatRoom.builder()
             .id(UlidCreator.getMonotonicUlid().toString())
             .name("Room_1")
             .createdBy(ACCOUNT_DATA_1.getId())
@@ -61,7 +60,7 @@ public class ChatRoomControllerTest extends AbstractIntegrationTest {
             .updatedAt(instant)
             .build();
 
-    private static final List<ChatRoomMember> ROOM_1_MEMBER = List.of(
+    public static final List<ChatRoomMember> ROOM_1_MEMBER = List.of(
             ChatRoomMember.builder()
                     .id(UlidCreator.getMonotonicUlid().toString())
                     .accountId(ACCOUNT_DATA_1.getId())
@@ -132,7 +131,7 @@ public class ChatRoomControllerTest extends AbstractIntegrationTest {
                     .build()
 
     );
-    private static final ChatRoom ROOM_3 = ChatRoom.builder()
+    public static final ChatRoom ROOM_3 = ChatRoom.builder()
             .id(UlidCreator.getMonotonicUlid().toString())
             .name("Room_3")
             .createdBy(ACCOUNT_DATA_2.getId())
@@ -141,7 +140,7 @@ public class ChatRoomControllerTest extends AbstractIntegrationTest {
             .updatedAt(instant)
             .build();
 
-    private static final List<ChatRoomMember> ROOM_3_MEMBER = List.of(
+    public static final List<ChatRoomMember> ROOM_3_MEMBER = List.of(
             ChatRoomMember.builder()
                     .id(UlidCreator.getMonotonicUlid().toString())
                     .accountId(ACCOUNT_DATA_2.getId())
@@ -177,7 +176,7 @@ public class ChatRoomControllerTest extends AbstractIntegrationTest {
                     .build()
     );
 
-    private static final List<ChatMessage> ROOM_3_CHAT_MESSAGE_LIST = ROOM_3_MEMBER.stream()
+    public static final List<ChatMessage> ROOM_3_CHAT_MESSAGE_LIST = ROOM_3_MEMBER.stream()
             .flatMap(member -> IntStream.range(0, ThreadLocalRandom.current().nextInt(ROOM_3_MEMBER.size(), 11))
                     .mapToObj(i -> ChatMessage.builder()
                             .id(UlidCreator.getMonotonicUlid().toString())
@@ -206,7 +205,7 @@ public class ChatRoomControllerTest extends AbstractIntegrationTest {
     }).toList();
 
 
-    private static final String CHAT_ROOM_SQL = """
+    public static final String CHAT_ROOM_SQL = """
             INSERT INTO %s (%s,%s,%s,%s,%s,%s)
             VALUES %s;
             """.formatted(DbMeta.ChatRoomData.TABLE_NAME,
@@ -217,7 +216,7 @@ public class ChatRoomControllerTest extends AbstractIntegrationTest {
                             .formatted(chatRoom.getId(), chatRoom.getName(), chatRoom.getCreatedBy(), chatRoom.getUpdatedBy(), chatRoom.getCreatedAt(), chatRoom.getUpdatedAt()))
                     .collect(Collectors.joining(",\n")));
 
-    private static final String CHAT_ROOM_MEMBER_SQL = """
+    public static final String CHAT_ROOM_MEMBER_SQL = """
             INSERT INTO %s (%s,%s,%s,%s,%s,%s,%s,%s,%s)
             VALUES %s;
             """.formatted(DbMeta.ChatRoomMemberData.TABLE_NAME,
@@ -230,7 +229,7 @@ public class ChatRoomControllerTest extends AbstractIntegrationTest {
                                     chatRoomMember.getCreatedBy(), chatRoomMember.getUpdatedBy(), chatRoomMember.getCreatedAt(), chatRoomMember.getUpdatedAt()))
                     .collect(Collectors.joining(",\n")));
 
-    private static final String CHAT_ROOM_MESSAGE_SQL = """
+    public static final String CHAT_ROOM_MESSAGE_SQL = """
             INSERT INTO %s (%s,%s,%s,%s,%s,%s,%s,%s,%s)
             VALUES %s;
             """.formatted(DbMeta.ChatMessageData.TABLE_NAME,
@@ -241,7 +240,7 @@ public class ChatRoomControllerTest extends AbstractIntegrationTest {
                                     chatMessage.getCreatedBy(), chatMessage.getCreatedAt(), chatMessage.getUpdatedAt()))
                     .collect(Collectors.joining(",\n")));
 
-    private static final String CHAT_MESSAGE_LAST_READ_SQL = """
+    public static final String CHAT_MESSAGE_LAST_READ_SQL = """
             INSERT INTO %s (%s,%s,%s,%s,%s,%s,%s)
             VALUES %s;
             """.formatted(DbMeta.ChatMessageLastReadData.TABLE_NAME,
@@ -252,24 +251,9 @@ public class ChatRoomControllerTest extends AbstractIntegrationTest {
                                     chatMessageLastRead.getCreatedBy(), chatMessageLastRead.getCreatedAt(), chatMessageLastRead.getUpdateAt()))
                     .collect(Collectors.joining(",\n")));
 
-    @BeforeEach
-    void setUp() {
-        databaseClient.sql(CHAT_ROOM_SQL)
-                .fetch()
-                .rowsUpdated()
-                .block();
-        databaseClient.sql(CHAT_ROOM_MEMBER_SQL)
-                .fetch()
-                .rowsUpdated()
-                .block();
-        databaseClient.sql(CHAT_ROOM_MESSAGE_SQL)
-                .fetch()
-                .rowsUpdated()
-                .block();
-        databaseClient.sql(CHAT_MESSAGE_LAST_READ_SQL)
-                .fetch()
-                .rowsUpdated()
-                .block();
+    @Override
+    protected String provideSpecificSql() {
+        return CHAT_ROOM_SQL + CHAT_ROOM_MEMBER_SQL + CHAT_ROOM_MESSAGE_SQL + CHAT_MESSAGE_LAST_READ_SQL;
     }
 
     @Test

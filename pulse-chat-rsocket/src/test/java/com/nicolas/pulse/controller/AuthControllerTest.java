@@ -206,4 +206,9 @@ public class AuthControllerTest extends AbstractIntegrationTest {
                     assertThat(responseBody.getDetail()).isEqualTo("User name already exists, name = '%s'.".formatted(name));
                 });
     }
+
+    @Override
+    protected String provideSpecificSql() {
+        return "";
+    }
 }
