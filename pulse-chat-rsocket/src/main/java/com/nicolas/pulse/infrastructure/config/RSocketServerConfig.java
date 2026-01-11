@@ -5,7 +5,6 @@ import io.rsocket.Payload;
 import io.rsocket.RSocket;
 import io.rsocket.plugins.RSocketInterceptor;
 import io.rsocket.util.RSocketProxy;
-import org.reactivestreams.Publisher;
 import org.springframework.boot.rsocket.server.RSocketServerCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

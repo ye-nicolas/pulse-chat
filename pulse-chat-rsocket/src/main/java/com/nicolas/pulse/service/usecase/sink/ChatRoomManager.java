@@ -4,6 +4,7 @@ import com.nicolas.pulse.entity.domain.chat.ChatMessage;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import reactor.core.publisher.Sinks;
 import reactor.core.scheduler.Schedulers;
 
@@ -57,15 +58,17 @@ public class ChatRoomManager {
     }
 
     public void unSubscribe(String accountId, String roomId) {
-        roomContexts.computeIfPresent(roomId, (rid, context) -> {
-            context.removeSink(accountId);
-            if (context.isEmpty()) {
-                log.info("Room '{}' is empty, removing context.", rid);
-                return null;
-            }
-            return context;
-        });
-        log.info("Unsubscribed: Account '{}' from Room '{}'", accountId, roomId);
+        if (StringUtils.hasText(accountId)){
+            roomContexts.computeIfPresent(roomId, (rid, context) -> {
+                context.removeSink(accountId);
+                if (context.isEmpty()) {
+                    log.info("Room '{}' is empty, removing context.", rid);
+                    return null;
+                }
+                return context;
+            });
+            log.info("Unsubscribed: Account '{}' from Room '{}'", accountId, roomId);
+        }
     }
 
     public void unSubscribeMembers(String roomId, Set<String> accountIdSet) {
