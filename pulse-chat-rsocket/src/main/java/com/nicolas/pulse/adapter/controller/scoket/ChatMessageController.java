@@ -1,20 +1,28 @@
 package com.nicolas.pulse.adapter.controller.scoket;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nicolas.pulse.adapter.dto.mapper.ChatMessageMapper;
 import com.nicolas.pulse.adapter.dto.req.AddChatMessageReq;
 import com.nicolas.pulse.adapter.dto.req.UpdateChatMessageReq;
 import com.nicolas.pulse.adapter.dto.res.ChatMessageRes;
+import com.nicolas.pulse.infrastructure.config.MdcProperties;
 import com.nicolas.pulse.service.usecase.chat.message.AddChatMessageUseCase;
 import com.nicolas.pulse.service.usecase.chat.message.DeleteChatMessageUseCase;
 import com.nicolas.pulse.service.usecase.chat.message.FindHistoryMessageUseCase;
 import com.nicolas.pulse.service.usecase.chat.message.UpdateChatMessageUseCase;
 import com.nicolas.pulse.service.usecase.chat.message.read.UpdateChatRoomMemberLastReadMessageUseCase;
 import com.nicolas.pulse.service.usecase.sink.ChatRoomManager;
+import com.nicolas.pulse.util.ExceptionHandlerUtils;
+import io.rsocket.exceptions.ApplicationErrorException;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.Validator;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.MDC;
+import org.springframework.http.ProblemDetail;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
+import org.springframework.messaging.handler.annotation.MessageExceptionHandler;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Controller;
@@ -33,6 +41,8 @@ public class ChatMessageController {
     private final UpdateChatMessageUseCase updateChatMessageUseCase;
     private final DeleteChatMessageUseCase deleteChatMessageUseCase;
     private final UpdateChatRoomMemberLastReadMessageUseCase updateChatRoomMemberLastReadMessageUseCase;
+    private final ObjectMapper objectMapper;
+    private final MdcProperties mdcProperties;
 
     public ChatMessageController(Validator validator,
                                  ChatRoomManager chatRoomManager,
@@ -40,7 +50,9 @@ public class ChatMessageController {
                                  AddChatMessageUseCase addChatMessageUseCase,
                                  UpdateChatMessageUseCase updateChatMessageUseCase,
                                  DeleteChatMessageUseCase deleteChatMessageUseCase,
-                                 UpdateChatRoomMemberLastReadMessageUseCase updateChatRoomMemberLastReadMessageUseCase) {
+                                 UpdateChatRoomMemberLastReadMessageUseCase updateChatRoomMemberLastReadMessageUseCase,
+                                 ObjectMapper objectMapper,
+                                 MdcProperties mdcProperties) {
         this.validator = validator;
         this.chatRoomManager = chatRoomManager;
         this.findHistoryMessageUseCase = findHistoryMessageUseCase;
@@ -48,6 +60,8 @@ public class ChatMessageController {
         this.updateChatMessageUseCase = updateChatMessageUseCase;
         this.deleteChatMessageUseCase = deleteChatMessageUseCase;
         this.updateChatRoomMemberLastReadMessageUseCase = updateChatRoomMemberLastReadMessageUseCase;
+        this.objectMapper = objectMapper;
+        this.mdcProperties = mdcProperties;
     }
 
     @MessageMapping("chat.message.add")
@@ -99,5 +113,12 @@ public class ChatMessageController {
         return errors.isEmpty()
                 ? Mono.empty()
                 : Mono.error(() -> new ConstraintViolationException(errors));
+    }
+
+    // 該版本需要放置在 @Controller 中才會被掃瞄到
+    @MessageExceptionHandler(Exception.class)
+    public Mono<Void> handleException(Exception ex) throws JsonProcessingException {
+        ProblemDetail pd = ExceptionHandlerUtils.createProblemDetail(ex, MDC.get(mdcProperties.getTraceId()));
+        return Mono.error(new ApplicationErrorException(objectMapper.writeValueAsString(pd)));
     }
 }

@@ -190,7 +190,7 @@ public class ChatMessageControllerTest extends AbstractIntegrationTest {
         ChatMessage message = ROOM_3_CHAT_MESSAGE_LIST.stream().filter(chatMessage -> chatMessage.getCreatedBy().equals(USER_DETAILS_ACCOUNT_2.getId())).toList().getFirst();
 
         // Act + Arrange
-        RSocketRequester requester = requesterMono.block(Duration.ofSeconds(5));
+        RSocketRequester requester = requesterMono.block(Duration.ofSeconds(2));
         assertThat(requester).isNotNull();
 
         StepVerifier.create(requester.route("chat.message.read.{messageId}", message.getId())

@@ -62,7 +62,7 @@ public class UpdateChatRoomMemberLastReadMessageUseCase {
 
     private Mono<ChatMessage> getMessage(String messageId) {
         return chatMessageRepository.findById(messageId)
-                .switchIfEmpty(Mono.error(() -> new TargetNotFoundException("Message not found, message id = '%s'.")));
+                .switchIfEmpty(Mono.error(() -> new TargetNotFoundException("Message not found, message id = '%s'.".formatted(messageId))));
     }
 
     @Data
