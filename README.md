@@ -1,5 +1,16 @@
 # PulseChat
-High QPS Stand-alone chat system
+* High QPS Stand-alone chat system
+* 練習`Webflux`與`Spring RSocket`的開發
+* 完成項目：
+  * API
+  * 日誌與追蹤
+    * AOP 進出紀錄
+    * Reactive 環境下追蹤 ID (TraceID)
+  * 異常處裡機制，統一返回`PrombleDetail`
+  * 整合測試(TestContainer)
+* 待處理：
+  * 壓力測試
+  * 前端頁面
 # API
 ## Account
 | Url                   | Method | 功能            |
