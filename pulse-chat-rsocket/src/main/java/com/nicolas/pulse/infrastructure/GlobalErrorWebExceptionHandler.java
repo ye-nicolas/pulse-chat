@@ -3,6 +3,7 @@ package com.nicolas.pulse.infrastructure;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nicolas.pulse.util.ExceptionHandlerUtils;
+import io.micrometer.tracing.Tracer;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.web.reactive.error.ErrorWebExceptionHandler;
 import org.springframework.core.annotation.Order;
@@ -14,14 +15,18 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
+import java.util.Objects;
+
 @Slf4j
 @Component
 @Order(-1)
 public class GlobalErrorWebExceptionHandler implements ErrorWebExceptionHandler {
     private final ObjectMapper objectMapper;
+    private final Tracer tracer;
 
-    public GlobalErrorWebExceptionHandler(ObjectMapper objectMapper) {
+    public GlobalErrorWebExceptionHandler(ObjectMapper objectMapper, Tracer tracer) {
         this.objectMapper = objectMapper;
+        this.tracer = tracer;
     }
 
     @Override
@@ -29,7 +34,8 @@ public class GlobalErrorWebExceptionHandler implements ErrorWebExceptionHandler 
         log.error(ex.getMessage(), ex);
 
         // 1. 根據例外類型獲取 ProblemDetail
-        ProblemDetail problemDetail = ExceptionHandlerUtils.createProblemDetail(ex, exchange.getRequest().getId());
+        String traceId = (tracer.currentSpan() != null) ? Objects.requireNonNull(tracer.currentSpan()).context().traceId() : exchange.getRequest().getId();
+        ProblemDetail problemDetail = ExceptionHandlerUtils.createProblemDetail(ex, traceId);
 
         // 2. 設置 HTTP 狀態碼和 Content-Type
         exchange.getResponse().setStatusCode(HttpStatus.resolve(problemDetail.getStatus()));

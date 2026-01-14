@@ -3,6 +3,7 @@ package com.nicolas.pulse.infrastructure.security;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nicolas.pulse.util.ExceptionHandlerUtils;
+import io.micrometer.tracing.Tracer;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.HttpStatus;
@@ -16,12 +17,17 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
+import java.util.Objects;
+
 @Component
 public class SecurityExceptionHandler implements ServerAuthenticationEntryPoint, ServerAccessDeniedHandler {
     private final ObjectMapper objectMapper;
+    private final Tracer tracer;
 
-    public SecurityExceptionHandler(ObjectMapper objectMapper) {
+    public SecurityExceptionHandler(ObjectMapper objectMapper,
+                                    Tracer tracer) {
         this.objectMapper = objectMapper;
+        this.tracer = tracer;
     }
 
     @Override
@@ -44,7 +50,8 @@ public class SecurityExceptionHandler implements ServerAuthenticationEntryPoint,
 
     private Mono<Void> renderErrorResponse(ServerWebExchange exchange, Exception ex) {
         return Mono.defer(() -> {
-            ProblemDetail problemDetail = ExceptionHandlerUtils.createProblemDetail(ex, exchange.getRequest().getId());
+            String traceId = (tracer.currentSpan() != null) ? Objects.requireNonNull(tracer.currentSpan()).context().traceId() : exchange.getRequest().getId();
+            ProblemDetail problemDetail = ExceptionHandlerUtils.createProblemDetail(ex, traceId);
             exchange.getResponse().setStatusCode(HttpStatus.resolve(problemDetail.getStatus()));
             exchange.getResponse().getHeaders().setContentType(MediaType.APPLICATION_JSON);
             DataBuffer buffer = exchange.getResponse().bufferFactory().wrap(simplifyProblemDetailToJson(problemDetail));

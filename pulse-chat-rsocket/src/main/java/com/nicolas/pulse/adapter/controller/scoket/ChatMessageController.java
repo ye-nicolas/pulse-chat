@@ -1,5 +1,6 @@
 package com.nicolas.pulse.adapter.controller.scoket;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nicolas.pulse.adapter.dto.mapper.ChatMessageMapper;
 import com.nicolas.pulse.adapter.dto.req.AddChatMessageReq;
 import com.nicolas.pulse.adapter.dto.req.GetMessageReq;
@@ -7,7 +8,6 @@ import com.nicolas.pulse.adapter.dto.req.UpdateChatMessageReq;
 import com.nicolas.pulse.adapter.dto.res.ChatMessageLastReadRes;
 import com.nicolas.pulse.adapter.dto.res.ChatMessageRes;
 import com.nicolas.pulse.adapter.dto.res.MessageRes;
-import com.nicolas.pulse.infrastructure.config.MdcProperties;
 import com.nicolas.pulse.service.usecase.chat.message.AddChatMessageUseCase;
 import com.nicolas.pulse.service.usecase.chat.message.DeleteChatMessageUseCase;
 import com.nicolas.pulse.service.usecase.chat.message.FindHistoryMessageUseCase;
@@ -16,11 +16,11 @@ import com.nicolas.pulse.service.usecase.chat.message.read.UpdateChatRoomMemberL
 import com.nicolas.pulse.service.usecase.sink.ChatRoomManager;
 import com.nicolas.pulse.service.usecase.sink.SubscribeChatRoomUseCase;
 import com.nicolas.pulse.util.ExceptionHandlerUtils;
+import io.micrometer.tracing.Tracer;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.Validator;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.MDC;
 import org.springframework.http.ProblemDetail;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -30,6 +30,7 @@ import org.springframework.stereotype.Controller;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.Objects;
 import java.util.Set;
 
 @Slf4j
@@ -43,7 +44,7 @@ public class ChatMessageController {
     private final UpdateChatMessageUseCase updateChatMessageUseCase;
     private final DeleteChatMessageUseCase deleteChatMessageUseCase;
     private final UpdateChatRoomMemberLastReadMessageUseCase updateChatRoomMemberLastReadMessageUseCase;
-    private final MdcProperties mdcProperties;
+    private final Tracer tracer;
 
     public ChatMessageController(Validator validator,
                                  SubscribeChatRoomUseCase subscribeChatRoomUseCase,
@@ -53,7 +54,8 @@ public class ChatMessageController {
                                  UpdateChatMessageUseCase updateChatMessageUseCase,
                                  DeleteChatMessageUseCase deleteChatMessageUseCase,
                                  UpdateChatRoomMemberLastReadMessageUseCase updateChatRoomMemberLastReadMessageUseCase,
-                                 MdcProperties mdcProperties) {
+                                 ObjectMapper objectMapper,
+                                 Tracer tracer) {
         this.validator = validator;
         this.subscribeChatRoomUseCase = subscribeChatRoomUseCase;
         this.chatRoomManager = chatRoomManager;
@@ -62,7 +64,7 @@ public class ChatMessageController {
         this.updateChatMessageUseCase = updateChatMessageUseCase;
         this.deleteChatMessageUseCase = deleteChatMessageUseCase;
         this.updateChatRoomMemberLastReadMessageUseCase = updateChatRoomMemberLastReadMessageUseCase;
-        this.mdcProperties = mdcProperties;
+        this.tracer = tracer;
     }
 
     @MessageMapping("session.open.room.{roomId}")
@@ -145,7 +147,9 @@ public class ChatMessageController {
     }
 
     private <T> MessageRes<T> processException(Throwable throwable, Class<T> tclass) {
-        ProblemDetail problemDetail = ExceptionHandlerUtils.createProblemDetail(throwable, MDC.get(mdcProperties.getTraceId()));
+     String traceId = (tracer.currentSpan() != null) ? Objects.requireNonNull(tracer.currentSpan()).context().traceId() : null;
+       
+        ProblemDetail problemDetail = ExceptionHandlerUtils.createProblemDetail(throwable, traceId);
         return MessageRes.<T>builder().problemDetail(problemDetail).status(problemDetail.getStatus()).build();
     }
 }
