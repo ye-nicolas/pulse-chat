@@ -6,12 +6,11 @@
     <springProperty scope="context" name="LOG_DIR" source="logging.dir.root" defaultValue="log/pulse-chat"/>
     <springProperty scope="context" name="LOG_FILE_NAME" source="logging.file.name" defaultValue="app-pulse-chat"/>
     <springProperty scope="context" name="APP_NAME" source="spring.application.name" defaultValue="pulse-chat"/>
-    <springProperty scope="context" name="TRACE_ID" source="logging.mdc.trace-id" defaultValue="traceId"/>
 
     <!-- Console 輸出 -->
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
-            <pattern>%yellow(%d{yyyy-MM-dd HH:mm:ss.SSS}) %green([%thread]) %magenta([${APP_NAME}]) %replace(%X{${TRACE_ID}}){'(.+)','[$1]'} %highlight(%-5level) %cyan(%logger) - %msg%n%red(%xThrowable)</pattern>
+            <pattern>%yellow(%d{yyyy-MM-dd HH:mm:ss.SSS}) %green([%thread]) %magenta([${APP_NAME}]) %replace(%X{traceId}){'(.+)','[$1]'} %highlight(%-5level) %cyan(%logger) - %msg%n%red(%xThrowable)</pattern>
         </encoder>
     </appender>
 

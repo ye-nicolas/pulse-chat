@@ -1,7 +1,6 @@
 package com.nicolas.pulse.infrastructure.config;
 
 import com.nicolas.pulse.adapter.controller.AuthController;
-import com.nicolas.pulse.infrastructure.filter.MdcFilter;
 import com.nicolas.pulse.infrastructure.security.CustomerJwtReactiveAuthenticationManager;
 import com.nicolas.pulse.infrastructure.security.SecurityExceptionHandler;
 import com.nicolas.pulse.service.usecase.account.ReactiveUserDetailsServiceImpl;
@@ -31,12 +30,9 @@ import javax.crypto.SecretKey;
 @EnableWebFluxSecurity
 @Configuration
 public class SecurityConfiguration {
-    private final MdcFilter mdcFilter;
     private final SecurityExceptionHandler securityExceptionHandler;
 
-    public SecurityConfiguration(MdcProperties mdcProperties,
-                                 SecurityExceptionHandler securityExceptionHandler) {
-        this.mdcFilter = new MdcFilter(mdcProperties);
+    public SecurityConfiguration(SecurityExceptionHandler securityExceptionHandler) {
         this.securityExceptionHandler = securityExceptionHandler;
     }
 
@@ -48,14 +44,13 @@ public class SecurityConfiguration {
                 .formLogin(ServerHttpSecurity.FormLoginSpec::disable)
                 .securityContextRepository(NoOpServerSecurityContextRepository.getInstance())
                 .authorizeExchange(exchanges -> {
-                    exchanges.pathMatchers(AuthController.BASE_URL + "/**").permitAll();
+                    exchanges.pathMatchers(AuthController.BASE_URL + "/**" ,"/actuator/**").permitAll();
                     exchanges.anyExchange().authenticated();
                 })
                 .oauth2ResourceServer(oauth2 -> oauth2
                         .jwt(jwt -> jwt.authenticationManager(customerJwtReactiveAuthenticationManager))
                         .authenticationEntryPoint(securityExceptionHandler)
                 )
-                .addFilterAt(mdcFilter, SecurityWebFiltersOrder.FIRST)
                 .exceptionHandling(e -> e
                         .accessDeniedHandler(securityExceptionHandler)
                         .authenticationEntryPoint(securityExceptionHandler))
