@@ -135,6 +135,11 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
+        <!--  整合 prometheus 拉取指標(metrics)數據，每5秒拉取 /actuator/prometheus (獲取 prometheus 需要信息) -->
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-registry-prometheus</artifactId>
+        </dependency>
         <!-- 2. propagation + otel + otlp(將otel用OLTP協議傳輸) + Grafana -->
         <!-- 2.1 讓 traceId 在 WebFlux / RSocket / Reactor 裡不迷路的 GPS -->
         <dependency>
@@ -151,6 +156,12 @@
             <groupId>io.micrometer</groupId>
             <artifactId>micrometer-tracing-bridge-otel</artifactId>
         </dependency>
+
+        <!--  將 OpenTelemetry 產生的 Trace / Span 透過 OTLP 協議，傳送至 Grafana Tempo、Jaeger、Datadog 等後端 &ndash;&gt;-->
+        <!--        <dependency>-->
+        <!--            <groupId>io.opentelemetry</groupId>-->
+        <!--            <artifactId>opentelemetry-exporter-otlp</artifactId>-->
+        <!--        </dependency>-->
     </dependencies>
     <build>
         <finalName>pulse-chat</finalName>
