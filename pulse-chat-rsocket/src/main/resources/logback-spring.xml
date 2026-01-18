@@ -1,9 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
 
-    <!-- 設定預設的 log level -->
-
     <springProperty scope="context" name="LOG_LEVEL" source="logging.level.root" defaultValue="INFO"/>
+    <springProperty scope="context" name="SQL_LEVEL" source="logging.level.sql" defaultValue="INFO"/>
     <springProperty scope="context" name="LOG_DIR" source="logging.dir.root" defaultValue="log/pulse-chat"/>
     <springProperty scope="context" name="LOG_FILE_NAME" source="logging.file.name" defaultValue="app-pulse-chat"/>
     <springProperty scope="context" name="APP_NAME" source="spring.application.name" defaultValue="pulse-chat"/>
@@ -29,6 +28,9 @@
             <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] [${APP_NAME}] %replace(%X{${TRACE_ID}}){'(.+)','[$1]'} %-5level %logger - %msg%n</pattern>
         </encoder>
     </appender>
+
+    <logger name="io.r2dbc.postgresql.QUERY" level="${SQL_LEVEL}"/>
+    <logger name="io.r2dbc.postgresql.PARAM" level="${SQL_LEVEL}"/>
 
     <!-- 根 logger 設定 -->
     <root level="${LOG_LEVEL}">

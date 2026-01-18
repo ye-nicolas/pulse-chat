@@ -4,8 +4,11 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nicolas.pulse.adapter.dto.mapper.ChatMessageMapper;
 import com.nicolas.pulse.adapter.dto.req.AddChatMessageReq;
+import com.nicolas.pulse.adapter.dto.req.GetMessageReqDTO;
 import com.nicolas.pulse.adapter.dto.req.UpdateChatMessageReq;
+import com.nicolas.pulse.adapter.dto.res.ChatMessageReadLastResDTO;
 import com.nicolas.pulse.adapter.dto.res.ChatMessageRes;
+import com.nicolas.pulse.adapter.repository.DbMeta;
 import com.nicolas.pulse.infrastructure.config.MdcProperties;
 import com.nicolas.pulse.service.usecase.chat.message.AddChatMessageUseCase;
 import com.nicolas.pulse.service.usecase.chat.message.DeleteChatMessageUseCase;
@@ -65,46 +68,56 @@ public class ChatMessageController {
     }
 
     @MessageMapping("chat.message.add")
-    public Mono<Void> addMessage(@Payload Mono<AddChatMessageReq> mono) {
+    public Mono<ChatMessageRes> addMessage(@Payload Mono<AddChatMessageReq> mono) {
         AddChatMessageUseCase.Output output = new AddChatMessageUseCase.Output();
         return mono.delayUntil(this::validate)
                 .flatMap(req -> addChatMessageUseCase.execute(AddChatMessageUseCase.Input.builder().roomId(req.getRoomId())
                         .chatMessageType(req.getType())
                         .content(req.getContent())
                         .build(), output))
-                .doOnSuccess(s -> chatRoomManager.broadcastMessage(output.getChatMessage()));
+                .doOnSuccess(v -> chatRoomManager.broadcastMessage(output.getChatMessage()))
+                .flatMap(v -> Mono.fromSupplier(() -> ChatMessageMapper.domainToRes(output.getChatMessage())));
     }
 
     @MessageMapping("chat.message.update.{messageId}")
-    public Mono<Void> updateMessage(@DestinationVariable String messageId,
-                                    @Payload Mono<UpdateChatMessageReq> reqMono) {
+    public Mono<ChatMessageRes> updateMessage(@DestinationVariable String messageId,
+                                              @Payload Mono<UpdateChatMessageReq> reqMono) {
         UpdateChatMessageUseCase.Output output = new UpdateChatMessageUseCase.Output();
         return reqMono.delayUntil(this::validate)
                 .flatMap(req -> updateChatMessageUseCase.execute(UpdateChatMessageUseCase.Input.builder()
                         .messageId(messageId)
                         .newContent(req.getNewContent())
                         .build(), output))
-                .doOnSuccess(s -> chatRoomManager.broadcastMessage(output.getNewChatMessage()));
+                .doOnSuccess(s -> chatRoomManager.broadcastMessage(output.getNewChatMessage()))
+                .flatMap(v -> Mono.fromSupplier(() -> ChatMessageMapper.domainToRes(output.getNewChatMessage())));
     }
 
     @MessageMapping("chat.message.delete.{messageId}")
-    public Mono<Void> deleteMessage(@DestinationVariable String messageId) {
+    public Mono<ChatMessageRes> deleteMessage(@DestinationVariable String messageId) {
         DeleteChatMessageUseCase.Output output = new DeleteChatMessageUseCase.Output();
         return deleteChatMessageUseCase.execute(new DeleteChatMessageUseCase.Input(messageId), output)
-                .doOnSuccess(s -> chatRoomManager.broadcastMessage(output.getNewChatMessage()));
+                .doOnSuccess(s -> chatRoomManager.broadcastMessage(output.getNewChatMessage()))
+                .flatMap(v -> Mono.fromSupplier(() -> ChatMessageMapper.domainToRes(output.getNewChatMessage())));
     }
 
     @MessageMapping("chat.message.read.{messageId}")
-    public Mono<Void> readMessage(@DestinationVariable String messageId) {
+    public Mono<ChatMessageReadLastResDTO> readMessage(@DestinationVariable String messageId) {
         UpdateChatRoomMemberLastReadMessageUseCase.Input input = new UpdateChatRoomMemberLastReadMessageUseCase.Input(messageId);
         UpdateChatRoomMemberLastReadMessageUseCase.Output output = new UpdateChatRoomMemberLastReadMessageUseCase.Output();
-        return updateChatRoomMemberLastReadMessageUseCase.execute(input, output);
+        return updateChatRoomMemberLastReadMessageUseCase.execute(input, output)
+                .flatMap(v -> Mono.fromSupplier(() -> ChatMessageReadLastResDTO.builder().readChatMessageId(output.getChatMessageLastRead().getLastMessageId()).build()));
     }
 
     @MessageMapping("chat.history.get.{roomId}")
-    public Flux<ChatMessageRes> getHistory(@DestinationVariable String roomId) {
+    public Flux<ChatMessageRes> getHistory(@DestinationVariable String roomId,
+                                           @Payload Mono<GetMessageReqDTO> mono) {
         FindHistoryMessageUseCase.Output output = new FindHistoryMessageUseCase.Output();
-        return findHistoryMessageUseCase.execute(new FindHistoryMessageUseCase.Input(roomId), output)
+        return mono.delayUntil(this::validate).
+                flatMap(req -> findHistoryMessageUseCase.execute(FindHistoryMessageUseCase.Input.builder()
+                        .roomId(roomId)
+                        .size(req.getSize())
+                        .page(req.getPage())
+                        .build(), output))
                 .thenMany(Flux.defer(() -> output.getMessageFlux().map(ChatMessageMapper::domainToRes)));
     }
 

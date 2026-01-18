@@ -7,8 +7,11 @@ import com.nicolas.pulse.service.repository.ChatRoomMemberRepository;
 import com.nicolas.pulse.service.repository.ChatRoomRepository;
 import com.nicolas.pulse.util.SecurityUtil;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
@@ -31,7 +34,8 @@ public class FindHistoryMessageUseCase {
     public Mono<Void> execute(Input input, Output output) {
         return validateRoomIsExists(input.getRoomId())
                 .then(validateIsMember(input.getRoomId()))
-                .then(Mono.fromRunnable(() -> output.setMessageFlux(chatMessageRepository.findAllByRoomId(input.getRoomId()))));
+                .then(Mono.fromRunnable(() -> output.setMessageFlux(chatMessageRepository.findAllByRoomId(input.getRoomId(),
+                        PageRequest.of(input.getPage(), input.getSize(), Sort.by(Sort.Direction.DESC, "id"))))));
     }
 
     private Mono<Void> validateRoomIsExists(String roomId) {
@@ -50,9 +54,14 @@ public class FindHistoryMessageUseCase {
     }
 
     @Data
+    @Builder
     @AllArgsConstructor
     public static class Input {
         private String roomId;
+        @Builder.Default
+        private int size = 20;
+        @Builder.Default
+        private int page = 0;
     }
 
     @Data
