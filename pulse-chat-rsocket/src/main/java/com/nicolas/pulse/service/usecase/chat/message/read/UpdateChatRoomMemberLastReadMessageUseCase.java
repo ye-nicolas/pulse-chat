@@ -49,9 +49,14 @@ public class UpdateChatRoomMemberLastReadMessageUseCase {
                         .lastMessageId(messageId)
                         .memberId(chatRoomMember.getId())
                         .build()))
-                .filter(chatMessageLastRead -> messageId.compareTo(chatMessageLastRead.getLastMessageId()) >= 0)
-                .doOnNext(chatMessageLastRead -> chatMessageLastRead.setLastMessageId(messageId))
-                .flatMap(chatMessageReadLastRepository::save);
+                .flatMap(chatMessageLastRead -> {
+                    if (messageId.compareTo(chatMessageLastRead.getLastMessageId()) >= 0) {
+                        chatMessageLastRead.setLastMessageId(messageId);
+                        return chatMessageReadLastRepository.save(chatMessageLastRead);
+                    }else {
+                        return Mono.just(chatMessageLastRead);
+                    }
+                });
     }
 
     private Mono<ChatRoomMember> getMember(String roomId) {

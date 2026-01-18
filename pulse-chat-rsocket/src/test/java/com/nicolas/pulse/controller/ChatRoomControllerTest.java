@@ -21,6 +21,7 @@ import com.nicolas.pulse.service.usecase.sink.ChatEventBus;
 import com.nicolas.pulse.util.ExceptionHandlerUtils;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
@@ -32,6 +33,7 @@ import reactor.test.StepVerifier;
 
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
@@ -189,10 +191,11 @@ public class ChatRoomControllerTest extends AbstractIntegrationTest {
                             .createdAt(Instant.now())
                             .updatedAt(Instant.now())
                             .build()))
+            .sorted(Comparator.comparing(ChatMessage::getId))
             .toList();
 
     private static final List<ChatMessageLastRead> ROOM_3_CHAT_MESSAGE_LAST_READ_LIST = ROOM_3_MEMBER.stream().map(m -> {
-        ChatMessage chatMessage = ROOM_3_CHAT_MESSAGE_LIST.get(ThreadLocalRandom.current().nextInt(ROOM_3_MEMBER.size(), ROOM_3_CHAT_MESSAGE_LIST.size()));
+        ChatMessage chatMessage = ROOM_3_CHAT_MESSAGE_LIST.getFirst();
         return ChatMessageLastRead.builder()
                 .id(UlidCreator.getMonotonicUlid().toString())
                 .memberId(m.getId())
@@ -802,7 +805,7 @@ public class ChatRoomControllerTest extends AbstractIntegrationTest {
         responseSpec.expectStatus().isOk();
         getRoom(roomId, securityAccount).expectStatus().isNotFound();
         findRoomMemberByRoomId(roomId, securityAccount).expectStatus().isNotFound();
-        StepVerifier.create(chatMessageRepository.findAllByRoomId(roomId))
+        StepVerifier.create(chatMessageRepository.findAllByRoomId(roomId, PageRequest.of(0, 20)))
                 .expectNextCount(0)
                 .verifyComplete();
         StepVerifier.create(chatMessageReadLastRepository.findAllByRoomId(roomId))

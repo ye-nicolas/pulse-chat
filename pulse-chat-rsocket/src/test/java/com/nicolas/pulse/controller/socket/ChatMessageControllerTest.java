@@ -3,7 +3,9 @@ package com.nicolas.pulse.controller.socket;
 import com.github.f4b6a3.ulid.UlidCreator;
 import com.nicolas.pulse.AbstractIntegrationTest;
 import com.nicolas.pulse.adapter.dto.req.AddChatMessageReq;
+import com.nicolas.pulse.adapter.dto.req.GetMessageReq;
 import com.nicolas.pulse.adapter.dto.req.UpdateChatMessageReq;
+import com.nicolas.pulse.adapter.dto.res.ChatMessageLastReadRes;
 import com.nicolas.pulse.adapter.dto.res.ChatMessageRes;
 import com.nicolas.pulse.entity.domain.chat.ChatMessage;
 import com.nicolas.pulse.entity.enumerate.ChatMessageType;
@@ -30,6 +32,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
@@ -97,7 +100,15 @@ public class ChatMessageControllerTest extends AbstractIntegrationTest {
                 .then(() -> requester.route("chat.message.add")
                         .metadata(authMetadata, authenticationMimeType)
                         .data(Mono.just(addMsgReq))
-                        .send()
+                        .retrieveMono(ChatMessageRes.class)
+                        .doOnNext(res -> {
+                            assertThat(res)
+                                    .usingRecursiveComparison()
+                                    .ignoringFields("id")
+                                    .ignoringFieldsOfTypes(Instant.class)
+                                    .ignoringExpectedNullFields()
+                                    .isEqualTo(except);
+                        })
                         .subscribe())
                 .assertNext(res -> assertThat(res)
                         .usingRecursiveComparison()
@@ -133,7 +144,15 @@ public class ChatMessageControllerTest extends AbstractIntegrationTest {
                 .thenAwait(Duration.ofMillis(200)) // 重要：給 Server 一點時間完成 Sink 註冊
                 .then(() -> requester.route("chat.message.delete.{messageId}", first.getId())
                         .metadata(authMetadata, authenticationMimeType)
-                        .send()
+                        .retrieveMono(ChatMessageRes.class)
+                        .doOnNext(res -> {
+                            assertThat(res)
+                                    .usingRecursiveComparison()
+                                    .ignoringFields("id")
+                                    .ignoringFieldsOfTypes(Instant.class)
+                                    .ignoringExpectedNullFields()
+                                    .isEqualTo(except);
+                        })
                         .subscribe())
                 .assertNext(res -> assertThat(res)
                         .usingRecursiveComparison()
@@ -172,7 +191,15 @@ public class ChatMessageControllerTest extends AbstractIntegrationTest {
                 .then(() -> requester.route("chat.message.update.{messageId}", message.getId())
                         .metadata(authMetadata, authenticationMimeType)
                         .data(Mono.just(req))
-                        .send()
+                        .retrieveMono(ChatMessageRes.class)
+                        .doOnNext(res -> {
+                            assertThat(res)
+                                    .usingRecursiveComparison()
+                                    .ignoringFields("id")
+                                    .ignoringFieldsOfTypes(Instant.class)
+                                    .ignoringExpectedNullFields()
+                                    .isEqualTo(except);
+                        })
                         .subscribe())
                 .assertNext(res -> assertThat(res)
                         .usingRecursiveComparison()
@@ -183,11 +210,13 @@ public class ChatMessageControllerTest extends AbstractIntegrationTest {
                 .verify(Duration.ofSeconds(2));
     }
 
-
     @Test
     void readMessage_success() {
         // Arrange
-        ChatMessage message = ROOM_3_CHAT_MESSAGE_LIST.stream().filter(chatMessage -> chatMessage.getCreatedBy().equals(USER_DETAILS_ACCOUNT_2.getId())).toList().getFirst();
+        ChatMessage message = ROOM_3_CHAT_MESSAGE_LIST.getLast();
+        ChatMessageLastReadRes except = ChatMessageLastReadRes.builder()
+                .readChatMessageId(message.getId())
+                .build();
 
         // Act + Arrange
         RSocketRequester requester = requesterMono.block(Duration.ofSeconds(2));
@@ -195,8 +224,9 @@ public class ChatMessageControllerTest extends AbstractIntegrationTest {
 
         StepVerifier.create(requester.route("chat.message.read.{messageId}", message.getId())
                         .metadata(authMetadata, authenticationMimeType)
-                        .send())
+                        .retrieveMono(ChatMessageLastReadRes.class))
                 .expectSubscription()
+                .assertNext(res -> assertThat(res).isEqualTo(except))
                 .expectComplete()
                 .verify(Duration.ofSeconds(2));
     }
@@ -204,7 +234,11 @@ public class ChatMessageControllerTest extends AbstractIntegrationTest {
     @Test
     void getMessage_success() {
         // Arrange
-        List<ChatMessage> expect = ROOM_3_CHAT_MESSAGE_LIST;
+        GetMessageReq req = GetMessageReq.builder().page(0).size(20).build();
+        List<ChatMessage> expect = ROOM_3_CHAT_MESSAGE_LIST.stream()
+                .sorted(Comparator.comparing(ChatMessage::getId).reversed())
+                .limit(req.getSize())
+                .toList();
 
         // Act + Arrange
         RSocketRequester requester = requesterMono.block(Duration.ofSeconds(5));
@@ -212,6 +246,7 @@ public class ChatMessageControllerTest extends AbstractIntegrationTest {
 
         StepVerifier.create(requester.route("chat.history.get.{roomId}", ROOM_3.getId())
                         .metadata(authMetadata, authenticationMimeType)
+                        .data(Mono.just(req))
                         .retrieveFlux(ChatMessageRes.class))
                 .expectSubscription()
                 .recordWith(ArrayList::new) // 收集返回
