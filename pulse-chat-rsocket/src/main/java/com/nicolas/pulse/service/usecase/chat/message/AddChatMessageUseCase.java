@@ -55,7 +55,7 @@ public class AddChatMessageUseCase {
 
     private Mono<ChatRoom> getChatRoom(String roomId) {
         return chatRoomRepository.findById(roomId)
-                .switchIfEmpty(Mono.error(() -> new TargetNotFoundException("Room not found, id = '%s'.".formatted(roomId))));
+                .switchIfEmpty(Mono.error(() -> new TargetNotFoundException("Chat room not found, room id = '%s'.".formatted(roomId))));
     }
 
     private Mono<ChatRoomMember> getChatMember(String roomId) {

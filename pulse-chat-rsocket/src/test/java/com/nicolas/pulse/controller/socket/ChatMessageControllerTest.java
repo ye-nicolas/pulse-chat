@@ -2,11 +2,13 @@ package com.nicolas.pulse.controller.socket;
 
 import com.github.f4b6a3.ulid.UlidCreator;
 import com.nicolas.pulse.AbstractIntegrationTest;
+import com.nicolas.pulse.adapter.dto.mapper.ChatMessageMapper;
 import com.nicolas.pulse.adapter.dto.req.AddChatMessageReq;
 import com.nicolas.pulse.adapter.dto.req.GetMessageReq;
 import com.nicolas.pulse.adapter.dto.req.UpdateChatMessageReq;
 import com.nicolas.pulse.adapter.dto.res.ChatMessageLastReadRes;
 import com.nicolas.pulse.adapter.dto.res.ChatMessageRes;
+import com.nicolas.pulse.adapter.dto.res.MessageRes;
 import com.nicolas.pulse.entity.domain.chat.ChatMessage;
 import com.nicolas.pulse.entity.enumerate.ChatMessageType;
 import com.nicolas.pulse.util.JwtUtil;
@@ -17,7 +19,10 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.rsocket.server.LocalRSocketServerPort;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ProblemDetail;
 import org.springframework.http.codec.cbor.Jackson2CborDecoder;
 import org.springframework.http.codec.cbor.Jackson2CborEncoder;
 import org.springframework.messaging.rsocket.RSocketRequester;
@@ -37,6 +42,8 @@ import java.util.List;
 import java.util.Map;
 
 import static com.nicolas.pulse.controller.ChatRoomControllerTest.*;
+import static com.nicolas.pulse.util.ExceptionHandlerUtils.FORBIDDEN;
+import static com.nicolas.pulse.util.ExceptionHandlerUtils.TARGET_NOT_FOUND;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ChatMessageControllerTest extends AbstractIntegrationTest {
@@ -100,9 +107,10 @@ public class ChatMessageControllerTest extends AbstractIntegrationTest {
                 .then(() -> requester.route("chat.message.add")
                         .metadata(authMetadata, authenticationMimeType)
                         .data(Mono.just(addMsgReq))
-                        .retrieveMono(ChatMessageRes.class)
+                        .retrieveMono(new ParameterizedTypeReference<MessageRes<ChatMessageRes>>() {
+                        })
                         .doOnNext(res -> {
-                            assertThat(res)
+                            assertThat(res.getData())
                                     .usingRecursiveComparison()
                                     .ignoringFields("id")
                                     .ignoringFieldsOfTypes(Instant.class)
@@ -117,7 +125,68 @@ public class ChatMessageControllerTest extends AbstractIntegrationTest {
                         .ignoringExpectedNullFields()
                         .isEqualTo(except))
                 .thenCancel()
+                .verify(Duration.ofSeconds(2));
+    }
+
+    @Test
+    void addMessage_roomNotFound() {
+        // Arrange
+        String roomId = UlidCreator.getMonotonicUlid().toString();
+        String chatContent = "Hello RSocket!";
+        AddChatMessageReq addMsgReq = AddChatMessageReq.builder()
+                .roomId(roomId)
+                .content(chatContent)
+                .type(ChatMessageType.TEXT)
+                .build();
+
+        // Act + Arrange
+        RSocketRequester requester = requesterMono.block(Duration.ofSeconds(5));
+        assertThat(requester).isNotNull();
+
+        StepVerifier.create(requester.route("chat.message.add")
+                        .metadata(authMetadata, authenticationMimeType)
+                        .data(Mono.just(addMsgReq))
+                        .retrieveMono(new ParameterizedTypeReference<MessageRes<ChatMessageRes>>() {
+                        }))
+                .assertNext(error -> {
+                    assertThat(error.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
+                    ProblemDetail problemDetail = error.getProblemDetail();
+                    assertThat(problemDetail.getTitle()).isEqualTo(TARGET_NOT_FOUND);
+                    assertThat(problemDetail.getDetail()).isEqualTo("Chat room not found, room id = '%s'.".formatted(roomId));
+                })
+                .expectComplete()
+                .verify(Duration.ofSeconds(2));
+    }
+
+    @Test
+    void addMessage_accountNotChatRoomMember() {
+        // Arrange
+        String roomId = ADD_MEMBER_ROOM_2.getId();
+        String chatContent = "Hello RSocket!";
+        AddChatMessageReq addMsgReq = AddChatMessageReq.builder()
+                .roomId(roomId)
+                .content(chatContent)
+                .type(ChatMessageType.TEXT)
+                .build();
+
+        // Act + Arrange
+        RSocketRequester requester = requesterMono.block(Duration.ofSeconds(5));
+        assertThat(requester).isNotNull();
+
+        StepVerifier.create(requester.route("chat.message.add")
+                        .metadata(authMetadata, authenticationMimeType)
+                        .data(Mono.just(addMsgReq))
+                        .retrieveMono(new ParameterizedTypeReference<MessageRes<ChatMessageRes>>() {
+                        }))
+                .assertNext(error -> {
+                    assertThat(error.getStatus()).isEqualTo(HttpStatus.FORBIDDEN.value());
+                    ProblemDetail problemDetail = error.getProblemDetail();
+                    assertThat(problemDetail.getTitle()).isEqualTo(FORBIDDEN);
+                    assertThat(problemDetail.getDetail()).isEqualTo("Account is not a member of chat room, room id = '%s'.".formatted(roomId));
+                })
+                .expectComplete()
                 .verify(Duration.ofSeconds(5));
+
     }
 
     @Test
@@ -144,9 +213,11 @@ public class ChatMessageControllerTest extends AbstractIntegrationTest {
                 .thenAwait(Duration.ofMillis(200)) // 重要：給 Server 一點時間完成 Sink 註冊
                 .then(() -> requester.route("chat.message.delete.{messageId}", first.getId())
                         .metadata(authMetadata, authenticationMimeType)
-                        .retrieveMono(ChatMessageRes.class)
+                        .retrieveMono(new ParameterizedTypeReference<MessageRes<ChatMessageRes>>() {
+                        })
                         .doOnNext(res -> {
-                            assertThat(res)
+                            assertThat(res.getStatus()).isEqualTo(HttpStatus.OK.value());
+                            assertThat(res.getData())
                                     .usingRecursiveComparison()
                                     .ignoringFields("id")
                                     .ignoringFieldsOfTypes(Instant.class)
@@ -191,9 +262,11 @@ public class ChatMessageControllerTest extends AbstractIntegrationTest {
                 .then(() -> requester.route("chat.message.update.{messageId}", message.getId())
                         .metadata(authMetadata, authenticationMimeType)
                         .data(Mono.just(req))
-                        .retrieveMono(ChatMessageRes.class)
+                        .retrieveMono(new ParameterizedTypeReference<MessageRes<ChatMessageRes>>() {
+                        })
                         .doOnNext(res -> {
-                            assertThat(res)
+                            assertThat(res.getStatus()).isEqualTo(HttpStatus.OK.value());
+                            assertThat(res.getData())
                                     .usingRecursiveComparison()
                                     .ignoringFields("id")
                                     .ignoringFieldsOfTypes(Instant.class)
@@ -224,9 +297,13 @@ public class ChatMessageControllerTest extends AbstractIntegrationTest {
 
         StepVerifier.create(requester.route("chat.message.read.{messageId}", message.getId())
                         .metadata(authMetadata, authenticationMimeType)
-                        .retrieveMono(ChatMessageLastReadRes.class))
+                        .retrieveMono(new ParameterizedTypeReference<MessageRes<ChatMessageLastReadRes>>() {
+                        }))
                 .expectSubscription()
-                .assertNext(res -> assertThat(res).isEqualTo(except))
+                .assertNext(res -> {
+                    assertThat(res.getStatus()).isEqualTo(HttpStatus.OK.value());
+                    assertThat(res.getData()).isEqualTo(except);
+                })
                 .expectComplete()
                 .verify(Duration.ofSeconds(2));
     }
@@ -235,9 +312,11 @@ public class ChatMessageControllerTest extends AbstractIntegrationTest {
     void getMessage_success() {
         // Arrange
         GetMessageReq req = GetMessageReq.builder().page(0).size(20).build();
-        List<ChatMessage> expect = ROOM_3_CHAT_MESSAGE_LIST.stream()
+        List<MessageRes<ChatMessageRes>> expect = ROOM_3_CHAT_MESSAGE_LIST.stream()
                 .sorted(Comparator.comparing(ChatMessage::getId).reversed())
                 .limit(req.getSize())
+                .map(ChatMessageMapper::domainToRes)
+                .map(d -> MessageRes.<ChatMessageRes>builder().data(d).build())
                 .toList();
 
         // Act + Arrange
@@ -247,14 +326,16 @@ public class ChatMessageControllerTest extends AbstractIntegrationTest {
         StepVerifier.create(requester.route("chat.history.get.{roomId}", ROOM_3.getId())
                         .metadata(authMetadata, authenticationMimeType)
                         .data(Mono.just(req))
-                        .retrieveFlux(ChatMessageRes.class))
+                        .retrieveFlux(new ParameterizedTypeReference<MessageRes<ChatMessageRes>>() {
+                        }))
                 .expectSubscription()
                 .recordWith(ArrayList::new) // 收集返回
                 .expectNextCount(expect.size())
-                .consumeRecordedWith(results -> assertThat(results)
-                        .usingRecursiveComparison()
-                        .ignoringCollectionOrder()
-                        .isEqualTo(expect))
+                .consumeRecordedWith(results ->
+                        assertThat(results)
+                                .usingRecursiveComparison()
+                                .ignoringCollectionOrder()
+                                .isEqualTo(expect))
                 .expectComplete()
                 .verify(Duration.ofSeconds(2));
     }

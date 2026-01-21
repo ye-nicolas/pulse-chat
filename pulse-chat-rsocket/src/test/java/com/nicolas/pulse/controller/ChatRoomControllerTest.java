@@ -99,7 +99,7 @@ public class ChatRoomControllerTest extends AbstractIntegrationTest {
 
     );
 
-    private static final ChatRoom ADD_MEMBER_ROOM_2 = ChatRoom.builder()
+    public static final ChatRoom ADD_MEMBER_ROOM_2 = ChatRoom.builder()
             .id(UlidCreator.getMonotonicUlid().toString())
             .name("Room_2")
             .createdBy(ACCOUNT_DATA_1.getId())

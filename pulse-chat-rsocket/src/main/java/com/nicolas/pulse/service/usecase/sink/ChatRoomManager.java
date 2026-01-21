@@ -58,7 +58,7 @@ public class ChatRoomManager {
     }
 
     public void unSubscribe(String accountId, String roomId) {
-        if (StringUtils.hasText(accountId)){
+        if (StringUtils.hasText(accountId)) {
             roomContexts.computeIfPresent(roomId, (rid, context) -> {
                 context.removeSink(accountId);
                 if (context.isEmpty()) {
@@ -85,10 +85,11 @@ public class ChatRoomManager {
                 Sinks.EmitResult result = sink.tryEmitNext(message);
                 if (result.isFailure()) {
                     log.error("Failed to push message to {} in room {}: {}", accountId, message.getRoomId(), result);
-                    if (result == Sinks.EmitResult.FAIL_TERMINATED) {
+                    if (result == Sinks.EmitResult.FAIL_TERMINATED || result == Sinks.EmitResult.FAIL_CANCELLED) {
                         context.removeSink(accountId);
                     }
                 }
+                log.info("send");
             });
         }
     }
