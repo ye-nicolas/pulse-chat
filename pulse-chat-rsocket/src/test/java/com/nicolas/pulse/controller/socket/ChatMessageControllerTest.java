@@ -42,8 +42,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.nicolas.pulse.controller.ChatRoomControllerTest.*;
-import static com.nicolas.pulse.util.ExceptionHandlerUtils.FORBIDDEN;
-import static com.nicolas.pulse.util.ExceptionHandlerUtils.TARGET_NOT_FOUND;
+import static com.nicolas.pulse.util.ExceptionHandlerUtils.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ChatMessageControllerTest extends AbstractIntegrationTest {
@@ -185,7 +184,7 @@ public class ChatMessageControllerTest extends AbstractIntegrationTest {
                     assertThat(problemDetail.getDetail()).isEqualTo("Account is not a member of chat room, room id = '%s'.".formatted(roomId));
                 })
                 .expectComplete()
-                .verify(Duration.ofSeconds(5));
+                .verify(Duration.ofSeconds(2));
 
     }
 
@@ -235,6 +234,78 @@ public class ChatMessageControllerTest extends AbstractIntegrationTest {
     }
 
     @Test
+    void deleteMessage_notFound() {
+        // Arrange
+        String messageId = UlidCreator.getMonotonicUlid().toString();
+
+        // Act + Arrange
+        RSocketRequester requester = requesterMono.block(Duration.ofSeconds(5));
+        assertThat(requester).isNotNull();
+
+        StepVerifier.create(requester.route("chat.message.delete.{messageId}", messageId)
+                        .metadata(authMetadata, authenticationMimeType)
+                        .retrieveMono(new ParameterizedTypeReference<MessageRes<ChatMessageRes>>() {
+                        }))
+                .assertNext(messageRes -> {
+                    assertThat(messageRes.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
+                    ProblemDetail problemDetail = messageRes.getProblemDetail();
+                    assertThat(problemDetail.getTitle()).isEqualTo(TARGET_NOT_FOUND);
+                    assertThat(problemDetail.getDetail()).isEqualTo("Message not found, message id = '%s'.".formatted(messageId));
+                })
+                .expectComplete()
+                .verify(Duration.ofSeconds(2));
+    }
+
+
+    @Test
+    void deleteMessage_access() {
+        // Arrange
+        ChatMessage first = ROOM_3_CHAT_MESSAGE_LIST.stream().filter(chatMessage -> !chatMessage.getCreatedBy().equals(USER_DETAILS_ACCOUNT_2.getId())).toList().getFirst();
+        String messageId = first.getId();
+
+        // Act + Arrange
+        RSocketRequester requester = requesterMono.block(Duration.ofSeconds(5));
+        assertThat(requester).isNotNull();
+
+        StepVerifier.create(requester.route("chat.message.delete.{messageId}", messageId)
+                        .metadata(authMetadata, authenticationMimeType)
+                        .retrieveMono(new ParameterizedTypeReference<MessageRes<ChatMessageRes>>() {
+                        }))
+                .assertNext(messageRes -> {
+                    assertThat(messageRes.getStatus()).isEqualTo(HttpStatus.FORBIDDEN.value());
+                    ProblemDetail problemDetail = messageRes.getProblemDetail();
+                    assertThat(problemDetail.getTitle()).isEqualTo(FORBIDDEN);
+                    assertThat(problemDetail.getDetail()).isEqualTo("Can't update message by permission denied, account id = '%s'.".formatted(USER_DETAILS_ACCOUNT_2.getId()));
+                })
+                .expectComplete()
+                .verify(Duration.ofSeconds(2));
+    }
+
+    @Test
+    void deleteMessage_isDeleted() {
+        // Arrange
+        ChatMessage first = ROOM_3_CHAT_MESSAGE_LIST.stream().filter(chatMessage -> chatMessage.getCreatedBy().equals(USER_DETAILS_ACCOUNT_2.getId()) && chatMessage.isDelete()).toList().getFirst();
+        String messageId = first.getId();
+
+        // Act + Arrange
+        RSocketRequester requester = requesterMono.block(Duration.ofSeconds(5));
+        assertThat(requester).isNotNull();
+
+        StepVerifier.create(requester.route("chat.message.delete.{messageId}", messageId)
+                        .metadata(authMetadata, authenticationMimeType)
+                        .retrieveMono(new ParameterizedTypeReference<MessageRes<ChatMessageRes>>() {
+                        }))
+                .assertNext(messageRes -> {
+                    assertThat(messageRes.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST.value());
+                    ProblemDetail problemDetail = messageRes.getProblemDetail();
+                    assertThat(problemDetail.getTitle()).isEqualTo(ILLEGAL_STATE_FAILED);
+                    assertThat(problemDetail.getDetail()).isEqualTo("Message is already deleted, cannot delete again.");
+                })
+                .expectComplete()
+                .verify(Duration.ofSeconds(2));
+    }
+
+    @Test
     void updateMessage_success() {
         // Arrange
         ChatMessage message = ROOM_3_CHAT_MESSAGE_LIST.stream().filter(chatMessage -> chatMessage.getCreatedBy().equals(USER_DETAILS_ACCOUNT_2.getId())).toList().getFirst();
@@ -280,6 +351,87 @@ public class ChatMessageControllerTest extends AbstractIntegrationTest {
                         .ignoringExpectedNullFields()
                         .isEqualTo(except))
                 .thenCancel()
+                .verify(Duration.ofSeconds(2));
+    }
+
+    @Test
+    void updateMessage_messageNotFound() {
+        // Arrange
+        String messageId = UlidCreator.getMonotonicUlid().toString();
+        UpdateChatMessageReq req = UpdateChatMessageReq.builder()
+                .newContent("AAAAAA")
+                .build();
+
+        // Act + Arrange
+        RSocketRequester requester = requesterMono.block(Duration.ofSeconds(5));
+        assertThat(requester).isNotNull();
+
+        StepVerifier.create(requester.route("chat.message.update.{messageId}", messageId)
+                        .metadata(authMetadata, authenticationMimeType)
+                        .data(Mono.just(req))
+                        .retrieveMono(new ParameterizedTypeReference<MessageRes<ChatMessageRes>>() {
+                        }))
+                .assertNext(messageRes -> {
+                    assertThat(messageRes.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
+                    ProblemDetail problemDetail = messageRes.getProblemDetail();
+                    assertThat(problemDetail.getTitle()).isEqualTo(TARGET_NOT_FOUND);
+                    assertThat(problemDetail.getDetail()).isEqualTo("Message not found, message id = '%s'.".formatted(messageId));
+                })
+                .expectComplete()
+                .verify(Duration.ofSeconds(2));
+    }
+
+    @Test
+    void updateMessage_messageIsDeleted() {
+        // Arrange
+        ChatMessage first = ROOM_3_CHAT_MESSAGE_LIST.stream().filter(chatMessage -> chatMessage.getCreatedBy().equals(USER_DETAILS_ACCOUNT_2.getId()) && chatMessage.isDelete()).toList().getFirst();
+        UpdateChatMessageReq req = UpdateChatMessageReq.builder()
+                .newContent("AAAAAA")
+                .build();
+
+        // Act + Arrange
+        RSocketRequester requester = requesterMono.block(Duration.ofSeconds(5));
+        assertThat(requester).isNotNull();
+
+        StepVerifier.create(requester.route("chat.message.update.{messageId}", first.getId())
+                        .metadata(authMetadata, authenticationMimeType)
+                        .data(Mono.just(req))
+                        .retrieveMono(new ParameterizedTypeReference<MessageRes<ChatMessageRes>>() {
+                        }))
+                .assertNext(messageRes -> {
+                    assertThat(messageRes.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST.value());
+                    ProblemDetail problemDetail = messageRes.getProblemDetail();
+                    assertThat(problemDetail.getTitle()).isEqualTo(ILLEGAL_STATE_FAILED);
+                    assertThat(problemDetail.getDetail()).isEqualTo("Message is already deleted, cannot update.");
+                })
+                .expectComplete()
+                .verify(Duration.ofSeconds(2));
+    }
+
+    @Test
+    void updateMessage_access() {
+        // Arrange
+        ChatMessage first = ROOM_3_CHAT_MESSAGE_LIST.stream().filter(chatMessage -> !chatMessage.getCreatedBy().equals(USER_DETAILS_ACCOUNT_2.getId())).toList().getFirst();
+        UpdateChatMessageReq req = UpdateChatMessageReq.builder()
+                .newContent("AAAAAA")
+                .build();
+
+        // Act + Arrange
+        RSocketRequester requester = requesterMono.block(Duration.ofSeconds(5));
+        assertThat(requester).isNotNull();
+
+        StepVerifier.create(requester.route("chat.message.update.{messageId}", first.getId())
+                        .metadata(authMetadata, authenticationMimeType)
+                        .data(Mono.just(req))
+                        .retrieveMono(new ParameterizedTypeReference<MessageRes<ChatMessageRes>>() {
+                        }))
+                .assertNext(messageRes -> {
+                    assertThat(messageRes.getStatus()).isEqualTo(HttpStatus.FORBIDDEN.value());
+                    ProblemDetail problemDetail = messageRes.getProblemDetail();
+                    assertThat(problemDetail.getTitle()).isEqualTo(FORBIDDEN);
+                    assertThat(problemDetail.getDetail()).isEqualTo("Can't update message by permission denied, account id = '%s'.".formatted(USER_DETAILS_ACCOUNT_2.getId()));
+                })
+                .expectComplete()
                 .verify(Duration.ofSeconds(2));
     }
 
