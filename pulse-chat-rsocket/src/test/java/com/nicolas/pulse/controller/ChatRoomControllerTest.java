@@ -178,6 +178,46 @@ public class ChatRoomControllerTest extends AbstractIntegrationTest {
                     .build()
     );
 
+    public static final List<ChatMessage> ROOM_2_CHAT_MESSAGE_LIST = Stream.concat(
+                    ROOM_2_MEMBER.stream().flatMap(member -> IntStream.range(0, ThreadLocalRandom.current().nextInt(ROOM_2_MEMBER.size(), 11))
+                            .mapToObj(i -> ChatMessage.builder()
+                                    .id(UlidCreator.getMonotonicUlid().toString())
+                                    .roomId(member.getChatRoom().getId())
+                                    .memberId(member.getId())
+                                    .type(ChatMessageType.TEXT)
+                                    .content(UlidCreator.getMonotonicUlid().toString())
+                                    .isDelete(false)
+                                    .createdBy(member.getAccountId())
+                                    .createdAt(Instant.now())
+                                    .updatedAt(Instant.now())
+                                    .build())),
+                    ROOM_2_MEMBER.stream().map(member -> ChatMessage.builder()
+                            .id(UlidCreator.getMonotonicUlid().toString())
+                            .roomId(member.getChatRoom().getId())
+                            .memberId(member.getId())
+                            .type(ChatMessageType.TEXT)
+                            .content(UlidCreator.getMonotonicUlid().toString())
+                            .isDelete(true)
+                            .createdBy(member.getAccountId())
+                            .createdAt(Instant.now())
+                            .updatedAt(Instant.now())
+                            .build()))
+            .sorted(Comparator.comparing(ChatMessage::getId))
+            .toList();
+
+    public static final List<ChatMessageLastRead> ROOM_2_CHAT_MESSAGE_LAST_READ_LIST = ROOM_2_MEMBER.stream().map(m -> {
+        ChatMessage chatMessage = ROOM_2_CHAT_MESSAGE_LIST.getFirst();
+        return ChatMessageLastRead.builder()
+                .id(UlidCreator.getMonotonicUlid().toString())
+                .memberId(m.getId())
+                .lastMessageId(chatMessage.getId())
+                .roomId(chatMessage.getRoomId())
+                .createdBy(m.getAccountId())
+                .createdAt(Instant.now())
+                .updateAt(Instant.now())
+                .build();
+    }).toList();
+
     public static final List<ChatMessage> ROOM_3_CHAT_MESSAGE_LIST = Stream.concat(
                     ROOM_3_MEMBER.stream().flatMap(member -> IntStream.range(0, ThreadLocalRandom.current().nextInt(ROOM_3_MEMBER.size(), 11))
                             .mapToObj(i -> ChatMessage.builder()
@@ -249,7 +289,7 @@ public class ChatRoomControllerTest extends AbstractIntegrationTest {
             """.formatted(DbMeta.ChatMessageData.TABLE_NAME,
             DbMeta.ChatMessageData.COL_ID, DbMeta.ChatMessageData.COL_ROOM_ID, DbMeta.ChatMessageData.COL_MEMBER_ID, DbMeta.ChatMessageData.COL_TYPE, DbMeta.ChatMessageData.COL_CONTENT, DbMeta.ChatMessageData.COL_IS_DELETE,
             DbMeta.ChatMessageData.COL_CREATED_BY, DbMeta.ChatMessageData.COL_CREATED_AT, DbMeta.ChatMessageData.COL_UPDATED_AT,
-            ROOM_3_CHAT_MESSAGE_LIST.stream().map(chatMessage -> "('%s','%s','%s','%s','%s',%s,'%s','%s','%s')"
+            Stream.concat(ROOM_3_CHAT_MESSAGE_LIST.stream(), ROOM_2_CHAT_MESSAGE_LIST.stream()).map(chatMessage -> "('%s','%s','%s','%s','%s',%s,'%s','%s','%s')"
                             .formatted(chatMessage.getId(), chatMessage.getRoomId(), chatMessage.getMemberId(), chatMessage.getType(), chatMessage.getContent(), chatMessage.isDelete(),
                                     chatMessage.getCreatedBy(), chatMessage.getCreatedAt(), chatMessage.getUpdatedAt()))
                     .collect(Collectors.joining(",\n")));
@@ -260,7 +300,7 @@ public class ChatRoomControllerTest extends AbstractIntegrationTest {
             """.formatted(DbMeta.ChatMessageLastReadData.TABLE_NAME,
             DbMeta.ChatMessageLastReadData.COL_ID, DbMeta.ChatMessageLastReadData.COL_LAST_MESSAGE_ID, DbMeta.ChatMessageLastReadData.COL_ROOM_ID, DbMeta.ChatMessageLastReadData.COL_MEMBER_ID,
             DbMeta.ChatMessageLastReadData.COL_CREATED_BY, DbMeta.ChatMessageLastReadData.COL_CREATED_AT, DbMeta.ChatMessageLastReadData.COL_UPDATED_AT,
-            ROOM_3_CHAT_MESSAGE_LAST_READ_LIST.stream().map(chatMessageLastRead -> "('%s','%s','%s','%s','%s','%s','%s')"
+            Stream.concat(ROOM_3_CHAT_MESSAGE_LAST_READ_LIST.stream(), ROOM_2_CHAT_MESSAGE_LAST_READ_LIST.stream()).map(chatMessageLastRead -> "('%s','%s','%s','%s','%s','%s','%s')"
                             .formatted(chatMessageLastRead.getId(), chatMessageLastRead.getLastMessageId(), chatMessageLastRead.getRoomId(), chatMessageLastRead.getMemberId(),
                                     chatMessageLastRead.getCreatedBy(), chatMessageLastRead.getCreatedAt(), chatMessageLastRead.getUpdateAt()))
                     .collect(Collectors.joining(",\n")));

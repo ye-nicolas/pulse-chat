@@ -461,6 +461,54 @@ public class ChatMessageControllerTest extends AbstractIntegrationTest {
     }
 
     @Test
+    void readMessage_messageNotFound() {
+        // Arrange
+        String messageId = UlidCreator.getMonotonicUlid().toString();
+
+        // Act + Arrange
+        RSocketRequester requester = requesterMono.block(Duration.ofSeconds(2));
+        assertThat(requester).isNotNull();
+
+        StepVerifier.create(requester.route("chat.message.read.{messageId}", messageId)
+                        .metadata(authMetadata, authenticationMimeType)
+                        .retrieveMono(new ParameterizedTypeReference<MessageRes<ChatMessageLastReadRes>>() {
+                        }))
+                .expectSubscription()
+                .assertNext(res -> {
+                    assertThat(res.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
+                    ProblemDetail problemDetail = res.getProblemDetail();
+                    assertThat(problemDetail.getTitle()).isEqualTo(TARGET_NOT_FOUND);
+                    assertThat(problemDetail.getDetail()).isEqualTo("Message not found, message id = '%s'.".formatted(messageId));
+                })
+                .expectComplete()
+                .verify(Duration.ofSeconds(2));
+    }
+
+    @Test
+    void readMessage_notRoomMember() {
+        // Arrange
+        String messageId = ROOM_2_CHAT_MESSAGE_LIST.getLast().getId();
+
+        // Act + Arrange
+        RSocketRequester requester = requesterMono.block(Duration.ofSeconds(2));
+        assertThat(requester).isNotNull();
+
+        StepVerifier.create(requester.route("chat.message.read.{messageId}", messageId)
+                        .metadata(authMetadata, authenticationMimeType)
+                        .retrieveMono(new ParameterizedTypeReference<MessageRes<ChatMessageLastReadRes>>() {
+                        }))
+                .expectSubscription()
+                .assertNext(res -> {
+                    assertThat(res.getStatus()).isEqualTo(HttpStatus.FORBIDDEN.value());
+                    ProblemDetail problemDetail = res.getProblemDetail();
+                    assertThat(problemDetail.getTitle()).isEqualTo(FORBIDDEN);
+                    assertThat(problemDetail.getDetail()).isEqualTo("Account is not a member of the requested room, account id = '%s'.".formatted(USER_DETAILS_ACCOUNT_2.getId()));
+                })
+                .expectComplete()
+                .verify(Duration.ofSeconds(2));
+    }
+
+    @Test
     void getMessage_success() {
         // Arrange
         GetMessageReq req = GetMessageReq.builder().page(0).size(20).build();
@@ -488,6 +536,58 @@ public class ChatMessageControllerTest extends AbstractIntegrationTest {
                                 .usingRecursiveComparison()
                                 .ignoringCollectionOrder()
                                 .isEqualTo(expect))
+                .expectComplete()
+                .verify(Duration.ofSeconds(2));
+    }
+
+    @Test
+    void getMessage_roomNotFound() {
+        // Arrange
+        GetMessageReq req = GetMessageReq.builder().page(0).size(20).build();
+        String roomId = UlidCreator.getMonotonicUlid().toString();
+
+        // Act + Arrange
+        RSocketRequester requester = requesterMono.block(Duration.ofSeconds(5));
+        assertThat(requester).isNotNull();
+
+        StepVerifier.create(requester.route("chat.history.get.{roomId}", roomId)
+                        .metadata(authMetadata, authenticationMimeType)
+                        .data(Mono.just(req))
+                        .retrieveFlux(new ParameterizedTypeReference<MessageRes<ChatMessageRes>>() {
+                        }))
+                .expectSubscription()
+                .assertNext(res -> {
+                    assertThat(res.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
+                    ProblemDetail problemDetail = res.getProblemDetail();
+                    assertThat(problemDetail.getTitle()).isEqualTo(TARGET_NOT_FOUND);
+                    assertThat(problemDetail.getDetail()).isEqualTo("Chat room not found, room id = '%s'.".formatted(roomId));
+                })
+                .expectComplete()
+                .verify(Duration.ofSeconds(2));
+    }
+
+    @Test
+    void getMessage_notRoomMember() {
+        // Arrange
+        GetMessageReq req = GetMessageReq.builder().page(0).size(20).build();
+        String roomId = ADD_MEMBER_ROOM_2.getId();
+
+        // Act + Arrange
+        RSocketRequester requester = requesterMono.block(Duration.ofSeconds(5));
+        assertThat(requester).isNotNull();
+
+        StepVerifier.create(requester.route("chat.history.get.{roomId}", roomId)
+                        .metadata(authMetadata, authenticationMimeType)
+                        .data(Mono.just(req))
+                        .retrieveFlux(new ParameterizedTypeReference<MessageRes<ChatMessageRes>>() {
+                        }))
+                .expectSubscription()
+                .assertNext(res -> {
+                    assertThat(res.getStatus()).isEqualTo(HttpStatus.FORBIDDEN.value());
+                    ProblemDetail problemDetail = res.getProblemDetail();
+                    assertThat(problemDetail.getTitle()).isEqualTo(FORBIDDEN);
+                    assertThat(problemDetail.getDetail()).isEqualTo("Can't read message by permission denied, account id = '%s'.".formatted(USER_DETAILS_ACCOUNT_2.getId()));
+                })
                 .expectComplete()
                 .verify(Duration.ofSeconds(2));
     }
