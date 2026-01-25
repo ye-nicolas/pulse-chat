@@ -14,6 +14,7 @@ import com.nicolas.pulse.service.usecase.chat.message.FindHistoryMessageUseCase;
 import com.nicolas.pulse.service.usecase.chat.message.UpdateChatMessageUseCase;
 import com.nicolas.pulse.service.usecase.chat.message.read.UpdateChatRoomMemberLastReadMessageUseCase;
 import com.nicolas.pulse.service.usecase.sink.ChatRoomManager;
+import com.nicolas.pulse.service.usecase.sink.SubscribeChatRoomUseCase;
 import com.nicolas.pulse.util.ExceptionHandlerUtils;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
@@ -24,6 +25,7 @@ import org.springframework.http.ProblemDetail;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
+import org.springframework.messaging.rsocket.RSocketRequester;
 import org.springframework.stereotype.Controller;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -34,6 +36,7 @@ import java.util.Set;
 @Controller
 public class ChatMessageController {
     private final Validator validator;
+    private final SubscribeChatRoomUseCase subscribeChatRoomUseCase;
     private final ChatRoomManager chatRoomManager;
     private final FindHistoryMessageUseCase findHistoryMessageUseCase;
     private final AddChatMessageUseCase addChatMessageUseCase;
@@ -43,6 +46,7 @@ public class ChatMessageController {
     private final MdcProperties mdcProperties;
 
     public ChatMessageController(Validator validator,
+                                 SubscribeChatRoomUseCase subscribeChatRoomUseCase,
                                  ChatRoomManager chatRoomManager,
                                  FindHistoryMessageUseCase findHistoryMessageUseCase,
                                  AddChatMessageUseCase addChatMessageUseCase,
@@ -51,6 +55,7 @@ public class ChatMessageController {
                                  UpdateChatRoomMemberLastReadMessageUseCase updateChatRoomMemberLastReadMessageUseCase,
                                  MdcProperties mdcProperties) {
         this.validator = validator;
+        this.subscribeChatRoomUseCase = subscribeChatRoomUseCase;
         this.chatRoomManager = chatRoomManager;
         this.findHistoryMessageUseCase = findHistoryMessageUseCase;
         this.addChatMessageUseCase = addChatMessageUseCase;
@@ -58,6 +63,17 @@ public class ChatMessageController {
         this.deleteChatMessageUseCase = deleteChatMessageUseCase;
         this.updateChatRoomMemberLastReadMessageUseCase = updateChatRoomMemberLastReadMessageUseCase;
         this.mdcProperties = mdcProperties;
+    }
+
+    @MessageMapping("session.open.room.{roomId}")
+    public Flux<MessageRes<ChatMessageRes>> openSessionByRoom(RSocketRequester requester, @DestinationVariable("roomId") String roomId) {
+        SubscribeChatRoomUseCase.Input input = new SubscribeChatRoomUseCase.Input(roomId);
+        SubscribeChatRoomUseCase.Output output = new SubscribeChatRoomUseCase.Output();
+        return subscribeChatRoomUseCase.execute(input, output)
+                .thenMany(Flux.defer(() -> output.getChatMessageFlux()
+                        .map(ChatMessageMapper::domainToRes)
+                        .map(v -> MessageRes.<ChatMessageRes>builder().data(v).build())))
+                .onErrorResume(throwable -> Flux.just(processException(throwable, ChatMessageRes.class)));
     }
 
     @MessageMapping("chat.message.add")

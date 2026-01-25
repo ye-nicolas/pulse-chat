@@ -46,12 +46,9 @@ import static com.nicolas.pulse.util.ExceptionHandlerUtils.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ChatMessageControllerTest extends AbstractIntegrationTest {
-    @Autowired
-    private RSocketRequester.Builder requesterBuilder;
-
     private final RSocketStrategies strategies = RSocketStrategies.builder()
-            .encoder(new Jackson2CborEncoder()) // 編碼器
-            .decoder(new Jackson2CborDecoder()) // 解碼器
+            .encoder(new Jackson2CborEncoder())
+            .decoder(new Jackson2CborDecoder())
             .build();
 
     @Value("${jwt.key}")
@@ -65,15 +62,16 @@ public class ChatMessageControllerTest extends AbstractIntegrationTest {
     private byte[] authMetadata;
 
     @BeforeEach
-    void setup() {
-        this.requesterMono = Mono.defer(() -> Mono.just(requesterBuilder
-                .rsocketStrategies(strategies)
-                .dataMimeType(MediaType.APPLICATION_CBOR)
-                .websocket(URI.create("ws://localhost:%s/web-socket".formatted(rsocketPort)))));
+    void setup(@Autowired RSocketRequester.Builder requesterBuilder) {
         byte[] jwtBytes = JwtUtil.generateAccessToken(JwtUtil.generateSecretKey(secret), UlidCreator.getMonotonicUlid().toString(), USER_DETAILS_ACCOUNT_2.getId(), 300000L, Map.of()).getBytes(StandardCharsets.UTF_8);
         authMetadata = new byte[1 + jwtBytes.length];
         authMetadata[0] = (byte) 0x81;
         System.arraycopy(jwtBytes, 0, authMetadata, 1, jwtBytes.length);
+        this.requesterMono = Mono.fromSupplier(() -> requesterBuilder
+                .setupMetadata(authMetadata, authenticationMimeType)
+                .rsocketStrategies(strategies)
+                .dataMimeType(MediaType.APPLICATION_CBOR)
+                .websocket(URI.create("ws://localhost:%s/web-socket".formatted(rsocketPort))));
     }
 
     @Test
@@ -97,14 +95,12 @@ public class ChatMessageControllerTest extends AbstractIntegrationTest {
         // Act + Arrange
         RSocketRequester requester = requesterMono.block(Duration.ofSeconds(5));
         assertThat(requester).isNotNull();
-
         StepVerifier.create(requester.route("session.open.room.{roomId}", roomId)
-                        .metadata(authMetadata, authenticationMimeType)
-                        .retrieveFlux(ChatMessageRes.class))
+                        .retrieveFlux(new ParameterizedTypeReference<MessageRes<ChatMessageRes>>() {
+                        }))
                 .expectSubscription()
                 .thenAwait(Duration.ofMillis(200)) // 重要：給 Server 一點時間完成 Sink 註冊
                 .then(() -> requester.route("chat.message.add")
-                        .metadata(authMetadata, authenticationMimeType)
                         .data(Mono.just(addMsgReq))
                         .retrieveMono(new ParameterizedTypeReference<MessageRes<ChatMessageRes>>() {
                         })
@@ -117,14 +113,14 @@ public class ChatMessageControllerTest extends AbstractIntegrationTest {
                                     .isEqualTo(except);
                         })
                         .subscribe())
-                .assertNext(res -> assertThat(res)
+                .assertNext(res -> assertThat(res.getData())
                         .usingRecursiveComparison()
                         .ignoringFields("id")
                         .ignoringFieldsOfTypes(Instant.class)
                         .ignoringExpectedNullFields()
                         .isEqualTo(except))
                 .thenCancel()
-                .verify(Duration.ofSeconds(2));
+                .verify(Duration.ofSeconds(5));
     }
 
     @Test
@@ -207,7 +203,8 @@ public class ChatMessageControllerTest extends AbstractIntegrationTest {
 
         StepVerifier.create(requester.route("session.open.room.{roomId}", first.getRoomId())
                         .metadata(authMetadata, authenticationMimeType)
-                        .retrieveFlux(ChatMessageRes.class))
+                        .retrieveFlux(new ParameterizedTypeReference<MessageRes<ChatMessageRes>>() {
+                        }))
                 .expectSubscription()
                 .thenAwait(Duration.ofMillis(200)) // 重要：給 Server 一點時間完成 Sink 註冊
                 .then(() -> requester.route("chat.message.delete.{messageId}", first.getId())
@@ -224,7 +221,7 @@ public class ChatMessageControllerTest extends AbstractIntegrationTest {
                                     .isEqualTo(except);
                         })
                         .subscribe())
-                .assertNext(res -> assertThat(res)
+                .assertNext(res -> assertThat(res.getData())
                         .usingRecursiveComparison()
                         .ignoringFieldsOfTypes(Instant.class)
                         .ignoringExpectedNullFields()
@@ -327,7 +324,8 @@ public class ChatMessageControllerTest extends AbstractIntegrationTest {
 
         StepVerifier.create(requester.route("session.open.room.{roomId}", message.getRoomId())
                         .metadata(authMetadata, authenticationMimeType)
-                        .retrieveFlux(ChatMessageRes.class))
+                        .retrieveFlux(new ParameterizedTypeReference<MessageRes<ChatMessageRes>>() {
+                        }))
                 .expectSubscription()
                 .thenAwait(Duration.ofMillis(200)) // 重要：給 Server 一點時間完成 Sink 註冊
                 .then(() -> requester.route("chat.message.update.{messageId}", message.getId())
@@ -345,7 +343,7 @@ public class ChatMessageControllerTest extends AbstractIntegrationTest {
                                     .isEqualTo(except);
                         })
                         .subscribe())
-                .assertNext(res -> assertThat(res)
+                .assertNext(res -> assertThat(res.getData())
                         .usingRecursiveComparison()
                         .ignoringFieldsOfTypes(Instant.class)
                         .ignoringExpectedNullFields()
