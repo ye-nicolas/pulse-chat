@@ -9,9 +9,12 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Sinks;
 import reactor.core.scheduler.Schedulers;
 
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.atomic.LongAdder;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -19,6 +22,7 @@ public class ChatRoomManager {
     private final ConcurrentMap<RSocketRequester, String> sessionToAccount = new ConcurrentHashMap<>();
     private final ConcurrentMap<String, Sinks.Many<ChatMessage>> roomBroadcasters = new ConcurrentHashMap<>();
     private final ConcurrentMap<String, Set<String>> userSubscriptions = new ConcurrentHashMap<>();
+    private final ConcurrentMap<String, LongAdder> roomMemberCounters = new ConcurrentHashMap<>();
     private final Sinks.Many<RoomControlSignal> kickSink = Sinks.many().multicast().directBestEffort();
 
     public record RoomControlSignal(String accountId, String roomId, Type type) {
@@ -40,13 +44,17 @@ public class ChatRoomManager {
 
     public Flux<ChatMessage> subscribe(String accountId, String roomId) {
         userSubscriptions.computeIfAbsent(accountId, k -> ConcurrentHashMap.newKeySet()).add(roomId);
+        roomMemberCounters.computeIfAbsent(roomId, k -> new LongAdder()).increment();
         return roomBroadcasters.computeIfAbsent(roomId, k -> Sinks.many().multicast().directBestEffort())
                 .asFlux()
                 .takeUntilOther(kickSink.asFlux().filter(sig ->
                         (sig.type() == RoomControlSignal.Type.ROOM_DELETED && sig.roomId().equals(roomId))
                                 || (sig.type() == RoomControlSignal.Type.KICK_MEMBER && sig.roomId().equals(roomId) && sig.accountId().equals(accountId))
                                 || (sig.type() == RoomControlSignal.Type.USER_OFFLINE && sig.accountId().equals(accountId))))
-                .doFinally(signalType -> this.unSubscribeInternal(accountId, roomId));
+                .doFinally(signalType -> {
+                    this.unSubscribeInternal(accountId, roomId);
+                    this.decrementCounter(roomId);
+                });
     }
 
     public void unSubscribeInternal(String accountId, String roomId) {
@@ -55,6 +63,13 @@ public class ChatRoomManager {
                 log.info("Cleanup: Account '{}' removed from room '{}'. Remaining: {}", accId, roomId, rooms.size());
             }
             return rooms.isEmpty() ? null : rooms;
+        });
+    }
+
+    private void decrementCounter(String roomId) {
+        roomMemberCounters.computeIfPresent(roomId, (id, counter) -> {
+            counter.decrement();
+            return counter.sum() <= 0 ? null : counter;
         });
     }
 
@@ -87,5 +102,23 @@ public class ChatRoomManager {
 
     public void registerSession(RSocketRequester requester, String accountId) {
         sessionToAccount.put(requester, accountId);
+    }
+
+    public Set<String> getActiveRoomIds() {
+        return roomBroadcasters.keySet();
+    }
+
+    public int getSessionCount() {
+        return sessionToAccount.size();
+    }
+
+    public Map<String, Long> getRoomStats() {
+        return roomMemberCounters.entrySet().stream()
+                .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().sum()));
+    }
+
+    public Long getSingleRoomMemberCount(String roomId) {
+        LongAdder counter = roomMemberCounters.get(roomId);
+        return (counter != null) ? counter.sum() : 0L;
     }
 }
