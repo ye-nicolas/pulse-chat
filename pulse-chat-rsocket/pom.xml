@@ -158,10 +158,10 @@
         </dependency>
 
         <!--  將 OpenTelemetry 產生的 Trace / Span 透過 OTLP 協議，傳送至 Grafana Tempo、Jaeger、Datadog 等後端 &ndash;&gt;-->
-        <!--        <dependency>-->
-        <!--            <groupId>io.opentelemetry</groupId>-->
-        <!--            <artifactId>opentelemetry-exporter-otlp</artifactId>-->
-        <!--        </dependency>-->
+        <dependency>
+            <groupId>io.opentelemetry</groupId>
+            <artifactId>opentelemetry-exporter-otlp</artifactId>
+        </dependency>
     </dependencies>
     <build>
         <finalName>pulse-chat</finalName>
