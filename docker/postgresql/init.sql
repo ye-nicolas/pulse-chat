@@ -83,3 +83,7 @@ CREATE TABLE pulse_chat.chat_message_last_read (
 	CONSTRAINT chat_message_last_read_pk PRIMARY KEY (id),
 	CONSTRAINT chat_message_last_read_un UNIQUE (last_message_id, room_id, member_id)
 );
+
+INSERT INTO pulse_chat.account
+(id, "name", show_name, "password", is_active, created_by, updated_by, created_at, updated_at, remark)
+VALUES('01KDFWP8CSRTWJ04A6WS7CDNWM', 'root', 'root', '$2a$10$QUfrvYMar8DBenv257Rueu0uB.VCqGNTJLXQoZIoCYQHTv.0fV7mK', true, '01KDFWP8CSRTWJ04A6WS7CDNWM', '01KDFWP8CSRTWJ04A6WS7CDNWM', now(), now(), NULL);
