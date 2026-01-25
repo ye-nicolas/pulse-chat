@@ -33,7 +33,6 @@ public class DeleteChatMessageUseCase {
     }
 
     private Mono<ChatMessage> deleteMessage(ChatMessage chatMessage) {
-        chatMessage.setContent("");
         chatMessage.setDelete(true);
         return chatMessageRepository.save(chatMessage);
     }

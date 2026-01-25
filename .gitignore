@@ -197,3 +197,6 @@ $RECYCLE.BIN/
 log/
 
 # End of https://www.toptal.com/developers/gitignore/api/java,intellij,maven,windows,macos
+
+# jenv
+.java-version

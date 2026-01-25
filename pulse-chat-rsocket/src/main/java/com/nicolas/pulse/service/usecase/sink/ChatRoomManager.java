@@ -1,10 +1,11 @@
 package com.nicolas.pulse.service.usecase.sink;
 
 import com.nicolas.pulse.entity.domain.chat.ChatMessage;
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.messaging.rsocket.RSocketRequester;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Sinks;
 import reactor.core.scheduler.Schedulers;
 
@@ -15,7 +16,14 @@ import java.util.concurrent.ConcurrentMap;
 @Slf4j
 @Service
 public class ChatRoomManager {
-    private final ConcurrentMap<String, RoomContext> roomContexts = new ConcurrentHashMap<>();
+    private final ConcurrentMap<RSocketRequester, String> sessionToAccount = new ConcurrentHashMap<>();
+    private final ConcurrentMap<String, Sinks.Many<ChatMessage>> roomBroadcasters = new ConcurrentHashMap<>();
+    private final ConcurrentMap<String, Set<String>> userSubscriptions = new ConcurrentHashMap<>();
+    private final Sinks.Many<RoomControlSignal> kickSink = Sinks.many().multicast().directBestEffort();
+
+    public record RoomControlSignal(String accountId, String roomId, Type type) {
+        public enum Type {KICK_MEMBER, ROOM_DELETED, USER_OFFLINE}
+    }
 
     public ChatRoomManager(ChatEventBus eventBus) {
         eventBus.onRoomDelete()
@@ -25,80 +33,59 @@ public class ChatRoomManager {
                 .subscribe();
         eventBus.onMemberDelete()
                 .publishOn(Schedulers.boundedElastic())
-                .doOnNext(deleteMemberEvent -> this.unSubscribeMembers(deleteMemberEvent.roomId(), deleteMemberEvent.accountIdSet()))
+                .doOnNext(deleteMemberEvent -> deleteMemberEvent.accountIdSet().forEach(a -> this.kickMemberOutOfRoom(a, deleteMemberEvent.roomId())))
                 .onErrorContinue((throwable, obj) -> log.error("Process Delete Member Error. Error: {}, Object: {}.", throwable.getMessage(), obj))
                 .subscribe();
     }
 
-    @Getter
-    private static class RoomContext {
-        final ConcurrentMap<String, Sinks.Many<ChatMessage>> accountSinks = new ConcurrentHashMap<>();
+    public Flux<ChatMessage> subscribe(String accountId, String roomId) {
+        userSubscriptions.computeIfAbsent(accountId, k -> ConcurrentHashMap.newKeySet()).add(roomId);
+        return roomBroadcasters.computeIfAbsent(roomId, k -> Sinks.many().multicast().directBestEffort())
+                .asFlux()
+                .takeUntilOther(kickSink.asFlux().filter(sig ->
+                        (sig.type() == RoomControlSignal.Type.ROOM_DELETED && sig.roomId().equals(roomId))
+                                || (sig.type() == RoomControlSignal.Type.KICK_MEMBER && sig.roomId().equals(roomId) && sig.accountId().equals(accountId))
+                                || (sig.type() == RoomControlSignal.Type.USER_OFFLINE && sig.accountId().equals(accountId))))
+                .doFinally(signalType -> this.unSubscribeInternal(accountId, roomId));
+    }
 
-        public Sinks.Many<ChatMessage> getOrCreateSink(String accountId) {
-            return accountSinks.computeIfAbsent(accountId, k -> Sinks.many().multicast().onBackpressureBuffer(10));
-        }
-
-        public void removeSink(String accountId) {
-            Sinks.Many<ChatMessage> sink = accountSinks.remove(accountId);
-            if (sink != null) {
-                sink.tryEmitComplete();
+    public void unSubscribeInternal(String accountId, String roomId) {
+        userSubscriptions.computeIfPresent(accountId, (accId, rooms) -> {
+            if (rooms.remove(roomId)) {
+                log.info("Cleanup: Account '{}' removed from room '{}'. Remaining: {}", accId, roomId, rooms.size());
             }
-        }
-
-        public boolean isEmpty() {
-            return accountSinks.isEmpty();
-        }
-    }
-
-    public Sinks.Many<ChatMessage> subscribe(String accountId, String roomId) {
-        RoomContext room = roomContexts.computeIfAbsent(roomId, k -> new RoomContext());
-        Sinks.Many<ChatMessage> sink = room.getOrCreateSink(accountId);
-        log.info("Account '{}' subscribed to room '{}'. Current subscribers: {}", accountId, roomId, room.getAccountSinks().size());
-        return sink;
-    }
-
-    public void unSubscribe(String accountId, String roomId) {
-        if (StringUtils.hasText(accountId)){
-            roomContexts.computeIfPresent(roomId, (rid, context) -> {
-                context.removeSink(accountId);
-                if (context.isEmpty()) {
-                    log.info("Room '{}' is empty, removing context.", rid);
-                    return null;
-                }
-                return context;
-            });
-            log.info("Unsubscribed: Account '{}' from Room '{}'", accountId, roomId);
-        }
-    }
-
-    public void unSubscribeMembers(String roomId, Set<String> accountIdSet) {
-        roomContexts.computeIfPresent(roomId, (rid, context) -> {
-            accountIdSet.forEach(context::removeSink);
-            return context.isEmpty() ? null : context;
+            return rooms.isEmpty() ? null : rooms;
         });
+    }
+
+    private void kickMemberOutOfRoom(String accountId, String roomId) {
+        kickSink.tryEmitNext(new RoomControlSignal(accountId, roomId, RoomControlSignal.Type.KICK_MEMBER));
+    }
+
+    private void kickOutRoom(String roomId) {
+        log.info("Signal: Room '{}' is being deleted.", roomId);
+        kickSink.tryEmitNext(new RoomControlSignal(null, roomId, RoomControlSignal.Type.ROOM_DELETED));
+        roomBroadcasters.remove(roomId);
+    }
+
+    public void handleUserOffline(RSocketRequester requester) {
+        String accountId = sessionToAccount.remove(requester);
+        if (StringUtils.hasText(accountId) && !sessionToAccount.containsValue(accountId)) {
+            kickSink.tryEmitNext(new RoomControlSignal(accountId, null, RoomControlSignal.Type.USER_OFFLINE));
+        }
     }
 
     public void broadcastMessage(ChatMessage message) {
-        RoomContext context = roomContexts.get(message.getRoomId());
-        if (context != null) {
-            context.getAccountSinks().forEach((accountId, sink) -> {
-                Sinks.EmitResult result = sink.tryEmitNext(message);
-                if (result.isFailure()) {
-                    log.error("Failed to push message to {} in room {}: {}", accountId, message.getRoomId(), result);
-                    if (result == Sinks.EmitResult.FAIL_TERMINATED) {
-                        context.removeSink(accountId);
-                    }
-                }
-            });
+        Sinks.Many<ChatMessage> sink = roomBroadcasters.get(message.getRoomId());
+        if (sink != null) {
+            Sinks.EmitResult result = sink.tryEmitNext(message);
+            if (result.isFailure()) {
+                log.error("Failed to push message in room {}: {}.", message.getRoomId(), result);
+            }
         }
     }
 
-    public void kickOutRoom(String roomId) {
-        roomContexts.computeIfPresent(roomId, (id, context) -> {
-            // 在鎖的保護下關閉所有 Sink
-            context.getAccountSinks().forEach((accId, sink) -> sink.tryEmitComplete());
-            context.getAccountSinks().clear();
-            return null;
-        });
+    public void registerSession(RSocketRequester requester, String accountId) {
+        sessionToAccount.put(requester, accountId);
     }
 }

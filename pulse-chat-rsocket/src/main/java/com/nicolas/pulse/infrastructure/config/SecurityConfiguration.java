@@ -68,8 +68,8 @@ public class SecurityConfiguration {
                                                         CustomerJwtReactiveAuthenticationManager reactiveAuthenticationManager) {
         return rsocket
                 .authorizePayload(authorize -> authorize
-                        .setup().permitAll()
-                        .anyRequest().authenticated())
+                        .setup().authenticated()
+                        .anyRequest().permitAll())
                 .jwt(j -> j.authenticationManager(reactiveAuthenticationManager))
                 .build();
     }

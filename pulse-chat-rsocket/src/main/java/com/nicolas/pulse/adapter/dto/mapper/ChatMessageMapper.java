@@ -12,7 +12,7 @@ public class ChatMessageMapper {
                 .id(domain.getId())
                 .roomId(domain.getRoomId())
                 .type(domain.getType())
-                .content(domain.getContent())
+                .content(domain.isDelete() ? "" : domain.getContent())
                 .createdBy(domain.getCreatedBy())
                 .createdAt(domain.getCreatedAt())
                 .updatedAt(domain.getUpdatedAt())

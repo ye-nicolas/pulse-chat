@@ -15,7 +15,6 @@ import com.nicolas.pulse.service.usecase.chat.room.CreateChatRoomUseCase;
 import com.nicolas.pulse.service.usecase.chat.room.DeleteChatRoomUseCase;
 import com.nicolas.pulse.service.usecase.chat.room.FindChatRoomByIdUseCase;
 import com.nicolas.pulse.service.usecase.sink.ChatEventBus;
-import com.nicolas.pulse.service.usecase.sink.ChatRoomManager;
 import com.nicolas.pulse.util.SecurityUtil;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;

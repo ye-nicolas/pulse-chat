@@ -2,6 +2,7 @@ package com.nicolas.pulse.adapter.repository.chat.message;
 
 import com.nicolas.pulse.entity.domain.chat.ChatMessage;
 import com.nicolas.pulse.service.repository.ChatMessageRepository;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Flux;
@@ -21,8 +22,8 @@ public class ChatMessageRepositoryImpl implements ChatMessageRepository {
     }
 
     @Override
-    public Flux<ChatMessage> findAllByRoomId(String roomId) {
-        return peer.findAllByRoomId(roomId).map(ChatMessageDataMapper::dataToDomain);
+    public Flux<ChatMessage> findAllByRoomId(String roomId, PageRequest pageRequest) {
+        return peer.findAllByRoomId(roomId, pageRequest).map(ChatMessageDataMapper::dataToDomain);
     }
 
     @Override
