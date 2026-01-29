@@ -2,7 +2,7 @@
 
 # 設定你的容器名稱
 VERSION=$(date +%Y%m%d-%H%M)
-IMAGE_NAME="push-chat"
+IMAGE_NAME="pulse-chat"
 
 echo "📦 Maven 打包中..."
 if mvn clean package -DskipTests; then

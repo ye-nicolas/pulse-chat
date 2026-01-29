@@ -1,21 +1,26 @@
 services:
   postgres:
     image: postgres:16.1-alpine
-    container_name: postgres_db
+    container_name: postgres
     environment:
       POSTGRES_USER: nicolas
       POSTGRES_PASSWORD: 123456789
       POSTGRES_DB: pulse_chat
     ports:
-      - "5433:5432"
+      - "5434:5432"
     volumes:
       - ./postgresql/:/docker-entrypoint-initdb.d
-      - postgres_data:/var/lib/postgresql/data
+      - ./data/postgresql:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U nicolas -d pulse_chat"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
   postgres-exporter:
     image: prometheuscommunity/postgres-exporter
     container_name: postgres-exporter
     environment:
-      DATA_SOURCE_NAME: "postgresql://nicolas:123456789@postgres_db:5432/pulse_chat?sslmode=disable"
+      DATA_SOURCE_NAME: "postgresql://nicolas:123456789@postgres:5432/pulse_chat?sslmode=disable"
     depends_on:
       - postgres
   prometheus:
@@ -23,7 +28,7 @@ services:
     container_name: prometheus
     volumes:
       - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
-      - prometheus_data:/prometheus # 使用下方定義的 volume
+      - ./data/prometheus_data:/prometheus
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.path=/prometheus'
@@ -42,8 +47,51 @@ services:
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=admin
     volumes:
-      - grafana_data:/var/lib/grafana # 使用下方定義的 volume
-volumes:
-  postgres_data:
-  prometheus_data:
-  grafana_data:
+      - ./data/grafana_data:/var/lib/grafana
+  tempo:
+    image: grafana/tempo:latest
+    container_name: tempo
+    command: [ "-config.file=/etc/tempo.yaml" ]
+    volumes:
+      - ./tempo/tempo.yaml:/etc/tempo.yaml
+      - ./data/tempo_data:/var/lib/tempo
+    ports:
+      - "4317:4317"
+      - "3200:3200"
+  pulse-chat:
+    image: pulse-chat:latest
+    container_name: pulse-chat
+    environment:
+      SERVER_PORT: 8080
+      WEB_BASE_PATH: /pulse-chat
+      WEBSOCKET_SERVER_PORT: 8810
+      SOCKET_BASE_PATH: /web-socket
+      PULSE_CHAT_DB_HOST: postgres
+      PULSE_CHAT_DB_PORT: 5432
+      PULSE_CHAT_DB_USERNAME: nicolas
+      PULSE_CHAT_DB_PASSWORD: 123456789
+      PULSE_CHAT_DB_DATABASE: pulse_chat
+      PULSE_CHAT_DB_CONNECTION_TIMEOUT: 30
+      PULSE_CHAT_DB_POOL_INITIAL_SIZE: 10
+      PULSE_CHAT_DB_POOL_MAX_SIZE: 30
+      PULSE_CHAT_DB_POOL_MAX_IDLE_TIME_SECOUND: 1800
+      PULSE_CHAT_DB_POOL_MAX_ACQUIRE_TIME_SECOUND: 10
+      PULSE_CHAT_DB_POOL_MAX_CREATE_CONNECTION_TIME_SECOUND: 5
+      PULSE_CHAT_DB_POOL_ACQUIRE_RETRY: 2
+      LOGGING_LEVEL_ROOT: INFO
+      LOGGING_LEVEL_SQL: INFO
+      LOGGING_DIR_ROOT: log/pulse-chat
+      LOGGING_FILE_NAME: app-pulse-chat
+      ACCESS_EXPIRES_MINUTE: 5
+      REFRESH_EXPIRES_MINUTE: 60
+      COOKIE_SECURE: true
+      TRACING_ENDPOINT: http://tempo:4317
+    ports:
+      - 8080:8080
+    volumes:
+      - ./data/logs:/app/log/pulse-chat
+    depends_on:
+      postgres:
+        condition: service_healthy
+      tempo:
+        condition: service_started

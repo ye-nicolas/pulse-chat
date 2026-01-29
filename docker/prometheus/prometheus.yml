@@ -1,19 +1,14 @@
-global:
-  scrape_interval: 15s # 抓取間隔
-
 scrape_configs:
-  # 監控 Prometheus 本身
-  - job_name: "prometheus"
+  - job_name: "pulse-chat"
+    metrics_path: "/pulse-chat/actuator/prometheus"
+    scrape_interval: 5s
     static_configs:
-      - targets: ["localhost:9090"]
+      - targets: ["pulse-chat:8080"]
 
-  # 監控主機硬體 (Node Exporter)
-  - job_name: "node-exporter"
+  - job_name: "postgres"
+    static_configs:
+      - targets: ["postgres-exporter:9187"]
+
+  - job_name: "node"
     static_configs:
       - targets: ["node-exporter:9100"]
-
-  # 監控 Spring Boot Actuator
-  - job_name: "spring-boot-app"
-    metrics_path: "/actuator/prometheus" # 固定路徑
-    static_configs:
-      - targets: ["host.docker.internal:8080"]
