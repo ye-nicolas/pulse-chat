@@ -7,12 +7,14 @@ import org.springframework.boot.actuate.endpoint.annotation.Selector;
 import org.springframework.boot.actuate.endpoint.web.WebEndpointResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.lang.Nullable;
+import org.springframework.stereotype.Component;
 
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.*;
 
-@Endpoint(id = "chat-room")
+@Component
+@Endpoint(id = "chatroom")
 public class ChatRoomActuator {
     private final ChatRoomManager chatRoomManager;
 
