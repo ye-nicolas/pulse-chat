@@ -7,16 +7,15 @@ import com.nicolas.pulse.service.usecase.account.ReactiveUserDetailsServiceImpl;
 import com.nicolas.pulse.util.JwtUtil;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.actuate.autoconfigure.security.reactive.EndpointRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.UserDetailsRepositoryReactiveAuthenticationManager;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableReactiveMethodSecurity;
 import org.springframework.security.config.annotation.rsocket.EnableRSocketSecurity;
 import org.springframework.security.config.annotation.rsocket.RSocketSecurity;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
-import org.springframework.security.config.web.server.SecurityWebFiltersOrder;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.core.userdetails.ReactiveUserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -44,7 +43,7 @@ public class SecurityConfiguration {
     public SecurityWebFilterChain actuatorFilterChain(ServerHttpSecurity http,
                                                       @Qualifier("UserDetailsRepositoryReactiveAuthenticationManager") UserDetailsRepositoryReactiveAuthenticationManager userDetailsRepositoryReactiveAuthenticationManager) {
         return http
-                .securityMatcher(ServerWebExchangeMatchers.pathMatchers("/actuator/**"))
+                .securityMatcher((EndpointRequest.toAnyEndpoint()))
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .httpBasic(basic -> basic.authenticationManager(userDetailsRepositoryReactiveAuthenticationManager))
                 .authorizeExchange(ex -> ex.anyExchange().authenticated())
