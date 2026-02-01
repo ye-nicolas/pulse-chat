@@ -41,11 +41,12 @@ public class SecurityConfiguration {
 
     @Order(1)
     @Bean
-    public SecurityWebFilterChain actuatorFilterChain(ServerHttpSecurity http) {
+    public SecurityWebFilterChain actuatorFilterChain(ServerHttpSecurity http,
+                                                      @Qualifier("UserDetailsRepositoryReactiveAuthenticationManager") UserDetailsRepositoryReactiveAuthenticationManager userDetailsRepositoryReactiveAuthenticationManager) {
         return http
-                .securityMatcher(ServerWebExchangeMatchers.pathMatchers("/actuator/**")) // 只負責此路徑
+                .securityMatcher(ServerWebExchangeMatchers.pathMatchers("/actuator/**"))
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
-                .httpBasic(Customizer.withDefaults())
+                .httpBasic(basic -> basic.authenticationManager(userDetailsRepositoryReactiveAuthenticationManager))
                 .authorizeExchange(ex -> ex.anyExchange().authenticated())
                 .build();
     }
