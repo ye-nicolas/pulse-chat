@@ -9,7 +9,9 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.UserDetailsRepositoryReactiveAuthenticationManager;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableReactiveMethodSecurity;
 import org.springframework.security.config.annotation.rsocket.EnableRSocketSecurity;
 import org.springframework.security.config.annotation.rsocket.RSocketSecurity;
@@ -22,6 +24,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.rsocket.core.PayloadSocketAcceptorInterceptor;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.security.web.server.context.NoOpServerSecurityContextRepository;
+import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatchers;
 
 import javax.crypto.SecretKey;
 
@@ -36,15 +39,28 @@ public class SecurityConfiguration {
         this.securityExceptionHandler = securityExceptionHandler;
     }
 
+    @Order(1)
+    @Bean
+    public SecurityWebFilterChain actuatorFilterChain(ServerHttpSecurity http) {
+        return http
+                .securityMatcher(ServerWebExchangeMatchers.pathMatchers("/actuator/**")) // 只負責此路徑
+                .csrf(ServerHttpSecurity.CsrfSpec::disable)
+                .httpBasic(Customizer.withDefaults())
+                .authorizeExchange(ex -> ex.anyExchange().authenticated())
+                .build();
+    }
+
+    @Order(2)
     @Bean
     public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http,
                                                          CustomerJwtReactiveAuthenticationManager customerJwtReactiveAuthenticationManager) {
-        return http.csrf(ServerHttpSecurity.CsrfSpec::disable)
+        return http
+                .csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .httpBasic(ServerHttpSecurity.HttpBasicSpec::disable)
                 .formLogin(ServerHttpSecurity.FormLoginSpec::disable)
                 .securityContextRepository(NoOpServerSecurityContextRepository.getInstance())
                 .authorizeExchange(exchanges -> {
-                    exchanges.pathMatchers(AuthController.BASE_URL + "/**" ,"/actuator/**").permitAll();
+                    exchanges.pathMatchers(AuthController.BASE_URL + "/**").permitAll();
                     exchanges.anyExchange().authenticated();
                 })
                 .oauth2ResourceServer(oauth2 -> oauth2
@@ -56,7 +72,6 @@ public class SecurityConfiguration {
                         .authenticationEntryPoint(securityExceptionHandler))
                 .build();
     }
-
 
     @Bean
     PayloadSocketAcceptorInterceptor rsocketInterceptor(RSocketSecurity rsocket,
