@@ -48,16 +48,21 @@ services:
       - GF_SECURITY_ADMIN_PASSWORD=admin
     volumes:
       - ./data/grafana_data:/var/lib/grafana
-  tempo:
-    image: grafana/tempo:latest
-    container_name: tempo
-    command: [ "-config.file=/etc/tempo.yaml" ]
-    volumes:
-      - ./tempo/tempo.yaml:/etc/tempo.yaml
-      - ./data/tempo_data:/var/lib/tempo
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: jaeger
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+      - SPAN_STORAGE_TYPE=badger
+      - BADGER_EPHEMERAL=false
+      - BADGER_DIRECTORY_VALUE=/data/data
+      - BADGER_DIRECTORY_KEY=/data/key
     ports:
+      - "16686:16686"
       - "4317:4317"
-      - "3200:3200"
+      - "4318:4318"
+    volumes:
+      - ./data/jaeger_data:/data
   pulse-chat:
     image: pulse-chat:latest
     container_name: pulse-chat
@@ -85,7 +90,8 @@ services:
       ACCESS_EXPIRES_MINUTE: 5
       REFRESH_EXPIRES_MINUTE: 60
       COOKIE_SECURE: true
-      TRACING_ENDPOINT: http://tempo:4317
+      TRACING_ENDPOINT: http://jaeger:4318/v1/traces
+      TRACING_TRANSPORT: http
     ports:
       - 8080:8080
     volumes:
@@ -93,5 +99,5 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-      tempo:
+      jaeger:
         condition: service_started
