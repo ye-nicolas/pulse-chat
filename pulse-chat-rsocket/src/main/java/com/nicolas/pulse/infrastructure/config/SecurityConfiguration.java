@@ -1,21 +1,21 @@
 package com.nicolas.pulse.infrastructure.config;
 
 import com.nicolas.pulse.adapter.controller.AuthController;
-import com.nicolas.pulse.infrastructure.filter.MdcFilter;
 import com.nicolas.pulse.infrastructure.security.CustomerJwtReactiveAuthenticationManager;
 import com.nicolas.pulse.infrastructure.security.SecurityExceptionHandler;
 import com.nicolas.pulse.service.usecase.account.ReactiveUserDetailsServiceImpl;
 import com.nicolas.pulse.util.JwtUtil;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.actuate.autoconfigure.security.reactive.EndpointRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.UserDetailsRepositoryReactiveAuthenticationManager;
 import org.springframework.security.config.annotation.method.configuration.EnableReactiveMethodSecurity;
 import org.springframework.security.config.annotation.rsocket.EnableRSocketSecurity;
 import org.springframework.security.config.annotation.rsocket.RSocketSecurity;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
-import org.springframework.security.config.web.server.SecurityWebFiltersOrder;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.core.userdetails.ReactiveUserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -23,6 +23,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.rsocket.core.PayloadSocketAcceptorInterceptor;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.security.web.server.context.NoOpServerSecurityContextRepository;
+import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatchers;
 
 import javax.crypto.SecretKey;
 
@@ -31,19 +32,30 @@ import javax.crypto.SecretKey;
 @EnableWebFluxSecurity
 @Configuration
 public class SecurityConfiguration {
-    private final MdcFilter mdcFilter;
     private final SecurityExceptionHandler securityExceptionHandler;
 
-    public SecurityConfiguration(MdcProperties mdcProperties,
-                                 SecurityExceptionHandler securityExceptionHandler) {
-        this.mdcFilter = new MdcFilter(mdcProperties);
+    public SecurityConfiguration(SecurityExceptionHandler securityExceptionHandler) {
         this.securityExceptionHandler = securityExceptionHandler;
     }
 
+    @Order(1)
+    @Bean
+    public SecurityWebFilterChain actuatorFilterChain(ServerHttpSecurity http,
+                                                      @Qualifier("UserDetailsRepositoryReactiveAuthenticationManager") UserDetailsRepositoryReactiveAuthenticationManager userDetailsRepositoryReactiveAuthenticationManager) {
+        return http
+                .securityMatcher((EndpointRequest.toAnyEndpoint()))
+                .csrf(ServerHttpSecurity.CsrfSpec::disable)
+                .httpBasic(basic -> basic.authenticationManager(userDetailsRepositoryReactiveAuthenticationManager))
+                .authorizeExchange(ex -> ex.anyExchange().authenticated())
+                .build();
+    }
+
+    @Order(2)
     @Bean
     public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http,
                                                          CustomerJwtReactiveAuthenticationManager customerJwtReactiveAuthenticationManager) {
-        return http.csrf(ServerHttpSecurity.CsrfSpec::disable)
+        return http
+                .csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .httpBasic(ServerHttpSecurity.HttpBasicSpec::disable)
                 .formLogin(ServerHttpSecurity.FormLoginSpec::disable)
                 .securityContextRepository(NoOpServerSecurityContextRepository.getInstance())
@@ -55,13 +67,11 @@ public class SecurityConfiguration {
                         .jwt(jwt -> jwt.authenticationManager(customerJwtReactiveAuthenticationManager))
                         .authenticationEntryPoint(securityExceptionHandler)
                 )
-                .addFilterAt(mdcFilter, SecurityWebFiltersOrder.FIRST)
                 .exceptionHandling(e -> e
                         .accessDeniedHandler(securityExceptionHandler)
                         .authenticationEntryPoint(securityExceptionHandler))
                 .build();
     }
-
 
     @Bean
     PayloadSocketAcceptorInterceptor rsocketInterceptor(RSocketSecurity rsocket,

@@ -15,8 +15,6 @@
     <version>1.0-SNAPSHOT</version>
 
     <properties>
-        <maven.compiler.source>21</maven.compiler.source>
-        <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
@@ -104,10 +102,6 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>io.micrometer</groupId>
-            <artifactId>context-propagation</artifactId>
-        </dependency>
-        <dependency>
             <groupId>com.github.f4b6a3</groupId>
             <artifactId>ulid-creator</artifactId>
             <version>5.2.3</version>
@@ -132,6 +126,39 @@
             <groupId>org.testcontainers</groupId>
             <artifactId>postgresql</artifactId>
             <scope>test</scope>
+        </dependency>
+
+        <!--  1. actuator + prometheus + Grafana -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+        <!--  整合 prometheus 拉取指標(metrics)數據，每5秒拉取 /actuator/prometheus (獲取 prometheus 需要信息) -->
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-registry-prometheus</artifactId>
+        </dependency>
+        <!-- 2. propagation + otel + otlp(將otel用OLTP協議傳輸) + Grafana -->
+        <!-- 2.1 讓 traceId 在 WebFlux / RSocket / Reactor 裡不迷路的 GPS -->
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>context-propagation</artifactId>
+        </dependency>
+        <!--
+            Micrometer Tracing Bridge (OTel)
+            將 Spring Boot 3 的 Observation / Span 轉換為 OpenTelemetry 的 Span
+            讓 Spring 原生可觀測性接入全球標準的 Observability 生態系
+            Tracing 每一筆的操作紀錄，產生tracId 和 SpanID
+         -->
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-tracing-bridge-otel</artifactId>
+        </dependency>
+
+        <!--  將 OpenTelemetry 產生的 Trace / Span 透過 OTLP 協議，傳送至 Grafana Tempo、Jaeger、Datadog 等後端 &ndash;&gt;-->
+        <dependency>
+            <groupId>io.opentelemetry</groupId>
+            <artifactId>opentelemetry-exporter-otlp</artifactId>
         </dependency>
     </dependencies>
     <build>

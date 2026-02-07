@@ -1,0 +1,104 @@
+services:
+  postgres:
+    image: postgres:16.1-alpine
+    container_name: postgres
+    environment:
+      POSTGRES_USER: nicolas
+      POSTGRES_PASSWORD: 123456789
+      POSTGRES_DB: pulse_chat
+    ports:
+      - "5434:5432"
+    volumes:
+      - ./postgresql/:/docker-entrypoint-initdb.d
+      - ./data/postgresql:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U nicolas -d pulse_chat"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+  postgres-exporter:
+    image: prometheuscommunity/postgres-exporter
+    container_name: postgres-exporter
+    environment:
+      DATA_SOURCE_NAME: "postgresql://nicolas:123456789@postgres:5432/pulse_chat?sslmode=disable"
+    depends_on:
+      - postgres
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./data/prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+    ports:
+      - "9090:9090"
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: node-exporter
+    ports:
+      - "9100:9100"
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - ./data/grafana_data:/var/lib/grafana
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: jaeger
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+      - SPAN_STORAGE_TYPE=badger
+      - BADGER_EPHEMERAL=false
+      - BADGER_DIRECTORY_VALUE=/data/data
+      - BADGER_DIRECTORY_KEY=/data/key
+    ports:
+      - "16686:16686"
+      - "4317:4317"
+      - "4318:4318"
+    volumes:
+      - ./data/jaeger_data:/data
+  pulse-chat:
+    image: pulse-chat:latest
+    container_name: pulse-chat
+    environment:
+      SERVER_PORT: 8080
+      WEB_BASE_PATH: /pulse-chat
+      WEBSOCKET_SERVER_PORT: 8810
+      SOCKET_BASE_PATH: /web-socket
+      PULSE_CHAT_DB_HOST: postgres
+      PULSE_CHAT_DB_PORT: 5432
+      PULSE_CHAT_DB_USERNAME: nicolas
+      PULSE_CHAT_DB_PASSWORD: 123456789
+      PULSE_CHAT_DB_DATABASE: pulse_chat
+      PULSE_CHAT_DB_CONNECTION_TIMEOUT: 30
+      PULSE_CHAT_DB_POOL_INITIAL_SIZE: 10
+      PULSE_CHAT_DB_POOL_MAX_SIZE: 30
+      PULSE_CHAT_DB_POOL_MAX_IDLE_TIME_SECOND: 1800
+      PULSE_CHAT_DB_POOL_MAX_ACQUIRE_TIME_SECOND: 10
+      PULSE_CHAT_DB_POOL_MAX_CREATE_CONNECTION_TIME_SECOND: 5
+      PULSE_CHAT_DB_POOL_ACQUIRE_RETRY: 2
+      LOGGING_LEVEL_ROOT: INFO
+      LOGGING_LEVEL_SQL: INFO
+      LOGGING_DIR_ROOT: log/pulse-chat
+      LOGGING_FILE_NAME: app-pulse-chat
+      ACCESS_EXPIRES_MINUTE: 5
+      REFRESH_EXPIRES_MINUTE: 60
+      COOKIE_SECURE: true
+      TRACING_EXPORT_ENABLED: true
+      TRACING_ENDPOINT: http://jaeger:4318/v1/traces
+      TRACING_TRANSPORT: http
+    ports:
+      - 8080:8080
+    volumes:
+      - ./data/logs:/app/log/pulse-chat
+    depends_on:
+      postgres:
+        condition: service_healthy
+      jaeger:
+        condition: service_started

@@ -1,0 +1,17 @@
+scrape_configs:
+  - job_name: "pulse-chat"
+    metrics_path: "/pulse-chat/actuator/prometheus"
+    basic_auth:
+      username: "root"
+      password: "root"
+    scrape_interval: 5s
+    static_configs:
+      - targets: ["pulse-chat:8080"]
+
+  - job_name: "postgres"
+    static_configs:
+      - targets: ["postgres-exporter:9187"]
+
+  - job_name: "node"
+    static_configs:
+      - targets: ["node-exporter:9100"]

@@ -86,9 +86,9 @@ public class R2dbcConfiguration extends AbstractR2dbcConfiguration {
         ConnectionPoolConfiguration poolConfig = ConnectionPoolConfiguration.builder(postgresqlConnectionFactory)
                 .initialSize(initialSize)                         // 初始建立 5 條連線
                 .maxSize(maxSize)                            // 連線池最大容量 20 條
-                .maxIdleTime(Duration.ofSeconds(maxIdleTime))    // 空閒連線超過 30 分鐘自動回收
-                .maxAcquireTime(Duration.ofSeconds(maxAcquireTime)) // 取連線最長等候 10 秒，超過丟錯
-                .maxCreateConnectionTime(Duration.ofSeconds(maxCreateConnectionTime)) // 新建連線最長等候 5 秒
+                .maxIdleTime(Duration.ofSeconds(maxIdleTime))    // 空閒連線超過 ? 秒自動回收
+                .maxAcquireTime(Duration.ofSeconds(maxAcquireTime)) // 取連線最長等候 ? 秒，超過丟錯
+                .maxCreateConnectionTime(Duration.ofSeconds(maxCreateConnectionTime)) // 新建連線最長等候 ? 秒
                 .acquireRetry(acquireRetry)                        // 嘗試取連線最多重試 3 次
                 .name("pool_" + database + "_" + schema)                  // 池名稱，用於監控或 debug
                 .validationQuery("SELECT 1")            // 驗證連線有效性
