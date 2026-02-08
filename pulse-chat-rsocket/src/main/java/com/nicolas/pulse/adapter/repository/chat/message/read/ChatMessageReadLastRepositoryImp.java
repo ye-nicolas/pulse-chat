@@ -7,8 +7,6 @@ import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.util.List;
-
 
 @Repository
 public class ChatMessageReadLastRepositoryImp implements ChatMessageReadLastRepository {
@@ -32,17 +30,6 @@ public class ChatMessageReadLastRepositoryImp implements ChatMessageReadLastRepo
     public Mono<ChatMessageLastRead> save(ChatMessageLastRead messageRead) {
         ChatMessageLastReadData chatMessageLastReadData = ChatMessageReadDataMapper.domainToData(messageRead);
         return peer.save(chatMessageLastReadData).map(ChatMessageReadDataMapper::dataToDomain);
-    }
-
-    @Override
-    public Flux<ChatMessageLastRead> saveAll(List<ChatMessageLastRead> chatMessageLastReadList) {
-        return peer.saveAll(Flux.fromStream(chatMessageLastReadList.stream().map(ChatMessageReadDataMapper::domainToData)))
-                .map(ChatMessageReadDataMapper::dataToDomain);
-    }
-
-    @Override
-    public Mono<Boolean> existsByLastMessageIdAndRoomIdAndMemberId(String messageId, String roomId, String memberId) {
-        return peer.existsByLastMessageIdAndRoomIdAndMemberId(messageId, roomId, memberId);
     }
 
     @Transactional

@@ -5,8 +5,6 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 public interface ChatRoomRepository {
-    Flux<ChatRoom> findAll();
-
     Mono<ChatRoom> findById(String id);
 
     Mono<ChatRoom> save(ChatRoom account);

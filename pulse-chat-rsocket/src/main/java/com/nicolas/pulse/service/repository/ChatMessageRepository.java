@@ -10,13 +10,9 @@ public interface ChatMessageRepository {
 
     Flux<ChatMessage> findAllByRoomId(String roomId, PageRequest pageRequest);
 
-    Flux<ChatMessage> findByRoomIdAndMemberId(String roomId, String memberId);
-
     Mono<ChatMessage> save(ChatMessage chatMessage);
 
     Mono<Boolean> existsById(String id);
-
-    Mono<Boolean> existsByIdAndRoomId(String id, String roomId);
 
     Mono<Void> deleteByRoomId(String roomId);
 }

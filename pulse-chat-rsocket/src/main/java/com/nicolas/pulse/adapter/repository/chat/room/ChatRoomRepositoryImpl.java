@@ -16,11 +16,6 @@ public class ChatRoomRepositoryImpl implements ChatRoomRepository {
     }
 
     @Override
-    public Flux<ChatRoom> findAll() {
-        return peer.findAll().map(ChatRoomDataMapper::dataToDomain);
-    }
-
-    @Override
     public Mono<ChatRoom> findById(String id) {
         return peer.findById(id).map(ChatRoomDataMapper::dataToDomain);
     }

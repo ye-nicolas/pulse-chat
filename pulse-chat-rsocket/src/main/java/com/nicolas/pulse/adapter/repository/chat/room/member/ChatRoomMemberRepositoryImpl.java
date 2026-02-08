@@ -145,11 +145,6 @@ public class ChatRoomMemberRepositoryImpl implements ChatRoomMemberRepository {
         return peer.existsByAccountIdAndRoomId(accountId, roomId);
     }
 
-    @Override
-    public Mono<Boolean> existsByIdAndRoomId(String id, String roomId) {
-        return peer.existsByIdAndRoomId(id, roomId);
-    }
-
     private ChatRoomMemberData mapToData(Map<String, Object> map) {
         return ChatRoomMemberData
                 .builder()

@@ -13,10 +13,6 @@ public interface ChatMessageReadLastRepository {
 
     Mono<ChatMessageLastRead> save(ChatMessageLastRead messageRead);
 
-    Flux<ChatMessageLastRead> saveAll(List<ChatMessageLastRead> chatMessageLastReadFluxes);
-
-    Mono<Boolean> existsByLastMessageIdAndRoomIdAndMemberId(String messageId, String roomId, String memberId);
-
     Mono<Void> deleteByRoomId(String roomId);
 
     Mono<Void> deleteByMemberId(String memberId);
