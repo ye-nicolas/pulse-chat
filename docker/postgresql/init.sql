@@ -81,7 +81,7 @@ CREATE TABLE pulse_chat.chat_message_last_read (
 	created_at timestamptz NOT NULL DEFAULT now(),
 	updated_at timestamptz NOT NULL DEFAULT now(),
 	CONSTRAINT chat_message_last_read_pk PRIMARY KEY (id),
-	CONSTRAINT chat_message_last_read_un UNIQUE (last_message_id, room_id, member_id)
+	CONSTRAINT chat_message_last_read_uk UNIQUE (room_id, member_id)
 );
 
 INSERT INTO pulse_chat.account
