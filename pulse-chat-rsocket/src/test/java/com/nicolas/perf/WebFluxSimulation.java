@@ -10,8 +10,27 @@ import static io.gatling.javaapi.http.HttpDsl.http;
 import static io.gatling.javaapi.http.HttpDsl.status;
 
 public class WebFluxSimulation extends Simulation {
+    private static final String url = "jdbc:postgresql://localhost:%d/pulse_chat?currentSchema=pulse_chat&reWriteBatchedInserts=true".formatted(5434);
+    private static final String user = "nicolas";
+    private static final String pwd = "123456789";
+
+    @Override
+    public void before() {
+        PrepareTestDataUseCase testDataUseCase = new PrepareTestDataUseCase();
+        PrepareTestDataUseCase.Input build = PrepareTestDataUseCase.Input.builder()
+                .accountSize(50_000)
+                .roomSize(10_000)
+                .url(url)
+                .user(user)
+                .pwd(pwd)
+                .build();
+        PrepareTestDataUseCase.Output output = new PrepareTestDataUseCase.Output();
+        testDataUseCase.execute(build, output);
+        output.getMemberVo().forEach(System.out::println);
+    }
+
     HttpProtocolBuilder httpProtocol = http
-            .baseUrl("http://localhost:8809") // 指向你本機跑起來的 Spring Boot
+            .baseUrl("http://localhost:8080")
             .acceptHeader("application/json")
             .contentTypeHeader("application/json");
 
@@ -23,7 +42,7 @@ public class WebFluxSimulation extends Simulation {
             .pause(1); // 每個虛擬用戶請求完後停 1 秒，模擬真實人類行為
 
     {
-        setUp(scn.injectOpen(rampUsers(100).during(10))) // 策略：10 秒內均勻增加到 1000 個虛擬用戶
+        setUp(scn.injectOpen(rampUsers(10).during(10)))
                 .protocols(httpProtocol);
     }
 }
