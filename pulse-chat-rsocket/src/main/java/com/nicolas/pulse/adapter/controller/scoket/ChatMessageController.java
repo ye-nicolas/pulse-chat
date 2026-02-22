@@ -1,6 +1,5 @@
 package com.nicolas.pulse.adapter.controller.scoket;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nicolas.pulse.adapter.dto.mapper.ChatMessageMapper;
 import com.nicolas.pulse.adapter.dto.req.AddChatMessageReq;
 import com.nicolas.pulse.adapter.dto.req.GetMessageReq;
@@ -25,7 +24,6 @@ import org.springframework.http.ProblemDetail;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
-import org.springframework.messaging.rsocket.RSocketRequester;
 import org.springframework.stereotype.Controller;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -54,7 +52,6 @@ public class ChatMessageController {
                                  UpdateChatMessageUseCase updateChatMessageUseCase,
                                  DeleteChatMessageUseCase deleteChatMessageUseCase,
                                  UpdateChatRoomMemberLastReadMessageUseCase updateChatRoomMemberLastReadMessageUseCase,
-                                 ObjectMapper objectMapper,
                                  Tracer tracer) {
         this.validator = validator;
         this.subscribeChatRoomUseCase = subscribeChatRoomUseCase;
@@ -67,8 +64,8 @@ public class ChatMessageController {
         this.tracer = tracer;
     }
 
-    @MessageMapping("session.open.room.{roomId}")
-    public Flux<MessageRes<ChatMessageRes>> openSessionByRoom(RSocketRequester requester, @DestinationVariable("roomId") String roomId) {
+    @MessageMapping("chat.room.{roomId}")
+    public Flux<MessageRes<ChatMessageRes>> getRoom(@DestinationVariable("roomId") String roomId) {
         SubscribeChatRoomUseCase.Input input = new SubscribeChatRoomUseCase.Input(roomId);
         SubscribeChatRoomUseCase.Output output = new SubscribeChatRoomUseCase.Output();
         return subscribeChatRoomUseCase.execute(input, output)
@@ -92,7 +89,7 @@ public class ChatMessageController {
     }
 
     @MessageMapping("chat.message.update.{messageId}")
-    public Mono<MessageRes<ChatMessageRes>> updateMessage(@DestinationVariable String messageId,
+    public Mono<MessageRes<ChatMessageRes>> updateMessage(@DestinationVariable("messageId") String messageId,
                                                           @Payload Mono<UpdateChatMessageReq> reqMono) {
         UpdateChatMessageUseCase.Output output = new UpdateChatMessageUseCase.Output();
         return reqMono.delayUntil(this::validate)
@@ -147,8 +144,8 @@ public class ChatMessageController {
     }
 
     private <T> MessageRes<T> processException(Throwable throwable, Class<T> tclass) {
-     String traceId = (tracer.currentSpan() != null) ? Objects.requireNonNull(tracer.currentSpan()).context().traceId() : null;
-       
+        String traceId = (tracer.currentSpan() != null) ? Objects.requireNonNull(tracer.currentSpan()).context().traceId() : null;
+
         ProblemDetail problemDetail = ExceptionHandlerUtils.createProblemDetail(throwable, traceId);
         return MessageRes.<T>builder().problemDetail(problemDetail).status(problemDetail.getStatus()).build();
     }

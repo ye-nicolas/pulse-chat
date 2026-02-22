@@ -95,7 +95,7 @@ public class ChatMessageControllerTest extends AbstractIntegrationTest {
         // Act + Arrange
         RSocketRequester requester = requesterMono.block(Duration.ofSeconds(5));
         assertThat(requester).isNotNull();
-        StepVerifier.create(requester.route("session.open.room.{roomId}", roomId)
+        StepVerifier.create(requester.route("chat.room.{roomId}", roomId)
                         .retrieveFlux(new ParameterizedTypeReference<MessageRes<ChatMessageRes>>() {
                         }))
                 .expectSubscription()
@@ -201,7 +201,7 @@ public class ChatMessageControllerTest extends AbstractIntegrationTest {
         RSocketRequester requester = requesterMono.block(Duration.ofSeconds(5));
         assertThat(requester).isNotNull();
 
-        StepVerifier.create(requester.route("session.open.room.{roomId}", first.getRoomId())
+        StepVerifier.create(requester.route("chat.room.{roomId}", first.getRoomId())
                         .metadata(authMetadata, authenticationMimeType)
                         .retrieveFlux(new ParameterizedTypeReference<MessageRes<ChatMessageRes>>() {
                         }))
@@ -322,7 +322,7 @@ public class ChatMessageControllerTest extends AbstractIntegrationTest {
         RSocketRequester requester = requesterMono.block(Duration.ofSeconds(5));
         assertThat(requester).isNotNull();
 
-        StepVerifier.create(requester.route("session.open.room.{roomId}", message.getRoomId())
+        StepVerifier.create(requester.route("chat.room.{roomId}", message.getRoomId())
                         .metadata(authMetadata, authenticationMimeType)
                         .retrieveFlux(new ParameterizedTypeReference<MessageRes<ChatMessageRes>>() {
                         }))
