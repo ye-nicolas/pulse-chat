@@ -9,6 +9,7 @@ import com.nicolas.pulse.adapter.repository.chat.room.member.ChatRoomMemberData;
 import com.nicolas.pulse.entity.enumerate.ChatMessageType;
 import com.nicolas.util.*;
 import lombok.*;
+import lombok.extern.slf4j.Slf4j;
 
 import java.sql.*;
 import java.time.Instant;
@@ -16,6 +17,7 @@ import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Consumer;
 
+@Slf4j
 public class PrepareTestDataUseCase {
     private static final String encodePwd = "$2a$10$yjj8bwj1RPn146if3K9SeerD8o/NReFTBokcpWVRbYNzkYZDr7GOm";
     private static final AccountData ROOT = AccountData.builder()
@@ -80,18 +82,18 @@ public class PrepareTestDataUseCase {
             statement.executeUpdate(sql);
             connection.commit();
         } catch (SQLException e) {
-            e.printStackTrace();
+            log.error(e.getMessage());
             try {
                 connection.rollback();
             } catch (SQLException ex) {
-                ex.printStackTrace();
+                log.error(e.getMessage());
             }
             throw new RuntimeException("資料庫寫入失敗", e);
         }
     }
 
     private List<MemberVo> aggregate(Map<String, List<TempVo>> chatRoomMemberDistribution, Map<String, String> accountData) {
-        Map<String, MemberVo> tempMap = new HashMap<>();
+        Map<String, MemberVo> tempMap = new LinkedHashMap<>();
         for (Map.Entry<String, List<TempVo>> stringListEntry : chatRoomMemberDistribution.entrySet()) {
             String roomId = stringListEntry.getKey();
             for (TempVo tempVo : stringListEntry.getValue()) {
@@ -185,7 +187,7 @@ public class PrepareTestDataUseCase {
 
     private Map<String, List<TempVo>> getChatRoomMemberDistribution(List<String> accountIdList, List<String> roomIdList, Consumer<List<ChatRoomMemberData>> consumer) {
         List<ChatRoomMemberData> batchBuffer = new ArrayList<>();
-        Map<String, List<TempVo>> roomMap = new HashMap<>();
+        Map<String, List<TempVo>> roomMap = new LinkedHashMap<>();
         int roomCount = roomIdList.size();
         for (int i = 0; i < roomCount; i++) {
             String roomId = roomIdList.get(i);
@@ -194,7 +196,7 @@ public class PrepareTestDataUseCase {
             if (ratio < 0.20) {
                 memberSize = 2;
             } else if (ratio < 0.90) {
-                memberSize = ThreadLocalRandom.current().nextInt(2, 6);
+                memberSize = ThreadLocalRandom.current().nextInt(3, 6);
             } else if (ratio < 0.99) {
                 memberSize = ThreadLocalRandom.current().nextInt(10, 51);
             } else {
@@ -284,7 +286,7 @@ public class PrepareTestDataUseCase {
     private int calculateMsgCountByMemberSize(int memberSize) {
         ThreadLocalRandom random = ThreadLocalRandom.current();
         if (memberSize <= 2) {
-            return random.nextInt(0, 10);
+            return random.nextInt(1, 10);
         } else if (memberSize < 10) {
             return random.nextInt(20, 100);
         } else if (memberSize < 100) {
