@@ -2,7 +2,6 @@ package com.nicolas.pulse.adapter.controller.scoket;
 
 import com.nicolas.pulse.adapter.dto.mapper.ChatMessageMapper;
 import com.nicolas.pulse.adapter.dto.req.AddChatMessageReq;
-import com.nicolas.pulse.adapter.dto.req.GetMessageReq;
 import com.nicolas.pulse.adapter.dto.req.UpdateChatMessageReq;
 import com.nicolas.pulse.adapter.dto.res.ChatMessageLastReadRes;
 import com.nicolas.pulse.adapter.dto.res.ChatMessageRes;
@@ -37,7 +36,6 @@ public class ChatMessageController {
     private final Validator validator;
     private final SubscribeChatRoomUseCase subscribeChatRoomUseCase;
     private final ChatRoomManager chatRoomManager;
-    private final FindHistoryMessageUseCase findHistoryMessageUseCase;
     private final AddChatMessageUseCase addChatMessageUseCase;
     private final UpdateChatMessageUseCase updateChatMessageUseCase;
     private final DeleteChatMessageUseCase deleteChatMessageUseCase;
@@ -56,7 +54,6 @@ public class ChatMessageController {
         this.validator = validator;
         this.subscribeChatRoomUseCase = subscribeChatRoomUseCase;
         this.chatRoomManager = chatRoomManager;
-        this.findHistoryMessageUseCase = findHistoryMessageUseCase;
         this.addChatMessageUseCase = addChatMessageUseCase;
         this.updateChatMessageUseCase = updateChatMessageUseCase;
         this.deleteChatMessageUseCase = deleteChatMessageUseCase;
@@ -118,22 +115,6 @@ public class ChatMessageController {
         return updateChatRoomMemberLastReadMessageUseCase.execute(input, output)
                 .then(Mono.fromSupplier(() -> MessageRes.<ChatMessageLastReadRes>builder().data(new ChatMessageLastReadRes(output.getChatMessageLastRead().getLastMessageId())).build()))
                 .onErrorResume(throwable -> Mono.fromSupplier(() -> processException(throwable, ChatMessageLastReadRes.class)));
-    }
-
-    @MessageMapping("chat.history.get.{roomId}")
-    public Flux<MessageRes<ChatMessageRes>> getHistory(@DestinationVariable String roomId,
-                                                       @Payload Mono<GetMessageReq> mono) {
-        FindHistoryMessageUseCase.Output output = new FindHistoryMessageUseCase.Output();
-        return mono.delayUntil(this::validate)
-                .flatMap(req -> findHistoryMessageUseCase.execute(FindHistoryMessageUseCase.Input.builder()
-                        .roomId(roomId)
-                        .size(req.getSize())
-                        .page(req.getPage())
-                        .build(), output))
-                .thenMany(Flux.defer(() -> output.getMessageFlux()
-                        .map(ChatMessageMapper::domainToRes)
-                        .map(v -> MessageRes.<ChatMessageRes>builder().data(v).build())))
-                .onErrorResume(throwable -> Flux.just(processException(throwable, ChatMessageRes.class)));
     }
 
     private <T> Mono<Void> validate(T body) {
