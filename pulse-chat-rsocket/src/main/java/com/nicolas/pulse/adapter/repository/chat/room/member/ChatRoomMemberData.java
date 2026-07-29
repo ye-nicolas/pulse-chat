@@ -25,8 +25,10 @@ public class ChatRoomMemberData implements Persistable<String> {
     @Id
     @Column(COL_ID)
     private String id;
+
     @Column(COL_ACCOUNT_ID)
     private String accountId;
+
     @Column(COL_ROOM_ID)
     private String roomId;
 
@@ -48,6 +50,7 @@ public class ChatRoomMemberData implements Persistable<String> {
 
     @Column(COL_IS_MUTED)
     private boolean isMuted;
+
     @Column(COL_IS_PINNED)
     private boolean isPinned;
 

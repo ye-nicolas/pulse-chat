@@ -1,8 +1,12 @@
 package com.nicolas.pulse.adapter.controller;
 
+import com.nicolas.pulse.adapter.dto.mapper.ChatMessageMapper;
 import com.nicolas.pulse.adapter.dto.req.AddChatRoomMemberReq;
 import com.nicolas.pulse.adapter.dto.req.CreateChatRoomReq;
+import com.nicolas.pulse.adapter.dto.req.GetMessageReq;
 import com.nicolas.pulse.adapter.dto.req.RemoveChatRoomMemberReq;
+import com.nicolas.pulse.adapter.dto.res.ChatMessageRes;
+import com.nicolas.pulse.adapter.dto.res.MessageRes;
 import com.nicolas.pulse.entity.domain.chat.ChatRoom;
 import com.nicolas.pulse.entity.domain.chat.ChatRoomMember;
 import com.nicolas.pulse.entity.event.DeleteMemberEvent;
@@ -11,15 +15,21 @@ import com.nicolas.pulse.service.repository.ChatRoomMemberRepository;
 import com.nicolas.pulse.service.usecase.chat.member.AddChatRoomMemberUseCase;
 import com.nicolas.pulse.service.usecase.chat.member.FindChatRoomMemberUseCase;
 import com.nicolas.pulse.service.usecase.chat.member.RemoveChatRoomMemberByRoomUsecase;
+import com.nicolas.pulse.service.usecase.chat.message.FindHistoryMessageUseCase;
 import com.nicolas.pulse.service.usecase.chat.room.CreateChatRoomUseCase;
 import com.nicolas.pulse.service.usecase.chat.room.DeleteChatRoomUseCase;
 import com.nicolas.pulse.service.usecase.chat.room.FindChatRoomByIdUseCase;
 import com.nicolas.pulse.service.usecase.sink.ChatEventBus;
 import com.nicolas.pulse.util.SecurityUtil;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.handler.annotation.DestinationVariable;
+import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -38,6 +48,7 @@ public class ChatRoomController {
     private final AddChatRoomMemberUseCase addChatRoomMemberUseCase;
     private final RemoveChatRoomMemberByRoomUsecase removeChatRoomMemberByRoomUsecase;
     private final DeleteChatRoomUseCase deleteChatRoomUseCase;
+    private final FindHistoryMessageUseCase findHistoryMessageUseCase;
     private final ChatEventBus chatEventBus;
 
     public ChatRoomController(ChatRoomMemberRepository chatRoomMemberRepository,
@@ -47,6 +58,7 @@ public class ChatRoomController {
                               AddChatRoomMemberUseCase addChatRoomMemberUseCase,
                               RemoveChatRoomMemberByRoomUsecase removeChatRoomMemberByRoomUsecase,
                               DeleteChatRoomUseCase deleteChatRoomUseCase,
+                              FindHistoryMessageUseCase findHistoryMessageUseCase,
                               ChatEventBus chatEventBus) {
         this.chatRoomMemberRepository = chatRoomMemberRepository;
         this.findChatRoomByIdUseCase = findChatRoomByIdUseCase;
@@ -55,6 +67,7 @@ public class ChatRoomController {
         this.addChatRoomMemberUseCase = addChatRoomMemberUseCase;
         this.removeChatRoomMemberByRoomUsecase = removeChatRoomMemberByRoomUsecase;
         this.deleteChatRoomUseCase = deleteChatRoomUseCase;
+        this.findHistoryMessageUseCase = findHistoryMessageUseCase;
         this.chatEventBus = chatEventBus;
     }
 
@@ -120,5 +133,19 @@ public class ChatRoomController {
         return deleteChatRoomUseCase.execute(new DeleteChatRoomUseCase.Input(roomId))
                 .then(Mono.fromRunnable(() -> chatEventBus.publishRoomDelete(new DeleteRoomEvent(roomId))))
                 .thenReturn(ResponseEntity.ok().build());
+    }
+
+    @GetMapping("/{roomId}/messages")
+    public ResponseEntity<Flux<ChatMessageRes>> findMessageById(@PathVariable("roomId") String roomId,
+                                                           @Min(10) @Max(100) @RequestParam(value = "size", defaultValue = "10") int size,
+                                                           @Min(0) @RequestParam(value = "page", defaultValue = "0") int page) {
+        FindHistoryMessageUseCase.Output output = new FindHistoryMessageUseCase.Output();
+        return ResponseEntity.ok(findHistoryMessageUseCase.execute(FindHistoryMessageUseCase.Input.builder()
+                        .roomId(roomId)
+                        .size(size)
+                        .page(page)
+                        .build(), output)
+                .thenMany(Flux.defer(() -> output.getMessageFlux()
+                        .map(ChatMessageMapper::domainToRes))));
     }
 }

@@ -3,9 +3,13 @@ package com.nicolas.pulse.controller;
 import com.github.f4b6a3.ulid.UlidCreator;
 import com.nicolas.pulse.AbstractIntegrationTest;
 import com.nicolas.pulse.adapter.controller.ChatRoomController;
+import com.nicolas.pulse.adapter.dto.mapper.ChatMessageMapper;
 import com.nicolas.pulse.adapter.dto.req.AddChatRoomMemberReq;
 import com.nicolas.pulse.adapter.dto.req.CreateChatRoomReq;
+import com.nicolas.pulse.adapter.dto.req.GetMessageReq;
 import com.nicolas.pulse.adapter.dto.req.RemoveChatRoomMemberReq;
+import com.nicolas.pulse.adapter.dto.res.ChatMessageRes;
+import com.nicolas.pulse.adapter.dto.res.MessageRes;
 import com.nicolas.pulse.adapter.repository.DbMeta;
 import com.nicolas.pulse.entity.domain.SecurityAccount;
 import com.nicolas.pulse.entity.domain.chat.ChatMessage;
@@ -19,18 +23,23 @@ import com.nicolas.pulse.service.repository.ChatMessageReadLastRepository;
 import com.nicolas.pulse.service.repository.ChatMessageRepository;
 import com.nicolas.pulse.service.usecase.sink.ChatEventBus;
 import com.nicolas.pulse.util.ExceptionHandlerUtils;
+import com.redis.S;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
+import org.springframework.messaging.rsocket.RSocketRequester;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.test.web.reactive.server.SecurityMockServerConfigurers;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.web.reactive.server.WebTestClient;
+import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -41,6 +50,8 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+import static com.nicolas.pulse.util.ExceptionHandlerUtils.FORBIDDEN;
+import static com.nicolas.pulse.util.ExceptionHandlerUtils.TARGET_NOT_FOUND;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
@@ -873,7 +884,6 @@ public class ChatRoomControllerTest extends AbstractIntegrationTest {
         // Act
         WebTestClient.ResponseSpec exchange = deleteChatRoom(roomId, USER_DETAILS_ACCOUNT_1);
 
-
         // Assert
         exchange.expectStatus().isForbidden()
                 .expectBody(ProblemDetail.class)
@@ -909,6 +919,90 @@ public class ChatRoomControllerTest extends AbstractIntegrationTest {
                 .mutateWith(SecurityMockServerConfigurers.mockUser(userDetails))
                 .method(HttpMethod.DELETE)
                 .uri(ChatRoomController.CHAT_ROOM_BASE_URL + "/%s".formatted(roomId))
+                .exchange();
+    }
+
+    @Test
+    void getMessage_success() {
+        // Arrange
+        String roomId = ROOM_3.getId();
+        int page = 0;
+        int size = 20;
+        List<ChatMessageRes> expect = ROOM_3_CHAT_MESSAGE_LIST.stream()
+                .sorted(Comparator.comparing(ChatMessage::getId).reversed())
+                .limit(size)
+                .map(ChatMessageMapper::domainToRes)
+                .toList();
+
+        // Act
+        WebTestClient.ResponseSpec exchange = getChatMsg(roomId, size, page, USER_DETAILS_ACCOUNT_2);
+
+        // Act + Arrange
+        exchange.expectStatus()
+                .isOk()
+                .expectBodyList(ChatMessageRes.class)
+                .consumeWith(result -> {
+                    List<ChatMessageRes> responseBody = result.getResponseBody();
+                    assertThat(responseBody)
+                            .usingRecursiveComparison()
+                            .ignoringCollectionOrder()
+                            .isEqualTo(expect);
+                });
+    }
+
+    @Test
+    void getMessage_roomNotFound() {
+        // Arrange
+        int page = 0;
+        int size = 20;
+        String roomId = UlidCreator.getMonotonicUlid().toString();
+
+        // Act
+        WebTestClient.ResponseSpec exchange = getChatMsg(roomId, size, page, USER_DETAILS_ACCOUNT_2);
+
+        // Arrange
+        exchange.expectStatus()
+                .isNotFound()
+                .expectBody(ProblemDetail.class)
+                .consumeWith(result -> {
+                    ProblemDetail responseBody = result.getResponseBody();
+                    assertThat(responseBody).isNotNull();
+                    assertThat(responseBody.getTitle()).isEqualTo(TARGET_NOT_FOUND);
+                    assertThat(responseBody.getDetail()).isEqualTo("Chat room not found, room id = '%s'.".formatted(roomId));
+                });
+    }
+
+    @Test
+    void getMessage_notRoomMember() {
+        // Arrange
+        int page = 0;
+        int size = 20;
+        String roomId = ADD_MEMBER_ROOM_2.getId();
+
+        // Act
+        WebTestClient.ResponseSpec exchange = getChatMsg(roomId, size, page, USER_DETAILS_ACCOUNT_2);
+
+        // Arrange
+        exchange.expectStatus()
+                .isForbidden()
+                .expectBody(ProblemDetail.class)
+                .consumeWith(result -> {
+                    ProblemDetail responseBody = result.getResponseBody();
+                    assertThat(responseBody).isNotNull();
+                    assertThat(responseBody.getTitle()).isEqualTo(FORBIDDEN);
+                    assertThat(responseBody.getDetail()).isEqualTo("Can't read message by permission denied, account id = '%s'.".formatted(USER_DETAILS_ACCOUNT_2.getId()));
+                });
+    }
+
+    private WebTestClient.ResponseSpec getChatMsg(String roomId, int size, int page, UserDetails userDetails) {
+        return webTestClient
+                .mutateWith(SecurityMockServerConfigurers.mockUser(userDetails))
+                .get()
+                .uri(uriBuilder -> uriBuilder
+                        .path(ChatRoomController.CHAT_ROOM_BASE_URL + "/%s/messages".formatted(roomId))
+                        .queryParam("size", size)
+                        .queryParam("page", page)
+                        .build())
                 .exchange();
     }
 }

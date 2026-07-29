@@ -31,11 +31,11 @@ public class SubscribeChatRoomUseCase {
         return validateChatRoomExists(input.getRoomId())
                 .then(this.validateCanSubscribe(input.getRoomId()))
                 .then(SecurityUtil.getCurrentAccountId())
-                .handle((accountId, sink) -> {
+                .doOnNext(accountId -> {
                     output.setAccountId(accountId);
                     output.setChatMessageFlux(chatRoomManager.subscribe(accountId, input.getRoomId()));
-                    sink.complete();
-                });
+                })
+                .then();
     }
 
     private Mono<Void> validateChatRoomExists(String roomId) {

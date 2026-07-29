@@ -76,7 +76,7 @@ public class ChatRoomManager {
     }
 
     private void decrementCounter(String roomId) {
-        roomMemberCounters.computeIfPresent(roomId, (id, counter) -> {
+        roomMemberCounters.computeIfPresent(roomId, (key, counter) -> {
             counter.decrement();
             if (counter.sum() <= 0) {
                 roomBroadcasters.remove(roomId);
@@ -100,7 +100,7 @@ public class ChatRoomManager {
     public void handleUserOffline(RSocketRequester requester) {
         String accountId = sessionToAccount.remove(requester);
         if (StringUtils.hasText(accountId)) {
-            accountSessionCounters.computeIfPresent(accountId, (id, counter) -> {
+            accountSessionCounters.computeIfPresent(accountId, (key, counter) -> {
                 counter.decrement();
                 if (counter.sum() <= 0) {
                     kickSink.tryEmitNext(new RoomControlSignal(accountId, null, RoomControlSignal.Type.USER_OFFLINE));

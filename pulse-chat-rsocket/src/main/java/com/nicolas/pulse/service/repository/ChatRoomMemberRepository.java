@@ -26,6 +26,4 @@ public interface ChatRoomMemberRepository {
     Mono<Void> deleteByAccountId(String accountId);
 
     Mono<Boolean> existsByAccountIdAndRoomId(String accountId, String roomId);
-
-    Mono<Boolean> existsByIdAndRoomId(String id, String roomId);
 }

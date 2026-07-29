@@ -43,20 +43,20 @@ public class UpdateChatRoomMemberLastReadMessageUseCase {
 
     private Mono<ChatMessageLastRead> saveChatMessageRead(String messageId, ChatRoomMember chatRoomMember) {
         return chatMessageReadLastRepository.findByRoomIdAndMemberId(chatRoomMember.getChatRoom().getId(), chatRoomMember.getId())
-                .switchIfEmpty(Mono.fromSupplier(() -> ChatMessageLastRead.builder()
-                        .id(UlidCreator.getMonotonicUlid().toString())
-                        .roomId(chatRoomMember.getChatRoom().getId())
-                        .lastMessageId(messageId)
-                        .memberId(chatRoomMember.getId())
-                        .build()))
                 .flatMap(chatMessageLastRead -> {
-                    if (messageId.compareTo(chatMessageLastRead.getLastMessageId()) >= 0) {
+                    if (messageId.compareTo(chatMessageLastRead.getLastMessageId()) > 0) {
                         chatMessageLastRead.setLastMessageId(messageId);
                         return chatMessageReadLastRepository.save(chatMessageLastRead);
-                    }else {
+                    } else {
                         return Mono.just(chatMessageLastRead);
                     }
-                });
+                }).switchIfEmpty(Mono.fromSupplier(() -> ChatMessageLastRead.builder()
+                                .id(UlidCreator.getMonotonicUlid().toString())
+                                .roomId(chatRoomMember.getChatRoom().getId())
+                                .lastMessageId(messageId)
+                                .memberId(chatRoomMember.getId())
+                                .build())
+                        .flatMap(chatMessageReadLastRepository::save));
     }
 
     private Mono<ChatRoomMember> getMember(String roomId) {
