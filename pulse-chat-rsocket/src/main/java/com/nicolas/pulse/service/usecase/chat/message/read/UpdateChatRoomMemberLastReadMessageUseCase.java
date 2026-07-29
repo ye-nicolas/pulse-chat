@@ -51,12 +51,12 @@ public class UpdateChatRoomMemberLastReadMessageUseCase {
                         return Mono.just(chatMessageLastRead);
                     }
                 }).switchIfEmpty(Mono.fromSupplier(() -> ChatMessageLastRead.builder()
-                                .id(UlidCreator.getMonotonicUlid().toString())
-                                .roomId(chatRoomMember.getChatRoom().getId())
-                                .lastMessageId(messageId)
-                                .memberId(chatRoomMember.getId())
-                                .build())
-                        .flatMap(chatMessageReadLastRepository::save));
+                        .id(UlidCreator.getMonotonicUlid().toString())
+                        .roomId(chatRoomMember.getChatRoom().getId())
+                        .lastMessageId(messageId)
+                        .memberId(chatRoomMember.getId())
+                        .build()))
+                .flatMap(chatMessageReadLastRepository::save);
     }
 
     private Mono<ChatRoomMember> getMember(String roomId) {

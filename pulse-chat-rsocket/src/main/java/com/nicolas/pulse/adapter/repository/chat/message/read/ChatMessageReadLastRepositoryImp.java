@@ -28,8 +28,9 @@ public class ChatMessageReadLastRepositoryImp implements ChatMessageReadLastRepo
     @Transactional
     @Override
     public Mono<ChatMessageLastRead> save(ChatMessageLastRead messageRead) {
-        ChatMessageLastReadData chatMessageLastReadData = ChatMessageReadDataMapper.domainToData(messageRead);
-        return peer.save(chatMessageLastReadData).map(ChatMessageReadDataMapper::dataToDomain);
+        return Mono.fromSupplier(() -> ChatMessageReadDataMapper.domainToData(messageRead))
+                .flatMap(peer::save)
+                .map(ChatMessageReadDataMapper::dataToDomain);
     }
 
     @Transactional

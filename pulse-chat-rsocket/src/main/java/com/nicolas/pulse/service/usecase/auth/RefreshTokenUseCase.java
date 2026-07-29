@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
 import javax.crypto.SecretKey;
 
@@ -31,6 +32,7 @@ public class RefreshTokenUseCase {
 
     public Mono<Void> execute(Input input, Output output) {
         return Mono.fromCallable(() -> JwtUtil.validateRefreshToken(secretKey, input.getRefreshToken()))
+                .subscribeOn(Schedulers.boundedElastic())
                 .flatMap(claims -> reactiveUserDetailsService.findById(claims.getSubject()))
                 .doOnNext(securityAccount -> {
                     String accessTokenId = UlidCreator.getMonotonicUlid().toString();

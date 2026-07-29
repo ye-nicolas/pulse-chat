@@ -29,8 +29,9 @@ public class ChatMessageRepositoryImpl implements ChatMessageRepository {
     @Transactional
     @Override
     public Mono<ChatMessage> save(ChatMessage chatMessage) {
-        ChatMessageData chatMessageData = ChatMessageDataMapper.domainToData(chatMessage);
-        return peer.save(chatMessageData).map(ChatMessageDataMapper::dataToDomain);
+        return Mono.fromSupplier(() -> ChatMessageDataMapper.domainToData(chatMessage))
+                .flatMap(peer::save)
+                .map(ChatMessageDataMapper::dataToDomain);
     }
 
     @Override

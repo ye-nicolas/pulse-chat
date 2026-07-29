@@ -23,8 +23,9 @@ public class ChatRoomRepositoryImpl implements ChatRoomRepository {
     @Transactional
     @Override
     public Mono<ChatRoom> save(ChatRoom account) {
-        ChatRoomData accountData = ChatRoomDataMapper.domainToData(account);
-        return peer.save(accountData).map(ChatRoomDataMapper::dataToDomain);
+        return Mono.fromSupplier(() -> ChatRoomDataMapper.domainToData(account))
+                .flatMap(peer::save)
+                .map(ChatRoomDataMapper::dataToDomain);
     }
 
     @Override

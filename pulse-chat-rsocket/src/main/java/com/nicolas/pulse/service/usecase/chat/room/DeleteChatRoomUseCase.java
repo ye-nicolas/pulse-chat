@@ -36,7 +36,7 @@ public class DeleteChatRoomUseCase {
     @Transactional
     public Mono<Void> execute(Input input) {
         return validateRoomIsExists(input.roomId)
-                .then(validateDeleteAllow(input.getRoomId()))
+                .then(Mono.defer(() -> validateDeleteAllow(input.getRoomId())))
                 .then(Mono.when(chatMessageReadLastRepository.deleteByRoomId(input.getRoomId()),
                         chatMessageRepository.deleteByRoomId(input.getRoomId()),
                         chatRoomMemberRepository.deleteByRoomId(input.getRoomId()),

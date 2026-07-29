@@ -4,6 +4,7 @@ import com.nicolas.pulse.adapter.repository.DbMeta;
 import com.nicolas.pulse.adapter.repository.account.AccountData;
 import com.nicolas.pulse.entity.domain.FriendShip;
 import com.nicolas.pulse.entity.enumerate.FriendShipStatus;
+import com.nicolas.pulse.entity.exception.TargetNotFoundException;
 import com.nicolas.pulse.service.repository.FriendShipRepository;
 import com.nicolas.pulse.util.TypeUtil;
 import org.springframework.data.r2dbc.core.R2dbcEntityOperations;
@@ -168,8 +169,9 @@ public class FriendShipRepositoryImpl implements FriendShipRepository {
     @Transactional
     @Override
     public Mono<FriendShip> save(FriendShip friendShip) {
-        FriendShipData friendShipData = FriendShipDataMapper.domainToData(friendShip);
-        return peer.save(friendShipData).map(FriendShipDataMapper::dataToDomain);
+        return Mono.fromSupplier(() -> FriendShipDataMapper.domainToData(friendShip))
+                .flatMap(peer::save)
+                .map(FriendShipDataMapper::dataToDomain);
     }
 
     @Transactional
@@ -183,5 +185,15 @@ public class FriendShipRepositoryImpl implements FriendShipRepository {
         return Mono.zip(peer.existsByRequesterAccountIdAndRecipientAccountId(requesterAccountId, recipientAccountId),
                         peer.existsByRequesterAccountIdAndRecipientAccountId(recipientAccountId, requesterAccountId))
                 .map(tuple -> tuple.getT1() || tuple.getT2());
+    }
+
+    public static void main(String[] args) {
+        Flux.just(1, 2, 0, 4,0)
+                .map(i -> "100 / " + i + " = " + (100 / i))
+                .onErrorResume(throwable -> Flux.error(new TargetNotFoundException(throwable.getMessage() + " = Bone")))
+                .subscribe(System.out::println,
+                        error -> System.out.println("error: " + error.getMessage()),
+                        () -> System.out.println("流 結束")//感知正常結束
+                );
     }
 }

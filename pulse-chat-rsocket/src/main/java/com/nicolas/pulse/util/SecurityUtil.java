@@ -20,6 +20,5 @@ public class SecurityUtil {
                 .filter(Authentication::isAuthenticated)
                 .map(Authentication::getPrincipal)
                 .map(auth -> ((SecurityAccount) auth));
-
     }
 }

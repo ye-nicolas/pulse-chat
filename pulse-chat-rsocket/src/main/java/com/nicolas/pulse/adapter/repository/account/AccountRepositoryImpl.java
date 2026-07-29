@@ -16,11 +16,6 @@ public class AccountRepositoryImpl implements AccountRepository {
     }
 
     @Override
-    public Flux<Account> findAll() {
-        return peer.findAll().map(AccountDataMapper::dataToDomain);
-    }
-
-    @Override
     public Mono<Account> findById(String id) {
         return peer.findById(id).map(AccountDataMapper::dataToDomain);
     }
@@ -33,8 +28,9 @@ public class AccountRepositoryImpl implements AccountRepository {
     @Transactional
     @Override
     public Mono<Account> save(Account account) {
-        AccountData accountData = AccountDataMapper.domainToData(account);
-        return peer.save(accountData).map(AccountDataMapper::dataToDomain);
+        return Mono.fromSupplier(() -> AccountDataMapper.domainToData(account))
+                .flatMap(peer::save)
+                .map(AccountDataMapper::dataToDomain);
     }
 
     @Transactional

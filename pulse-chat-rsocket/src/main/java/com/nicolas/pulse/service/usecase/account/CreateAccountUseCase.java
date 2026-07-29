@@ -12,6 +12,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
 @Service
 public class CreateAccountUseCase {
@@ -24,23 +25,24 @@ public class CreateAccountUseCase {
         this.accountRepository = accountRepository;
     }
 
-    @Transactional
     public Mono<Void> execute(Input input, Output output) {
         return this.validateNameNotExists(input.getName())
-                .then(this.createUser(input))
+                .then(createAccount(input))
+                .flatMap(accountRepository::save)
                 .doOnNext(output::setAccount)
                 .then();
     }
 
-    private Mono<Account> createUser(Input input) {
-        return accountRepository.save(Account.builder()
-                .id(UlidCreator.getMonotonicUlid().toString())
-                .name(input.getName())
-                .showName(input.getShowName())
-                .password(passwordEncoder.encode(input.getPassword()))
-                .isActive(true)
-                .remark(input.getRemark())
-                .build());
+    private Mono<Account> createAccount(Input input) {
+        return Mono.fromSupplier(() -> Account.builder()
+                        .id(UlidCreator.getMonotonicUlid().toString())
+                        .name(input.getName())
+                        .showName(input.getShowName())
+                        .password(passwordEncoder.encode(input.getPassword()))
+                        .isActive(true)
+                        .remark(input.getRemark())
+                        .build())
+                .subscribeOn(Schedulers.parallel());
     }
 
     private Mono<Void> validateNameNotExists(String name) {

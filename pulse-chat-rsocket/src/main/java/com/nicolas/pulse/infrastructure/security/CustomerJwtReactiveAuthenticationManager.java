@@ -13,6 +13,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.oauth2.server.resource.authentication.BearerTokenAuthenticationToken;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
 import javax.crypto.SecretKey;
 
@@ -34,25 +35,21 @@ public class CustomerJwtReactiveAuthenticationManager implements ReactiveAuthent
                 .filter((a) -> a instanceof BearerTokenAuthenticationToken)
                 .cast(BearerTokenAuthenticationToken.class)
                 .map(BearerTokenAuthenticationToken::getToken)
-                .flatMap(this::validateAccessToken)
-                .flatMap(this::claimsToUserDetails)
-                .flatMap(this::userDetailsToAuthentication)
+                .map(token -> JwtUtil.validateAccessToken(secretKey, token))
+                .map(this::claimsToUserDetails)
+                .map(this::userDetailsToAuthentication)
                 .onErrorMap(ex -> new BadCredentialsException(ex.getMessage(), ex));
     }
 
-    private Mono<Claims> validateAccessToken(String token) {
-        return Mono.fromCallable(() -> JwtUtil.validateAccessToken(secretKey, token));
-    }
-
-    private Mono<SecurityAccount> claimsToUserDetails(Claims claims) {
-        return Mono.fromCallable(() -> SecurityAccount.builder()
+    private SecurityAccount claimsToUserDetails(Claims claims) {
+        return SecurityAccount.builder()
                 .id(claims.getSubject())
                 .username(claims.get(USER_NAME, String.class))
                 .state(true)
-                .build());
+                .build();
     }
 
-    private Mono<Authentication> userDetailsToAuthentication(UserDetails userDetails) {
-        return Mono.fromCallable(() -> new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities()));
+    private Authentication userDetailsToAuthentication(UserDetails userDetails) {
+        return new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
     }
 }

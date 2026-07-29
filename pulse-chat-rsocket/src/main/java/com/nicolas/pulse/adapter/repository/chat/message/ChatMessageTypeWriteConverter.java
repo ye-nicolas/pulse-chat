@@ -5,6 +5,8 @@ import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.convert.WritingConverter;
 import org.springframework.stereotype.Component;
 
+import java.util.Objects;
+
 @Component
 @WritingConverter
 public class ChatMessageTypeWriteConverter implements Converter<ChatMessageType, String> {
